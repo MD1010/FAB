@@ -9,9 +9,9 @@ from constants import *
 from flask import Flask, request, make_response
 app = Flask(__name__)
 
-@app.route('/api/login', methods = ['GET'])
+@app.route('/api/login/', methods = ['GET'])
 def user_login():
-    my_selenium.start_login()
+    my_selenium.start_login(email="lidor18070@walla.com",password="*******")
     return 'ok'
 
 @app.route('/api/players-list')
