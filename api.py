@@ -1,3 +1,5 @@
+from inspect import _empty
+
 import requests
 import json
 
@@ -11,8 +13,12 @@ app = Flask(__name__)
 
 @app.route('/api/login/', methods = ['GET'])
 def user_login():
-    my_selenium.start_login(email="lidor18070@walla.com",password="*******")
-    return 'ok'
+    email = request.args['email']
+    password = request.args['password']
+    if email is None or password is None:
+        return "no credentials specified",400
+    my_selenium.start_login(email,password)
+    return "redirected to confirmation page successfuly",200
 
 @app.route('/api/players-list')
 def players_list():
@@ -36,4 +42,4 @@ def user_players():
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
     playersSavedList = []
-    app.run()
+    app.run(debug=True)
