@@ -41,23 +41,23 @@ def start_login(email, password):
 
         #Log In btn
 
-    # else:
-    #     driver.get("https://signin.ea.com/p/web2/login?execution=e1639509631s1&initref=https%3A%2F%2Faccounts.ea.com%3A443%2Fconnect%2Fauth%3Fprompt%3Dlogin%26accessToken%3Dnull%26client_id%3DFIFA-20-WEBCLIENT%26response_type%3Dtoken%26display%3Dweb2%252Flogin%26locale%3Den_US%26redirect_uri%3Dhttps%253A%252F%252Fwww.easports.com%252Ffifa%252Fultimate-team%252Fweb-app%252Fauth.html%26release_type%3Dprod%26scope%3Dbasic.identity%2Boffline%2Bsignin%2Bbasic.entitlement%2Bbasic.persona")
-    #     emailField = driver.find_element_by_id("email")
-    #     passwordField = driver.find_element_by_id("password")
-    #     logInButton = driver.find_element_by_id("btnLogin")
-    #     emailField.send_keys(email)
-    #     passwordField.send_keys(password)
-    #     logInButton.click()
-    #     driver.find_element_by_xpath("//input[@name='codeType' and @value='SMS']").click()
-    #     #send the email verfication
-    #     driver.find_element_by_class_name("btn-next").click()
-    #
-    #     input1 = input("Enter your code ")
-    #     if input1:
-    #         driver.find_element_by_id("oneTimeCode").send_keys(input1)
-    #         driver.find_element_by_id("btnSubmit").click()
-    #         save_obj(driver.get_cookies(),fileName)
+    else:
+        driver.get("https://signin.ea.com/p/web2/login?execution=e1639509631s1&initref=https%3A%2F%2Faccounts.ea.com%3A443%2Fconnect%2Fauth%3Fprompt%3Dlogin%26accessToken%3Dnull%26client_id%3DFIFA-20-WEBCLIENT%26response_type%3Dtoken%26display%3Dweb2%252Flogin%26locale%3Den_US%26redirect_uri%3Dhttps%253A%252F%252Fwww.easports.com%252Ffifa%252Fultimate-team%252Fweb-app%252Fauth.html%26release_type%3Dprod%26scope%3Dbasic.identity%2Boffline%2Bsignin%2Bbasic.entitlement%2Bbasic.persona")
+        emailField = driver.find_element_by_id("email")
+        passwordField = driver.find_element_by_id("password")
+        logInButton = driver.find_element_by_id("btnLogin")
+        emailField.send_keys(email)
+        passwordField.send_keys(password)
+        logInButton.click()
+        driver.find_element_by_xpath("//input[@name='codeType' and @value='SMS']").click()
+        #send the email verfication
+        driver.find_element_by_class_name("btn-next").click()
+
+        input1 = input("Enter your code ")
+        if input1:
+            driver.find_element_by_id("oneTimeCode").send_keys(input1)
+            driver.find_element_by_id("btnSubmit").click()
+            save_obj(driver.get_cookies(),fileName)
 
 
     # """get the confirmation password"""
