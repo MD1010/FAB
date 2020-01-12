@@ -1,4 +1,5 @@
 import json
+import time
 
 import constants
 
@@ -7,39 +8,37 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 import os.path
 
-
-def save_obj(obj, name):
-    with open(name + '.txt', 'w') as f:
-        f.write(json.dumps(obj))
-
-
-def load_obj(name):
-    with open(name + '.txt', 'r') as f:
-        return json.load(f)
+from helper_functions import loadCookiesFile, saveToCookiesFile
 
 
 def start_login(email, password):
     driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get(constants.WEB_APP_URL)
-    fileName = 'cookies'
 
-    if os.path.isfile(fileName + ".txt"):
+    if os.path.isfile(constants.COOKIES_FILE_NAME):
         driver.delete_all_cookies()
-        cookies = load_obj(fileName)
+        cookies = loadCookiesFile(constants.COOKIES_FILE_NAME)
         for cookie in cookies:
-            cookie['expiry'] = int(cookie['expiry'])
+            if 'expiry' in cookie:
+                del cookie['expiry']
             driver.add_cookie(cookie)
         driver.get(constants.WEB_APP_URL)
-        driver.implicitly_wait(20)
-        # el = driver.find_elements_by_css_selector(".ut-login .ut-login-content .btn-standard")[0]
-        # print(el)
-        # driver.implicitly_wait(60)
-        # el.click()
+        driver.implicitly_wait(5)
 
-    # cookies file was not found - log in the first time
+        loginButton = driver.find_element_by_xpath("/html/body/main/div/div/div/button[1]")
+        time.sleep(1)
+        loginButton.click()
 
+        # Entering password left, and you are in!
+
+        passwordField = driver.find_element_by_id("password")
+        passwordField.send_keys(password)
+
+        driver.find_element_by_class_name("btn-next").click()
+
+        # cookies file was not found - log in the first time
     else:
-        driver.get("https://signin.ea.com/p/web2/login?execution=e1639509631s1&initref=https%3A%2F%2Faccounts.ea.com%3A443%2Fconnect%2Fauth%3Fprompt%3Dlogin%26accessToken%3Dnull%26client_id%3DFIFA-20-WEBCLIENT%26response_type%3Dtoken%26display%3Dweb2%252Flogin%26locale%3Den_US%26redirect_uri%3Dhttps%253A%252F%252Fwww.easports.com%252Ffifa%252Fultimate-team%252Fweb-app%252Fauth.html%26release_type%3Dprod%26scope%3Dbasic.identity%2Boffline%2Bsignin%2Bbasic.entitlement%2Bbasic.persona")
+        driver.get(constants.SIGN_IN_URL)
         emailField = driver.find_element_by_id("email")
         passwordField = driver.find_element_by_id("password")
         logInButton = driver.find_element_by_id("btnLogin")
@@ -47,24 +46,25 @@ def start_login(email, password):
         passwordField.send_keys(password)
         logInButton.click()
         driver.find_element_by_xpath("//input[@name='codeType' and @value='SMS']").click()
-        # send the email verfication
+
+        # send the sms verfication
         driver.find_element_by_class_name("btn-next").click()
 
+        # replace this stupid input thing..
+        # What happens if the user is stupid enough to type the wrong code ? ? ?
         input1 = input("Enter your code ")
         if input1:
             driver.find_element_by_id("oneTimeCode").send_keys(input1)
             driver.find_element_by_id("btnSubmit").click()
-            input1 = input("ENter:")
-            # save_obj(driver.get_cookies(), fileName)
+
             eaCookies = driver.get_cookies()
-            driver.get("https://signin.ea.com/p/web2/login?execution=e1639509631s1&initref=https%3A%2F%2Faccounts.ea.com%3A443%2Fconnect%2Fauth%3Fprompt%3Dlogin%26accessToken%3Dnull%26client_id%3DFIFA-20-WEBCLIENT%26response_type%3Dtoken%26display%3Dweb2%252Flogin%26locale%3Den_US%26redirect_uri%3Dhttps%253A%252F%252Fwww.easports.com%252Ffifa%252Fultimate-team%252Fweb-app%252Fauth.html%26release_type%3Dprod%26scope%3Dbasic.identity%2Boffline%2Bsignin%2Bbasic.entitlement%2Bbasic.persona")
+            driver.get(constants.SIGN_IN_URL)
             signInCookies = driver.get_cookies()
 
-            print("loginCookies",signInCookies)
-            print("eaCookies",eaCookies)
             for cookie in signInCookies:
-                cookie['expiry'] = int(cookie['expiry'])
+                if 'expiry' in cookie:
+                    del cookie['expiry']
                 if cookie not in eaCookies:
                     eaCookies.append(cookie)
-            save_obj(eaCookies,fileName)
+            saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
             driver.back()
