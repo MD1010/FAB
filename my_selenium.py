@@ -10,6 +10,8 @@ import os.path
 
 from helper_functions import loadCookiesFile, saveToCookiesFile
 
+statusCode = ''
+
 
 def start_login(email, password):
     driver = webdriver.Chrome(ChromeDriverManager().install())
@@ -36,6 +38,8 @@ def start_login(email, password):
 
         driver.find_element_by_class_name("btn-next").click()
 
+        # check if got to login page and then return response...
+
         # cookies file was not found - log in the first time
     else:
         driver.get(constants.SIGN_IN_URL)
@@ -48,23 +52,34 @@ def start_login(email, password):
         driver.find_element_by_xpath("//input[@name='codeType' and @value='SMS']").click()
 
         # send the sms verfication
+
         driver.find_element_by_class_name("btn-next").click()
 
-        # replace this stupid input thing..
+        while statusCode is '':
+            time.sleep(1)
+            pass
+
+
         # What happens if the user is stupid enough to type the wrong code ? ? ?
-        input1 = input("Enter your code ")
-        if input1:
-            driver.find_element_by_id("oneTimeCode").send_keys(input1)
-            driver.find_element_by_id("btnSubmit").click()
 
-            eaCookies = driver.get_cookies()
-            driver.get(constants.SIGN_IN_URL)
-            signInCookies = driver.get_cookies()
+        # status code is set
 
-            for cookie in signInCookies:
-                if 'expiry' in cookie:
-                    del cookie['expiry']
-                if cookie not in eaCookies:
-                    eaCookies.append(cookie)
-            saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
-            driver.back()
+        driver.find_element_by_id("oneTimeCode").send_keys(statusCode)
+        driver.find_element_by_id("btnSubmit").click()
+
+        eaCookies = driver.get_cookies()
+        driver.get(constants.SIGN_IN_URL)
+        signInCookies = driver.get_cookies()
+
+        for cookie in signInCookies:
+            if 'expiry' in cookie:
+                del cookie['expiry']
+            if cookie not in eaCookies:
+                eaCookies.append(cookie)
+        saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
+        driver.back()
+
+
+def setStatusCode(code):
+    global statusCode
+    statusCode = code
