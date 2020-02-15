@@ -79,6 +79,36 @@ def start_login(email, password):
         saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
         driver.back()
 
+    time.sleep(15)
+    driver.find_element_by_xpath("/html/body/main/section/nav/button[3]").click()
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div/div[2]/div[2]").click()
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/input").send_keys("messi")
+    time.sleep(1)
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/div/ul/button[1]").click()
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").send_keys("150000")
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").send_keys("250")
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click() #decrease
+    # driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]").click() #increase
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[2]/button[2]").click() #search
+    time.sleep(2)
+    no_results = driver.find_elements_by_xpath("/html/body/main/section/section/div[2]/div/div/section/div/div[2]/div/h2")
+    if len(no_results) == 1:
+        print("no results")
+        #navigate back
+        driver.find_element_by_xpath("/html/body/main/section/section/div[1]/button[1]").click()
+
+    #if player was found
+    # else:
+    #     driver.find_element_by_xpath("")
+
+
+
+
+
+
+
+
+
 
 def setStatusCode(code):
     global statusCode

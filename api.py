@@ -54,6 +54,7 @@ def set_status_code():
     return code, 200
 
 
+
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
     playersSavedList = []
