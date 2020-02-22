@@ -59,7 +59,6 @@ def start_login(email, password):
             time.sleep(1)
             pass
 
-
         # What happens if the user is stupid enough to type the wrong code ? ? ?
 
         # status code is set
@@ -80,34 +79,74 @@ def start_login(email, password):
         driver.back()
 
     time.sleep(15)
+    tries_left = 10
+
+    # if popup is shown when entering the app it has to be removed
+    popup = driver.find_element_by_class_name("view-modal-container")
+    if popup:
+        driver.execute_script("""var element = arguments[0];element.parentNode.removeChild(element);""", popup)
+
+    # click on TRANSFERS
     driver.find_element_by_xpath("/html/body/main/section/nav/button[3]").click()
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div/div[2]/div[2]").click()
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/input").send_keys("messi")
     time.sleep(1)
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/div/ul/button[1]").click()
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").send_keys("150000")
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").send_keys("250")
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click() #decrease
-    # driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]").click() #increase
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[2]/button[2]").click() #search
-    time.sleep(2)
-    no_results = driver.find_elements_by_xpath("/html/body/main/section/section/div[2]/div/div/section/div/div[2]/div/h2")
-    if len(no_results) == 1:
-        print("no results")
-        #navigate back
-        driver.find_element_by_xpath("/html/body/main/section/section/div[1]/button[1]").click()
 
-    #if player was found
-    # else:
-    #     driver.find_element_by_xpath("")
+    # click on search on transfer market
+    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div/div[2]/div[2]").click()
+    time.sleep(1)
+
+    # write the searched player name
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/input").send_keys("messi")
+    time.sleep(1)
+
+    # choose the player in the list(the first one)
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/div/ul/button[1]").click()
+    time.sleep(1)
+
+    # set max BIN price - clear the input first
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").clear()
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").send_keys(
+        "150000")
+    time.sleep(1)
+
+    # set min price - clear the input first
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").clear()
+    driver.find_element_by_xpath(
+        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").send_keys("250")
+    time.sleep(1)
+
+    # decrease price
+    # driver.find_element_by_xpath(
+    #     "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click()
+    # time.sleep(1)
+    while tries_left is not 0:
+        # search
+        driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[2]/button[2]").click()
+        time.sleep(2)
+        tries_left -= 1
+
+        # if no players to the wanted price were found - navigate back
+        no_results = driver.find_elements_by_xpath(
+            "/html/body/main/section/section/div[2]/div/div/section/div/div[2]/div/h2")
+        if len(no_results) == 1:
+            print("no results")
+            # navigate back
+            driver.find_element_by_xpath("/html/body/main/section/section/div[1]/button[1]").click()
+        if tries_left % 2 == 1:
+            driver.find_element_by_xpath(
+                "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]").click()  # increase
+        else:
+            driver.find_element_by_xpath(
+                "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click()  # decrease
 
 
-
-
-
-
-
-
+# if player was found
+# else:
+#     driver.find_element_by_xpath("")
 
 
 def setStatusCode(code):
