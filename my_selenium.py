@@ -95,14 +95,14 @@ def start_login(email, password):
     # click on search on transfer market
     driver.find_element_by_class_name("ut-tile-transfer-market").click()
     time.sleep(1)
-    #
-    # # write the searched player name
-    # driver.find_element_by_class_name("ut-text-input-control").send_keys("messi")
-    # time.sleep(1)
-    #
-    # # choose the player in the list(the first one)
-    # driver.find_element_by_class_name("playerResultsList").find_elements_by_tag_name("button")[0].click()
-    # time.sleep(1)
+
+    # write the searched player name
+    driver.find_element_by_class_name("ut-text-input-control").send_keys("messi")
+    time.sleep(1)
+
+    # choose the player in the list(the first one)
+    driver.find_element_by_class_name("playerResultsList").find_elements_by_tag_name("button")[0].click()
+    time.sleep(1)
 
     # set max BIN price - clear the input first
     driver.find_elements_by_class_name(
