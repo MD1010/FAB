@@ -90,7 +90,7 @@ def start_login(email, password):
         pass
     # click on TRANSFERS
     driver.find_element_by_class_name("icon-transfer").click()
-    time.sleep(2)
+    time.sleep(1)
 
     # click on search on transfer market
     driver.find_element_by_class_name("ut-tile-transfer-market").click()
@@ -116,43 +116,34 @@ def start_login(email, password):
     driver.find_elements_by_class_name(
         "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").clear()
     driver.find_elements_by_class_name(
-        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").send_keys("250")
-    # time.sleep(1)
+        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").send_keys("")
+    time.sleep(1)
 
     while tries_left is not 0:
         # search
         driver.find_element_by_class_name("call-to-action").click()
-        # time.sleep(2)
+        time.sleep(1)
         tries_left -= 1
 
-        # if no players to the wanted price were found - navigate back
+        # try to buy
         try:
-            driver.find_element_by_class_name("ut-no-results-view")
-            # navigate back
+            driver.find_element_by_class_name("buyButton").click()
+            #1 - buy , 2-cancel - cancel when testing
+            # buy the player
+            driver.find_element_by_xpath("/html/body/div[4]/section/div/div/button[2]").click()
+        # ????? navigating back too slowly ????? - happends because find element by xpath takes time...
+        except NoSuchElementException:
+            # if no players to the wanted price were found - navigate back
             driver.find_element_by_class_name("ut-navigation-button-control").click()
+
             if tries_left % 2 == 1:
                 driver.find_elements_by_class_name(
-                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name("increment-value").click()  # increase
+                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name(
+                    "increment-value").click()  # increase
             else:
                 driver.find_elements_by_class_name(
-                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name("decrement-value").click()  # decrease
-        #player was found
-        except NoSuchElementException:
-            try:
-                driver.find_element_by_class_name("buyButton").click()
-                #buy the player
-                # driver.find_element_by_xpath("//*[text()[contains(., 'Cancel')]]").click()
-                # print(driver.find_element_by_class_name("ut-button-group").find_elements_by_tag_name("button")[1])
-            except NoSuchElementException:
-                pass
-
-
-
-
-        # if player was found
-        # else:
-        #     driver.find_element_by_xpath("")
-
+                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name(
+                    "decrement-value").click()  # decrease
 
 def setStatusCode(code):
     global statusCode
