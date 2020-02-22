@@ -1,5 +1,6 @@
-import json
 import time
+
+from selenium.common.exceptions import NoSuchElementException
 
 import constants
 
@@ -40,7 +41,7 @@ def start_login(email, password):
 
         # check if got to login page and then return response...
 
-        # cookies file was not found - log in the first time
+    # cookies file was not found - log in the first time
     else:
         driver.get(constants.SIGN_IN_URL)
         emailField = driver.find_element_by_id("email")
@@ -82,71 +83,75 @@ def start_login(email, password):
     tries_left = 10
 
     # if popup is shown when entering the app it has to be removed
-    popup = driver.find_element_by_class_name("view-modal-container")
-    if popup:
+    try:
+        popup = driver.find_element_by_class_name("view-modal-container")
         driver.execute_script("""var element = arguments[0];element.parentNode.removeChild(element);""", popup)
-
+    except NoSuchElementException:
+        pass
     # click on TRANSFERS
-    driver.find_element_by_xpath("/html/body/main/section/nav/button[3]").click()
-    time.sleep(1)
+    driver.find_element_by_class_name("icon-transfer").click()
+    time.sleep(2)
 
     # click on search on transfer market
-    driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div/div[2]/div[2]").click()
+    driver.find_element_by_class_name("ut-tile-transfer-market").click()
     time.sleep(1)
-
-    # write the searched player name
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/input").send_keys("messi")
-    time.sleep(1)
-
-    # choose the player in the list(the first one)
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/div/ul/button[1]").click()
-    time.sleep(1)
+    #
+    # # write the searched player name
+    # driver.find_element_by_class_name("ut-text-input-control").send_keys("messi")
+    # time.sleep(1)
+    #
+    # # choose the player in the list(the first one)
+    # driver.find_element_by_class_name("playerResultsList").find_elements_by_tag_name("button")[0].click()
+    # time.sleep(1)
 
     # set max BIN price - clear the input first
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").clear()
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input").send_keys(
-        "150000")
-    time.sleep(1)
+    driver.find_elements_by_class_name(
+        "ut-numeric-input-spinner-control")[3].find_element_by_class_name("numericInput").clear()
+    driver.find_elements_by_class_name(
+        "ut-numeric-input-spinner-control")[3].find_element_by_class_name("numericInput").send_keys(
+        "200")
+    # time.sleep(1)
 
     # set min price - clear the input first
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").clear()
-    driver.find_element_by_xpath(
-        "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input").send_keys("250")
-    time.sleep(1)
-
-    # decrease price
-    # driver.find_element_by_xpath(
-    #     "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click()
+    driver.find_elements_by_class_name(
+        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").clear()
+    driver.find_elements_by_class_name(
+        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").send_keys("250")
     # time.sleep(1)
+
     while tries_left is not 0:
         # search
-        driver.find_element_by_xpath("/html/body/main/section/section/div[2]/div/div[2]/div/div[2]/button[2]").click()
-        time.sleep(2)
+        driver.find_element_by_class_name("call-to-action").click()
+        # time.sleep(2)
         tries_left -= 1
 
         # if no players to the wanted price were found - navigate back
-        no_results = driver.find_elements_by_xpath(
-            "/html/body/main/section/section/div[2]/div/div/section/div/div[2]/div/h2")
-        if len(no_results) == 1:
-            print("no results")
+        try:
+            driver.find_element_by_class_name("ut-no-results-view")
             # navigate back
-            driver.find_element_by_xpath("/html/body/main/section/section/div[1]/button[1]").click()
-        if tries_left % 2 == 1:
-            driver.find_element_by_xpath(
-                "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]").click()  # increase
-        else:
-            driver.find_element_by_xpath(
-                "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]").click()  # decrease
+            driver.find_element_by_class_name("ut-navigation-button-control").click()
+            if tries_left % 2 == 1:
+                driver.find_elements_by_class_name(
+                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name("increment-value").click()  # increase
+            else:
+                driver.find_elements_by_class_name(
+                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name("decrement-value").click()  # decrease
+        #player was found
+        except NoSuchElementException:
+            try:
+                driver.find_element_by_class_name("buyButton").click()
+                #buy the player
+                # driver.find_element_by_xpath("//*[text()[contains(., 'Cancel')]]").click()
+                # print(driver.find_element_by_class_name("ut-button-group").find_elements_by_tag_name("button")[1])
+            except NoSuchElementException:
+                pass
 
 
-# if player was found
-# else:
-#     driver.find_element_by_xpath("")
+
+
+        # if player was found
+        # else:
+        #     driver.find_element_by_xpath("")
 
 
 def setStatusCode(code):
