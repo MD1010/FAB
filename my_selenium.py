@@ -1,4 +1,5 @@
 import time
+from enum import Enum
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -10,6 +11,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os.path
 
 from helper_functions import loadCookiesFile, saveToCookiesFile
+
+import elements
 
 statusCode = ''
 
@@ -28,33 +31,33 @@ def start_login(email, password):
         driver.get(constants.WEB_APP_URL)
         driver.implicitly_wait(5)
 
-        loginButton = driver.find_element_by_xpath("/html/body/main/div/div/div/button[1]")
+        loginButton = get_clickable_element(ElementPathBy.XPATH, elements.FIRST_LOGIN, driver)
         time.sleep(1)
         loginButton.click()
 
         # Entering password left, and you are in!
 
-        passwordField = driver.find_element_by_id("password")
+        passwordField = get_clickable_element(ElementPathBy.ID, elements.PASSWORD_FIELD, driver)
         passwordField.send_keys(password)
 
-        driver.find_element_by_class_name("btn-next").click()
+        get_clickable_element(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, driver).click()
 
         # check if got to login page and then return response...
 
     # cookies file was not found - log in the first time
     else:
         driver.get(constants.SIGN_IN_URL)
-        emailField = driver.find_element_by_id("email")
-        passwordField = driver.find_element_by_id("password")
-        logInButton = driver.find_element_by_id("btnLogin")
+        emailField = get_clickable_element(ElementPathBy.ID, elements.EMAIL_FIELD, driver)
+        passwordField = get_clickable_element(ElementPathBy.ID, elements.PASSWORD_FIELD, driver)
+        logInButton = get_clickable_element(ElementPathBy.ID, elements.LOGIN_BTN, driver)
         emailField.send_keys(email)
         passwordField.send_keys(password)
         logInButton.click()
-        driver.find_element_by_xpath("//input[@name='codeType' and @value='SMS']").click()
+        get_clickable_element(ElementPathBy.XPATH, elements.CODE_BTN, driver).click()
 
         # send the sms verfication
 
-        driver.find_element_by_class_name("btn-next").click()
+        get_clickable_element(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, driver).click()
 
         while statusCode is '':
             time.sleep(1)
@@ -64,8 +67,8 @@ def start_login(email, password):
 
         # status code is set
 
-        driver.find_element_by_id("oneTimeCode").send_keys(statusCode)
-        driver.find_element_by_id("btnSubmit").click()
+        get_clickable_element(ElementPathBy.ID, elements.ONE_TIME_CODE_FIELD, driver).send_keys(statusCode)
+        get_clickable_element(ElementPathBy.ID, elements.SUBMIT_BTN, driver).click()
 
         eaCookies = driver.get_cookies()
         driver.get(constants.SIGN_IN_URL)
@@ -84,67 +87,99 @@ def start_login(email, password):
 
     # if popup is shown when entering the app it has to be removed
     try:
-        popup = driver.find_element_by_class_name("view-modal-container")
-        driver.execute_script("""var element = arguments[0];element.parentNode.removeChild(element);""", popup)
+        popup = get_clickable_element(ElementPathBy.CLASS_NAME, elements.VIEW_MODAL_CONTAINER, driver)
+        driver.execute_script(elements.REMOVE_CONTAINER_SCRIPT, popup)
     except NoSuchElementException:
         pass
     # click on TRANSFERS
-    driver.find_element_by_class_name("icon-transfer").click()
+    get_clickable_element(ElementPathBy.CLASS_NAME, elements.ICON_TRANSFER_BTN, driver).click()
     time.sleep(1)
 
     # click on search on transfer market
-    driver.find_element_by_class_name("ut-tile-transfer-market").click()
+    get_clickable_element(ElementPathBy.CLASS_NAME, elements.TRANSFER_MARKET_CONTAINER_BTN, driver).click()
     time.sleep(1)
 
     # write the searched player name
-    driver.find_element_by_class_name("ut-text-input-control").send_keys("messi")
+    get_clickable_element(ElementPathBy.CLASS_NAME, elements.SEARCHED_PLAYER_FIELD, driver).send_keys("messi")
     time.sleep(1)
 
     # choose the player in the list(the first one)
-    driver.find_element_by_class_name("playerResultsList").find_elements_by_tag_name("button")[0].click()
+    get_clickable_element(ElementPathBy.XPATH, elements.FIRST_RESULT_INPUT_SEARCH, driver).click()
     time.sleep(1)
 
     # set max BIN price - clear the input first
-    driver.find_elements_by_class_name(
-        "ut-numeric-input-spinner-control")[3].find_element_by_class_name("numericInput").clear()
-    driver.find_elements_by_class_name(
-        "ut-numeric-input-spinner-control")[3].find_element_by_class_name("numericInput").send_keys(
-        "200")
+    get_clickable_element(ElementPathBy.XPATH, elements.MAX_BIN_PRICE_INPUT, driver).clear()
+    get_clickable_element(ElementPathBy.XPATH, elements.MAX_BIN_PRICE_INPUT, driver).send_keys("200")
+
     # time.sleep(1)
 
     # set min price - clear the input first
-    driver.find_elements_by_class_name(
-        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").clear()
-    driver.find_elements_by_class_name(
-        "ut-numeric-input-spinner-control")[2].find_element_by_class_name("numericInput").send_keys("")
+    get_clickable_element(ElementPathBy.XPATH, elements.MIN_BIN_PRICE_INPUT, driver).clear()
+    get_clickable_element(ElementPathBy.XPATH, elements.MIN_BIN_PRICE_INPUT, driver).send_keys("200")
+
     time.sleep(1)
 
     while tries_left is not 0:
         # search
-        driver.find_element_by_class_name("call-to-action").click()
+        get_clickable_element(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, driver).click()
+
         time.sleep(1)
         tries_left -= 1
 
         # try to buy
         try:
-            driver.find_element_by_class_name("buyButton").click()
-            #1 - buy , 2-cancel - cancel when testing
+            get_clickable_element(ElementPathBy.CLASS_NAME, elements.BUY_BTN, driver).click()
+            # 1 - buy , 2-cancel - cancel when testing
             # buy the player
-            driver.find_element_by_xpath("/html/body/div[4]/section/div/div/button[2]").click()
+            get_clickable_element(ElementPathBy.XPATH, elements.CANCEL_BUY_BTN, driver).click()
+
         # ????? navigating back too slowly ????? - happends because find element by xpath takes time...
         except NoSuchElementException:
             # if no players to the wanted price were found - navigate back
-            driver.find_element_by_class_name("ut-navigation-button-control").click()
+            get_clickable_element(ElementPathBy.CLASS_NAME, elements.NAVIGATE_BACK, driver).click()
 
             if tries_left % 2 == 1:
-                driver.find_elements_by_class_name(
-                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name(
-                    "increment-value").click()  # increase
+                get_clickable_element(ElementPathBy.XPATH, elements.INCREASE_PRICE_BTN, driver).click()
+
             else:
-                driver.find_elements_by_class_name(
-                    "ut-numeric-input-spinner-control")[2].find_element_by_class_name(
-                    "decrement-value").click()  # decrease
+                # decrease
+                get_clickable_element(ElementPathBy.XPATH, elements.DECREASE_PRICE_BTN, driver).click()
+
 
 def setStatusCode(code):
     global statusCode
     statusCode = code
+
+
+class ElementPathBy(Enum):
+    CLASS_NAME = 0
+    XPATH = 1
+    ID = 2
+
+
+def throw_if_element_unreachable(get_element_func) -> "throws error if element is not found":
+    print("in throw if element is unreachable")
+
+    def throw(*args, **kwargs):
+        try:
+            return get_element_func(*args, **kwargs)
+        except NoSuchElementException:
+            print("in except")
+            raise NoSuchElementException(f"Element {args[1]} was not found!")
+
+    return throw
+
+
+@throw_if_element_unreachable
+def get_clickable_element(element_path_by: 'xpath/className/id path', path: 'actual element path',
+                          driver) -> "return the wanted element if exists":
+    # check_element_in_local_storage()
+    switcher = {
+        ElementPathBy.CLASS_NAME: driver.find_element_by_class_name,
+        ElementPathBy.XPATH: driver.find_element_by_xpath,
+        ElementPathBy.ID: driver.find_element_by_id
+    }
+    return switcher[element_path_by](path)
+    # if len(element_list_result) == 0:
+    #     raise NoSuchElementException()
+    # return element_list_result[element_index]
