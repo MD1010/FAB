@@ -67,11 +67,7 @@ class PlayerActions(Driver):
             return False
         else:
             element_actions.execute_element_action(ElementPathBy.XPATH, elements.BUY_BTN, ElementCallback.CLICK)
-            # 1 - buy , 2-cancel - cancel when testing
-            # buy the player
-
             element_actions.execute_element_action(ElementPathBy.XPATH, elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
-            element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.NAVIGATE_BACK, ElementCallback.CLICK)
             return True
 
         # if no players to the wanted price were found - navigate back

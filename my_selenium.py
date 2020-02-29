@@ -99,7 +99,7 @@ def start_login(email, password):
             driver.execute_script(elements.REMOVE_CONTAINER_SCRIPT, popup)
 
         playerActions = PlayerActions(driver)
-        playerActions.init_search_player_info("messi", "200")
+        playerActions.init_search_player_info("fisker", "200")
 
         while tries_left is not 0:
             element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
