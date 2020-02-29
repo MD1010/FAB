@@ -1,7 +1,9 @@
 import time
 from enum import Enum
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.wait import WebDriverWait
+
 import constants
 
 from selenium import webdriver
@@ -14,6 +16,9 @@ from helper_functions import loadCookiesFile, saveToCookiesFile
 import elements
 from players_actions import PlayerActions
 from elements_manager import ElementCallback, ElementActions, ElementPathBy
+
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 statusCode = ''
 
@@ -34,6 +39,16 @@ def start_login(email, password):
         driver.implicitly_wait(5)
 
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_LOGIN, ElementCallback.CLICK)
+        try:
+            found_logIn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH,elements.FIRST_LOGIN)))
+            if found_logIn:
+                element_actions.execute_element_action(ElementPathBy.XPATH,elements.FIRST_LOGIN,ElementCallback.CLICK)
+        except TimeoutException:
+            print("Unable to log into the web app")
+            return None
+
+        # time.sleep(30)
+        # element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_LOGIN, ElementCallback.CLICK)
 
         # Entering password left, and you are in!
 
@@ -85,12 +100,11 @@ def start_login(email, password):
     if popup:
         driver.execute_script(elements.REMOVE_CONTAINER_SCRIPT, popup)
 
-
     playerActions = PlayerActions(driver)
     playerActions.init_search_player_info("messi", "200")
 
     while tries_left is not 0:
-        element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN,ElementCallback.CLICK)
+        element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
         # players_manager.search_player(driver, tries_left % 2 == 1)
         time.sleep(1)
         tries_left -= 1
