@@ -10,17 +10,18 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os.path
 
 from helper_functions import loadCookiesFile, saveToCookiesFile
-from elements_manager import ElementPathBy
 
 import elements
-import players_manager
-import elements_manager
+from players_actions import PlayerActions
+from elements_manager import ElementCallback, ElementActions, ElementPathBy
 
 statusCode = ''
+
 
 def start_login(email, password):
     driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get(constants.WEB_APP_URL)
+    element_actions = ElementActions(driver)
 
     if os.path.isfile(constants.COOKIES_FILE_NAME):
         driver.delete_all_cookies()
@@ -32,33 +33,24 @@ def start_login(email, password):
         driver.get(constants.WEB_APP_URL)
         driver.implicitly_wait(5)
 
-        loginButton = elements_manager.get_clickable_element(ElementPathBy.XPATH, elements.FIRST_LOGIN, driver)
-        time.sleep(1)
-        loginButton.click()
+        element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_LOGIN, ElementCallback.CLICK)
 
         # Entering password left, and you are in!
 
-        passwordField = elements_manager.get_clickable_element(ElementPathBy.ID, elements.PASSWORD_FIELD, driver)
-        passwordField.send_keys(password)
-
-        elements_manager.get_clickable_element(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, driver).click()
+        element_actions.execute_element_action(ElementPathBy.ID, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+        element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, ElementCallback.CLICK)
 
         # check if got to login page and then return response...
 
     # cookies file was not found - log in the first time
     else:
         driver.get(constants.SIGN_IN_URL)
-        emailField = elements_manager.get_clickable_element(ElementPathBy.ID, elements.EMAIL_FIELD, driver)
-        passwordField = elements_manager.get_clickable_element(ElementPathBy.ID, elements.PASSWORD_FIELD, driver)
-        logInButton = elements_manager.get_clickable_element(ElementPathBy.ID, elements.LOGIN_BTN, driver)
-        emailField.send_keys(email)
-        passwordField.send_keys(password)
-        logInButton.click()
-        elements_manager.get_clickable_element(ElementPathBy.XPATH, elements.CODE_BTN, driver).click()
-
+        element_actions.execute_element_action(ElementPathBy.ID, elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
+        element_actions.execute_element_action(ElementPathBy.ID, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+        element_actions.execute_element_action(ElementPathBy.ID, elements.LOGIN_BTN, ElementCallback.CLICK)
+        element_actions.execute_element_action(ElementPathBy.XPATH, elements.CODE_BTN, ElementCallback.CLICK)
         # send the sms verfication
-
-        elements_manager.get_clickable_element(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, driver).click()
+        element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, ElementCallback.CLICK)
 
         while statusCode is '':
             time.sleep(1)
@@ -68,8 +60,8 @@ def start_login(email, password):
 
         # status code is set
 
-        elements_manager.get_clickable_element(ElementPathBy.ID, elements.ONE_TIME_CODE_FIELD, driver).send_keys(statusCode)
-        elements_manager.get_clickable_element(ElementPathBy.ID, elements.SUBMIT_BTN, driver).click()
+        element_actions.execute_element_action(ElementPathBy.ID, elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, statusCode)
+        element_actions.execute_element_action(ElementPathBy.ID, elements.SUBMIT_BTN, ElementCallback.CLICK)
 
         eaCookies = driver.get_cookies()
         driver.get(constants.SIGN_IN_URL)
@@ -89,32 +81,31 @@ def start_login(email, password):
     ##### Web app is working here #####
 
     # if popup is shown when entering the app it has to be removed
-    try:
-        popup = elements_manager.get_clickable_element(ElementPathBy.CLASS_NAME, elements.VIEW_MODAL_CONTAINER, driver)
+    popup = element_actions.get_clickable_element(ElementPathBy.CLASS_NAME, elements.VIEW_MODAL_CONTAINER)
+    if popup:
         driver.execute_script(elements.REMOVE_CONTAINER_SCRIPT, popup)
-    except NoSuchElementException:
-        pass
-    
-    players_manager.init_search_player_info("fisker", "200", driver)
 
-    time.sleep(1)
+
+    playerActions = PlayerActions(driver)
+    playerActions.init_search_player_info("messi", "200")
 
     while tries_left is not 0:
-        elements_manager.get_clickable_element(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, driver).click()
-        #players_manager.search_player(driver, tries_left % 2 == 1)      
+        element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN,ElementCallback.CLICK)
+        # players_manager.search_player(driver, tries_left % 2 == 1)
         time.sleep(1)
         tries_left -= 1
 
-        player_bought = players_manager.buy_player(driver)
+        player_bought = None
+        player_bought = playerActions.buy_player()
         time.sleep(2)
 
-        if (player_bought):
-            players_manager.list_player("500", driver)
-        
+        if player_bought:
+            playerActions.list_player("500")
+
         if tries_left % 2 == 1:
-            elements_manager.get_clickable_element(ElementPathBy.XPATH, elements.INCREASE_PRICE_BTN, driver).click()
+            element_actions.execute_element_action(ElementPathBy.XPATH, elements.INCREASE_PRICE_BTN, ElementCallback.CLICK)
         else:
-            elements_manager.get_clickable_element(ElementPathBy.XPATH, elements.DECREASE_PRICE_BTN, driver).click()
+            element_actions.execute_element_action(ElementPathBy.XPATH, elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
 
 def setStatusCode(code):
