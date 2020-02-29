@@ -1,5 +1,4 @@
 FIRST_LOGIN = "//*[@id='Login']/div/div/button[1]"
-
 PASSWORD_FIELD = "password"
 EMAIL_FIELD = "email"
 BTN_NEXT = "btn-next"
