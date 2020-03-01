@@ -11,6 +11,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 import os.path
 
+import selenium_scripts
 from helper_functions import loadCookiesFile, saveToCookiesFile
 
 import elements
@@ -39,23 +40,24 @@ def start_login(email, password):
             driver.get(constants.WEB_APP_URL)
             # driver.implicitly_wait(5)
 
-            try:
-                found_logIn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH,elements.FIRST_LOGIN)))
-                if found_logIn:
-                    element_actions.execute_element_action(ElementPathBy.XPATH,elements.FIRST_LOGIN,ElementCallback.CLICK)
-            except TimeoutException:
-                print("Unable to log into the web app")
-                return None
-
+            element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_LOGIN, ElementCallback.CLICK,None,timeout=60)
 
             # Entering password left, and you are in!
 
-            element_actions.execute_element_action(ElementPathBy.ID, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+            element_actions.execute_element_action(ElementPathBy.XPATH, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
             element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, ElementCallback.CLICK)
 
             # check if got to login page and then return response...
 
         # cookies file was not found - log in the first time
+
+
+
+
+                                #!!!!!!!!!!!!!!!!!!!!!!remove id - causes issues in the webDriverWait!!!!!!!!
+
+
+
         else:
             driver.get(constants.SIGN_IN_URL)
             element_actions.execute_element_action(ElementPathBy.ID, elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
@@ -88,7 +90,7 @@ def start_login(email, password):
             saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
             driver.back()
 
-        time.sleep(15)
+        # time.sleep(15)
         tries_left = 10
 
         ##### Web app is working here #####
@@ -96,10 +98,10 @@ def start_login(email, password):
         # if popup is shown when entering the app it has to be removed
         popup = element_actions.get_clickable_element(ElementPathBy.CLASS_NAME, elements.VIEW_MODAL_CONTAINER)
         if popup:
-            driver.execute_script(elements.REMOVE_CONTAINER_SCRIPT, popup)
+            driver.execute_script(selenium_scripts.REMOVE_CONTAINER_SCRIPT, popup)
 
         playerActions = PlayerActions(driver)
-        playerActions.init_search_player_info("fisker", "200")
+        playerActions.init_search_player_info("tallo", "200")
 
         while tries_left is not 0:
             element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
@@ -108,7 +110,6 @@ def start_login(email, password):
             tries_left -= 1
 
             player_bought = playerActions.buy_player()
-            time.sleep(2)
 
             if player_bought:
                 playerActions.list_player("500")
@@ -118,7 +119,7 @@ def start_login(email, password):
             else:
                 element_actions.execute_element_action(ElementPathBy.XPATH, elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
-    except WebDriverException as e:
+    except (WebDriverException,TimeoutException) as e:
         print(f"Oops :( Something went wrong.. {e.msg}")
 
 def setStatusCode(code):

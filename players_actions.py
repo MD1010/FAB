@@ -21,23 +21,20 @@ class PlayerActions(Driver):
     def init_search_player_info(self, player_name, player_price):
         # click on TRANSFERS
         element_actions = ElementActions(self.driver)
+        element_actions.wait_for_element_disapears(elements.LOADING_CLASS,elements.LOADING_BACKDROP)
         element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.ICON_TRANSFER_BTN, ElementCallback.CLICK)
 
-        time.sleep(1)
 
         # click on search on transfer market
         element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
 
-        time.sleep(1)
 
         # write the searched player name
         element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCHED_PLAYER_FIELD, ElementCallback.SEND_KEYS, player_name)
-        time.sleep(1)
 
         # choose the player in the list(the first one)
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_RESULT_INPUT_SEARCH, ElementCallback.CLICK)
 
-        time.sleep(1)
 
         # set max BIN price - clear the input first
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, player_price)
@@ -47,7 +44,6 @@ class PlayerActions(Driver):
         # set min price - clear the input first
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MIN_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, player_price)
 
-        time.sleep(1)
 
     def search_player(self, bin_increase=True):
         # search`
@@ -76,21 +72,17 @@ class PlayerActions(Driver):
         element_actions = ElementActions(self.driver)
         # Button to start the listing quickly after buying (not through user transfer list)
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.LIST_ON_TRANSFER_BTN, ElementCallback.CLICK)
-        time.sleep(2)
 
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MAX_BIN_PRICE_INPUT_AFTER_LIST, ElementCallback.SEND_KEYS, Keys.CONTROL, "a")
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MAX_BIN_PRICE_INPUT_AFTER_LIST, ElementCallback.SEND_KEYS, price)
 
-        time.sleep(2)
 
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MIN_BIN_PRICE_INPUT_AFTER_LIST, ElementCallback.SEND_KEYS, Keys.CONTROL, "a")
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.MIN_BIN_PRICE_INPUT_AFTER_LIST, ElementCallback.SEND_KEYS, price)
 
-        time.sleep(2)
 
         # List player on transfer market
         element_actions.execute_element_action(ElementPathBy.XPATH, elements.LIST_ITEM_ON_TRANSFER_LIST, ElementCallback.CLICK)
-        time.sleep(2)
 
         # Navigate back after player was listed
         element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.NAVIGATE_BACK, ElementCallback.CLICK)
