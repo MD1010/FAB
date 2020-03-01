@@ -72,8 +72,8 @@ class ElementActions(Driver):
 
     def wait_for_element_disapears(self,element_class_name, actual_path,timeout=40):
         try:
-            el = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, f"{actual_path}")))
-            WebDriverWait(self.driver, timeout).until(lambda d: f"{element_class_name}" not in el.get_attribute('class'))
+            el = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.ut-click-shield.showing')))
+            WebDriverWait(self.driver, timeout).until(lambda d: 'showing' not in el.get_attribute('class'))
         except TimeoutException as e:
             raise TimeoutException(e)
 
