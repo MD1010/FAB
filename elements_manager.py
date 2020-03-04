@@ -39,13 +39,20 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     return action_switcher[callback]()
 
 
+def get_path_by(actual_path):
+    if str(actual_path).startswith('/'):
+        return ElementPathBy.XPATH
+    else:
+        return ElementPathBy.CLASS_NAME
+
+
 def wait_untill_clickable(driver, timeout, actual_path):
+    path_by = get_path_by(actual_path)
     try:
         # change this stupid logic
-        if str(actual_path).startswith('/'):
-            WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path)))
-        else:
-            WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path))) \
+            if path_by == ElementPathBy.XPATH \
+            else WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
     except TimeoutException as e:
         if timeout == 60:  # stuck on login
             print("Unable to log into the web app")
@@ -53,12 +60,12 @@ def wait_untill_clickable(driver, timeout, actual_path):
             raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
 
-
 class ElementActions(Driver):
     def __init__(self, driver):
         super().__init__(driver)
 
-    def get_clickable_element(self, path_by, actual_path) -> "return the wanted element if exists":
+    def get_clickable_element(self, actual_path) -> "return the wanted element if exists":
+        path_by = get_path_by(actual_path)
         path_by_switcher = {
             ElementPathBy.CLASS_NAME: self.driver.find_elements_by_class_name,
             ElementPathBy.XPATH: self.driver.find_elements_by_xpath,
@@ -70,18 +77,17 @@ class ElementActions(Driver):
             return None
         return found_element[0]
 
-    def wait_for_element_disapears(self,element_class_name, actual_path,timeout=40):
+    def wait_for_element_disapears(self, element_class_name, actual_path, timeout=40):
         try:
-            el = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.ut-click-shield.showing')))
-            WebDriverWait(self.driver, timeout).until(lambda d: 'showing' not in el.get_attribute('class'))
+            el = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, actual_path)))
+            WebDriverWait(self.driver, timeout).until(lambda d: element_class_name not in el.get_attribute('class'))
         except TimeoutException as e:
             raise TimeoutException(e)
 
-    def execute_element_action(self, path_by, actual_path, callback, *callback_params,timeout=40):
+    def execute_element_action(self, actual_path, callback, *callback_params, timeout=40):
         try:
             wait_untill_clickable(self.driver, timeout, actual_path)
-            web_element = self.get_clickable_element(path_by, actual_path)
+            web_element = self.get_clickable_element(actual_path)
             run_callback(web_element, callback, callback_params)
         except TimeoutException as e:
             raise TimeoutException(e.msg)
-

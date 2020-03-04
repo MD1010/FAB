@@ -40,12 +40,12 @@ def start_login(email, password):
             driver.get(constants.WEB_APP_URL)
             # driver.implicitly_wait(5)
 
-            element_actions.execute_element_action(ElementPathBy.XPATH, elements.FIRST_LOGIN, ElementCallback.CLICK,None,timeout=60)
+            element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK,None,timeout=60)
 
             # Entering password left, and you are in!
 
-            element_actions.execute_element_action(ElementPathBy.XPATH, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
-            element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+            element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
 
             # check if got to login page and then return response...
 
@@ -60,12 +60,12 @@ def start_login(email, password):
 
         else:
             driver.get(constants.SIGN_IN_URL)
-            element_actions.execute_element_action(ElementPathBy.ID, elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
-            element_actions.execute_element_action(ElementPathBy.ID, elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
-            element_actions.execute_element_action(ElementPathBy.ID, elements.LOGIN_BTN, ElementCallback.CLICK)
-            element_actions.execute_element_action(ElementPathBy.XPATH, elements.CODE_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
+            element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+            element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
             # send the sms verfication
-            element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.BTN_NEXT, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
 
             while statusCode is '':
                 time.sleep(1)
@@ -75,8 +75,8 @@ def start_login(email, password):
 
             # status code is set
 
-            element_actions.execute_element_action(ElementPathBy.ID, elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, statusCode)
-            element_actions.execute_element_action(ElementPathBy.ID, elements.SUBMIT_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, statusCode)
+            element_actions.execute_element_action(elements.SUBMIT_BTN, ElementCallback.CLICK)
 
             eaCookies = driver.get_cookies()
             driver.get(constants.SIGN_IN_URL)
@@ -96,7 +96,7 @@ def start_login(email, password):
         ##### Web app is working here #####
 
         # if popup is shown when entering the app it has to be removed
-        popup = element_actions.get_clickable_element(ElementPathBy.CLASS_NAME, elements.VIEW_MODAL_CONTAINER)
+        popup = element_actions.get_clickable_element(elements.VIEW_MODAL_CONTAINER)
         if popup:
             driver.execute_script(selenium_scripts.REMOVE_CONTAINER_SCRIPT, popup)
 
@@ -104,7 +104,7 @@ def start_login(email, password):
         playerActions.init_search_player_info("tallo", "200")
 
         while tries_left is not 0:
-            element_actions.execute_element_action(ElementPathBy.CLASS_NAME, elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
             # players_manager.search_player(driver, tries_left % 2 == 1)
             time.sleep(1)
             tries_left -= 1
@@ -115,9 +115,9 @@ def start_login(email, password):
                 playerActions.list_player("500")
 
             if tries_left % 2 == 1:
-                element_actions.execute_element_action(ElementPathBy.XPATH, elements.INCREASE_PRICE_BTN, ElementCallback.CLICK)
+                element_actions.execute_element_action(elements.INCREASE_PRICE_BTN, ElementCallback.CLICK)
             else:
-                element_actions.execute_element_action(ElementPathBy.XPATH, elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
+                element_actions.execute_element_action(elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
     except (WebDriverException,TimeoutException) as e:
         print(f"Oops :( Something went wrong.. {e.msg}")
