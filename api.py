@@ -19,8 +19,6 @@ def user_login():
     jsonData = request.get_json()
     email = jsonData.get('email')
     password = jsonData.get('password')
-    print(email)
-    print(password)
     if email is None or password is None:
         return server_status_messages.FAILED_AUTH, 401
     return fab_driver.start_login(email, password)
