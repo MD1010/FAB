@@ -3,7 +3,8 @@ from inspect import _empty
 import requests
 import json
 
-import my_selenium
+from my_selenium import FabDriver
+import server_status_messages
 
 from player_buy import PlayerBuy
 from constants import *
@@ -11,24 +12,29 @@ from constants import *
 from flask import Flask, request, make_response
 
 app = Flask(__name__)
+fab_driver = FabDriver()
 
-
-@app.route('/api/login/', methods=['GET'])
+@app.route('/api/login', methods=['POST'])
 def user_login():
-    email = request.args['email']
-    password = request.args['password']
+    jsonData = request.get_json()
+    email = jsonData.get('email')
+    password = jsonData.get('password')
+    print(email)
+    print(password)
     if email is None or password is None:
-        return "no credentials specified", 400
-    my_selenium.start_login(email, password)
-    return "redirected to confirmation page successfuly", 200
+        return server_status_messages.FAILED_AUTH, 401
+    return fab_driver.start_login(email, password)
 
+@app.route('/api/start-fab', methods=['GET'])
+def start_fab_loop():
+    # my_selenium.start_login(email, password)
+    return fab_driver.start_loop()
 
 @app.route('/api/players-list')
 def players_list():
     response = requests.get(url=base_players_url)
     players_json = response.json()
     return players_json
-
 
 @app.route('/api/player/<int:id>')
 def player_details(id):
@@ -48,9 +54,10 @@ def user_players():
 
 
 @app.route('/api/send-status-code', methods=['POST'])
-def set_status_code():
+def send_status_code():
     code = request.get_json()['code']
-    my_selenium.setStatusCode(code)
+    fab_driver.set_status_code(code)
+    #change this nonesense
     return code, 200
 
 
