@@ -15,8 +15,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 class ElementPathBy(Enum):
     CLASS_NAME = 0
     XPATH = 1
-    ID = 2
-
 
 class ElementCallback(Enum):
     CLICK = 0
@@ -68,8 +66,7 @@ class ElementActions(Driver):
         path_by = get_path_by(actual_path)
         path_by_switcher = {
             ElementPathBy.CLASS_NAME: self.driver.find_elements_by_class_name,
-            ElementPathBy.XPATH: self.driver.find_elements_by_xpath,
-            ElementPathBy.ID: self.driver.find_elements_by_id
+            ElementPathBy.XPATH: self.driver.find_elements_by_xpath
         }
         found_element = path_by_switcher[path_by](actual_path)
         if len(found_element) == 0:

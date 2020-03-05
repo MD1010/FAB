@@ -18,9 +18,6 @@ import elements
 from players_actions import PlayerActions
 from elements_manager import ElementCallback, ElementActions, ElementPathBy
 
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-
 statusCode = ''
 
 
@@ -38,9 +35,8 @@ def start_login(email, password):
                     del cookie['expiry']
                 driver.add_cookie(cookie)
             driver.get(constants.WEB_APP_URL)
-            # driver.implicitly_wait(5)
 
-            element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK,None,timeout=60)
+            element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK, None, timeout=60)
 
             # Entering password left, and you are in!
 
@@ -51,18 +47,12 @@ def start_login(email, password):
 
         # cookies file was not found - log in the first time
 
-
-
-
-                                #!!!!!!!!!!!!!!!!!!!!!!remove id - causes issues in the webDriverWait!!!!!!!!
-
-
-
         else:
             driver.get(constants.SIGN_IN_URL)
             element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
             element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
-            element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+            # check the SMS option
             element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
             # send the sms verfication
             element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
@@ -76,7 +66,7 @@ def start_login(email, password):
             # status code is set
 
             element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, statusCode)
-            element_actions.execute_element_action(elements.SUBMIT_BTN, ElementCallback.CLICK)
+            element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
 
             eaCookies = driver.get_cookies()
             driver.get(constants.SIGN_IN_URL)
@@ -87,6 +77,7 @@ def start_login(email, password):
                     del cookie['expiry']
                 if cookie not in eaCookies:
                     eaCookies.append(cookie)
+            # takes 10-15 secs
             saveToCookiesFile(eaCookies, constants.COOKIES_FILE_NAME)
             driver.back()
 
@@ -119,8 +110,9 @@ def start_login(email, password):
             else:
                 element_actions.execute_element_action(elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
-    except (WebDriverException,TimeoutException) as e:
+    except (WebDriverException, TimeoutException) as e:
         print(f"Oops :( Something went wrong.. {e.msg}")
+
 
 def setStatusCode(code):
     global statusCode
