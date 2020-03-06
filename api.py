@@ -1,5 +1,3 @@
-from inspect import _empty
-
 import requests
 import json
 

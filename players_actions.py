@@ -22,29 +22,17 @@ class PlayerActions(Driver):
         # click on TRANSFERS
         element_actions = ElementActions(self.driver)
         #trying to get rid of this down here with wait_for_element_disapears function - no success
-        time.sleep(15)
-        # element_actions.wait_for_element_disapears(elements.LOADING_CLASS,elements.LOADING_BACKDROP)
         element_actions.execute_element_action(elements.ICON_TRANSFER_BTN, ElementCallback.CLICK)
-
-
         # click on search on transfer market
         element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
-
-
         # write the searched player name
         element_actions.execute_element_action(elements.SEARCHED_PLAYER_FIELD, ElementCallback.SEND_KEYS, player_name)
-
         # choose the player in the list(the first one)
         element_actions.execute_element_action(elements.FIRST_RESULT_INPUT_SEARCH, ElementCallback.CLICK)
-
-
         # set max BIN price - clear the input first
         element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, player_price)
-
-        # time.sleep(1)
-
         # set min price - clear the input first
-        element_actions.execute_element_action(elements.MIN_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, player_price)
+        # element_actions.execute_element_action(elements.MIN_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, player_price)
 
 
     def search_player(self, bin_increase=True):

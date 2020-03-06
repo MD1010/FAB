@@ -3,18 +3,20 @@ from enum import Enum
 from functools import partial
 
 from selenium.common.exceptions import TimeoutException
-
-from driver import Driver
-
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
 from selenium.webdriver.support.wait import WebDriverWait
+
+import selenium_scripts
+from driver import Driver
+
+import elements
 
 
 class ElementPathBy(Enum):
     CLASS_NAME = 0
     XPATH = 1
+
 
 class ElementCallback(Enum):
     CLICK = 0
@@ -74,10 +76,15 @@ class ElementActions(Driver):
             return None
         return found_element[0]
 
-    def wait_for_element_disapears(self, element_class_name, actual_path, timeout=40):
+    def wait_for_page_to_load(self, timeout=40):
         try:
-            el = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, actual_path)))
-            WebDriverWait(self.driver, timeout).until(lambda d: element_class_name not in el.get_attribute('class'))
+            # option 1 - remove the backfrop loading indication
+            # unclickable_element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.CLASS_NAME, "ut-click-shield")))
+            # self.driver.execute_script(selenium_scripts.REMOVE_ELEMENT, unclickable_element)
+            # WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
+            # option 2 - wait a bit
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
+            time.sleep(3)
         except TimeoutException as e:
             raise TimeoutException(e)
 
