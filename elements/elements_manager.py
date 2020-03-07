@@ -1,5 +1,4 @@
 import time
-from enum import Enum
 from functools import partial
 
 from selenium.common.exceptions import TimeoutException
@@ -44,7 +43,7 @@ class ElementActions(Driver):
     def __init__(self, driver):
         super().__init__(driver)
 
-    def get_clickable_element(self, actual_path) -> "return the wanted element if exists":
+    def get_element(self, actual_path) -> "return the wanted element if exists":
         path_by = get_path_by(actual_path)
         path_by_switcher = {
             ElementPathBy.CLASS_NAME: self.driver.find_elements_by_class_name,
@@ -60,24 +59,24 @@ class ElementActions(Driver):
         try:
             # option 1 - remove the backfrop loading indication
             # unclickable_element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.CLASS_NAME, "ut-click-shield")))
-            # self.driver.execute_script(selenium_scripts.REMOVE_ELEMENT, unclickable_element)
+            # self.driver.execute_script(selenium.REMOVE_ELEMENT, unclickable_element)
             # WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
             # option 2 - wait a bit
             WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
-            time.sleep(3)
+            time.sleep(4)
         except TimeoutException as e:
             raise TimeoutException(e)
 
     def execute_element_action(self, actual_path, callback, *callback_params, timeout=40):
         try:
             self.wait_untill_clickable(timeout, actual_path)
-            web_element = self.get_clickable_element(actual_path)
+            web_element = self.get_element(actual_path)
             run_callback(web_element, callback, callback_params)
         except TimeoutException as e:
             raise TimeoutException(e.msg)
 
     def remove_unexpected_popups(self):
-        popup = self.get_clickable_element(elements.VIEW_MODAL_CONTAINER)
+        popup = self.get_element(elements.VIEW_MODAL_CONTAINER)
         if popup:
             self.driver.execute_script(selenium.REMOVE_ELEMENT, popup)
 
