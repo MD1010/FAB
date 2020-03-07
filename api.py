@@ -1,16 +1,16 @@
 import requests
 import json
 
-from my_selenium import FabDriver
-import server_status_messages
+from main import Fab
+from consts import server_status_messages
 
-from player_buy import PlayerBuy
-from constants import *
+from players.player import Player
+from consts.app import *
 
 from flask import Flask, request, make_response
 
 app = Flask(__name__)
-fab_driver = FabDriver()
+fab_driver = Fab()
 
 
 @app.route('/api/login', methods=['POST'])
@@ -50,8 +50,8 @@ def user_players():
     if request.method == 'POST':
         jsonData = request.get_json()
         playersSavedList.append(
-            PlayerBuy(jsonData['id'], jsonData['name'], jsonData['maxBuyPrice'], jsonData['searchTime'],
-                      jsonData['shouldSell']))
+            Player(jsonData['id'], jsonData['name'], jsonData['maxBuyPrice'], jsonData['searchTime'],
+                   jsonData['shouldSell']))
         return make_response("", 200)
     if request.method == 'GET':
         return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))

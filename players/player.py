@@ -1,4 +1,4 @@
-class PlayerBuy:
+class Player:
     def __init__(self, id, name, maxBuyPrice, searchTime, shouldSell):
         self.id = id
         self.name = name

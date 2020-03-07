@@ -1,8 +1,8 @@
 from selenium.webdriver.common.keys import Keys
 
-import elements
-from driver import Driver
-from elements_manager import ElementCallback, ElementActions, ElementPathBy
+from consts import elements
+from seleniumDriver.driver import Driver
+from elements.elements_manager import ElementCallback, ElementActions
 
 
 class PlayerActions(Driver):

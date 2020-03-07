@@ -7,10 +7,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-import selenium_scripts
-from driver import Driver
+from scripts import selenium
+from seleniumDriver.driver import Driver
 
-import elements
+from consts import elements
 
 
 class ElementPathBy(Enum):
@@ -21,6 +21,10 @@ class ElementPathBy(Enum):
 class ElementCallback(Enum):
     CLICK = 0
     SEND_KEYS = 1
+
+
+def initialize_element_actions(self):
+    self.element_actions = ElementActions(self.driver)
 
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
@@ -38,13 +42,11 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     }
     return action_switcher[callback]()
 
-
 def get_path_by(actual_path):
     if str(actual_path).startswith('/'):
         return ElementPathBy.XPATH
     else:
         return ElementPathBy.CLASS_NAME
-
 
 def wait_untill_clickable(driver, timeout, actual_path):
     path_by = get_path_by(actual_path)
@@ -59,6 +61,10 @@ def wait_untill_clickable(driver, timeout, actual_path):
         else:
             raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
+def remove_unexpected_popups(self):
+    popup = self.element_actions.get_clickable_element(elements.VIEW_MODAL_CONTAINER)
+    if popup:
+        self.driver.execute_script(selenium.REMOVE_ELEMENT, popup)
 
 class ElementActions(Driver):
     def __init__(self, driver):
