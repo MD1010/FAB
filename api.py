@@ -12,25 +12,33 @@ from flask import Flask, request, make_response
 app = Flask(__name__)
 fab_driver = FabDriver()
 
+
 @app.route('/api/login', methods=['POST'])
 def user_login():
     jsonData = request.get_json()
     email = jsonData.get('email')
     password = jsonData.get('password')
     if email is None or password is None:
-        return server_status_messages.FAILED_AUTH, 401
+        return server_status_messages.BAD_REQUEST, 400
     return fab_driver.start_login(email, password)
 
-@app.route('/api/start-fab', methods=['GET'])
+
+@app.route('/api/start-fab', methods=['POST'])
 def start_fab_loop():
     # my_selenium.start_login(email, password)
-    return fab_driver.start_loop()
+    jsonData = request.get_json()
+    time_to_run = jsonData.get('time')
+    if time_to_run is None:
+        return server_status_messages.BAD_REQUEST, 400
+    return fab_driver.start_loop(time_to_run)
+
 
 @app.route('/api/players-list')
 def players_list():
     response = requests.get(url=base_players_url)
     players_json = response.json()
     return players_json
+
 
 @app.route('/api/player/<int:id>')
 def player_details(id):
@@ -53,9 +61,8 @@ def user_players():
 def send_status_code():
     code = request.get_json()['code']
     fab_driver.set_status_code(code)
-    #change this nonesense
+    # change this nonesense
     return code, 200
-
 
 
 if __name__ == '__main__':

@@ -18,9 +18,9 @@ import server_status_messages
 
 def check_auth_status(func):
     @wraps(func)
-    def determine_if_func_should_run(self):
+    def determine_if_func_should_run(self,*args):
         if self.is_authenticated:
-            return func(self)
+            return func(self,args[0])
         else:
             return server_status_messages.FAILED_AUTH, 401
 
@@ -118,10 +118,11 @@ def decrease_increase_min_price(self, increase_price):
         self.element_actions.execute_element_action(elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
 
-def run_loop(self):
+def run_loop(self,time_to_run_in_sec):
     loop_counter = 1
     increase_min_price = True
-    while loop_counter < 10:
+    start = time.time()
+    while True:
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
         # time.sleep(1)
 
@@ -134,13 +135,10 @@ def run_loop(self):
 
         decrease_increase_min_price(self, increase_min_price)
         increase_min_price = not increase_min_price
-        # if price is 200 not needed
-
-        # if loop_counter % 2 == 1:
-        #     self.element_actions.execute_element_action(elements.INCREASE_PRICE_BTN, ElementCallback.CLICK)
-        # else:
-        #     self.element_actions.execute_element_action(elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
         loop_counter += 1
+        curr_time = time.time()
+        if curr_time - start > time_to_run_in_sec :
+            break
 
 
 class FabDriver:
@@ -172,13 +170,13 @@ class FabDriver:
             return server_status_messages.FAILED_AUTH, 401
 
     @check_auth_status
-    def start_loop(self):
+    def start_loop(self,time_to_run_in_sec):
         try:
             self.playerActions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
             remove_unexpected_popups(self)
             self.playerActions.init_search_player_info("tallo", "600")
-            run_loop(self)
+            run_loop(self,time_to_run_in_sec)
             return server_status_messages.FAB_LOOP_FINISHED, 200
 
         except (WebDriverException, TimeoutException) as e:
