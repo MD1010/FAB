@@ -4,7 +4,6 @@ from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
 from helper_functions import loadCookiesFile, saveToCookiesFile
 
-
 def check_auth_status(func):
     @wraps(func)
     def determine_if_func_should_run(self, *args):
@@ -15,10 +14,8 @@ def check_auth_status(func):
 
     return determine_if_func_should_run
 
-
 def set_auth_status(self, is_auth):
     self.is_authenticated = is_auth
-
 
 def wait_for_code(self):
     while self.statusCode is '':
@@ -27,7 +24,6 @@ def wait_for_code(self):
     # status code is set
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-
 
 def login_with_cookies(self, password):
     self.driver.delete_all_cookies()
@@ -44,7 +40,6 @@ def login_with_cookies(self, password):
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     set_auth_status(self, True)
 
-
 def login_first_time(self, email, password):
     self.driver.get(app.SIGN_IN_URL)
     self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
@@ -54,7 +49,6 @@ def login_first_time(self, email, password):
     self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
     # send the sms verfication
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-
 
 def remember_logged_in_user(self):
     eaCookies = self.driver.get_cookies()

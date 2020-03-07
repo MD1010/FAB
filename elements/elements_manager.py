@@ -7,25 +7,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from elements.models.actions_for_execution import ElementCallback
+from elements.models.path_by import ElementPathBy
 from scripts import selenium
 from seleniumDriver.driver import Driver
 
 from consts import elements
 
 
-class ElementPathBy(Enum):
-    CLASS_NAME = 0
-    XPATH = 1
-
-
-class ElementCallback(Enum):
-    CLICK = 0
-    SEND_KEYS = 1
-
-
 def initialize_element_actions(self):
     self.element_actions = ElementActions(self.driver)
-
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     if web_element is None:
@@ -48,23 +39,6 @@ def get_path_by(actual_path):
     else:
         return ElementPathBy.CLASS_NAME
 
-def wait_untill_clickable(driver, timeout, actual_path):
-    path_by = get_path_by(actual_path)
-    try:
-        # change this stupid logic
-        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path))) \
-            if path_by == ElementPathBy.XPATH \
-            else WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
-    except TimeoutException as e:
-        if timeout == 60:  # stuck on login
-            print("Unable to log into the web app")
-        else:
-            raise TimeoutException(f"{actual_path} element was not found - Timeout")
-
-def remove_unexpected_popups(self):
-    popup = self.element_actions.get_clickable_element(elements.VIEW_MODAL_CONTAINER)
-    if popup:
-        self.driver.execute_script(selenium.REMOVE_ELEMENT, popup)
 
 class ElementActions(Driver):
     def __init__(self, driver):
@@ -96,8 +70,26 @@ class ElementActions(Driver):
 
     def execute_element_action(self, actual_path, callback, *callback_params, timeout=40):
         try:
-            wait_untill_clickable(self.driver, timeout, actual_path)
+            self.wait_untill_clickable(timeout, actual_path)
             web_element = self.get_clickable_element(actual_path)
             run_callback(web_element, callback, callback_params)
         except TimeoutException as e:
             raise TimeoutException(e.msg)
+
+    def remove_unexpected_popups(self):
+        popup = self.get_clickable_element(elements.VIEW_MODAL_CONTAINER)
+        if popup:
+            self.driver.execute_script(selenium.REMOVE_ELEMENT, popup)
+
+    def wait_untill_clickable(self,timeout, actual_path):
+        path_by = get_path_by(actual_path)
+        try:
+            # change this stupid logic
+            WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path))) \
+                if path_by == ElementPathBy.XPATH \
+                else WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
+        except TimeoutException as e:
+            if timeout == 60:  # stuck on login
+                print("Unable to log into the web app")
+            else:
+                raise TimeoutException(f"{actual_path} element was not found - Timeout")
