@@ -6,6 +6,7 @@ from consts import server_status_messages
 
 from players.player import Player
 from consts.app import *
+from players.player_buy import get_current_player_min_price
 
 from flask import Flask, request, make_response
 
@@ -40,9 +41,9 @@ def players_list():
     return players_json
 
 
-@app.route('/api/player/<int:id>')
-def player_details(id):
-    return 'player details'
+@app.route('/jenia-test')
+def player_details():
+    return get_current_player_min_price(1, 2, 3, 4)
 
 
 @app.route('/api/user-players', methods=['POST', 'GET'])
