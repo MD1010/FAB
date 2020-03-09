@@ -9,7 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from elements.models.actions_for_execution import ElementCallback
 from elements.models.path_by import ElementPathBy
 from scripts import selenium
-from seleniumDriver.driver import Driver
+from driver import Driver
 
 from consts import elements
 

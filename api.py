@@ -4,7 +4,7 @@ import json
 from main import Fab
 from consts import server_status_messages
 
-from players.player import Player
+from players.models.player import Player
 from consts.app import *
 
 from flask import Flask, request, make_response

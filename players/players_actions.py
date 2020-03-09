@@ -1,7 +1,7 @@
 from selenium.webdriver.common.keys import Keys
 
 from consts import elements
-from seleniumDriver.driver import Driver
+from driver import Driver
 from elements.elements_manager import ElementCallback, ElementActions
 
 
