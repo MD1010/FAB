@@ -8,12 +8,6 @@ from players.player_buy import decrease_increase_min_price
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
-from elements.elements_manager import ElementCallback, ElementActions, initialize_element_actions
-from driver import initialize_driver
-
-
-
-
 
 from elements.elements_manager import ElementCallback, initialize_element_actions
 from driver import initialize_driver
@@ -27,10 +21,7 @@ def run_loop(self, time_to_run_in_sec):
     while True:
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
-        # time.sleep(1)
-
         player_bought = self.playerActions.buy_player()
-        #player_bought = None
 
         #give time for the elements in the page to render - if remove stale exception
         time.sleep(1)
@@ -38,7 +29,7 @@ def run_loop(self, time_to_run_in_sec):
         # player_bought = None
 
         if player_bought:
-            self.playerActions.list_player("400")
+            self.playerActions.list_player("8600")
         else:
             self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
         decrease_increase_min_price(self, increase_min_price)
@@ -86,12 +77,7 @@ class Fab:
             self.playerActions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
             self.element_actions.remove_unexpected_popups()
-
-
-            self.playerActions.init_search_player_info("tallo", "600")
-            run_loop(self,time_to_run_in_sec)
-
-            self.playerActions.init_search_player_info("tallo", "200")
+            self.playerActions.init_search_player_info("Clément Lenglet", "7600")
             run_loop(self, time_to_run_in_sec)
 
             return server_status_messages.FAB_LOOP_FINISHED, 200
