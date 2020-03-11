@@ -10,6 +10,8 @@ from consts.app import *
 
 from flask import Flask, request, make_response
 
+from players.player_buy import get_current_player_min_price
+
 app = Flask(__name__)
 fab_driver = Fab()
 
@@ -40,21 +42,21 @@ def players_list():
     players_json = response.json()
     return players_json
 
-
-
-
-
 @app.route('/api/user-players', methods=['POST', 'GET'])
+#fix this
 def user_players():
     if request.method == 'POST':
-        jsonData = request.get_json()
-        playersSavedList.append(
-            Player(jsonData['id'], jsonData['name'], jsonData['maxBuyPrice'], jsonData['searchTime'],
-                   jsonData['shouldSell']))
-        return make_response("", 200)
+        # jsonData = request.get_json()
+        # playersSavedList.append(
+        #     Player(jsonData['id'], jsonData['name'], jsonData['maxBuyPrice'], jsonData['searchTime'],jsonData['shouldSell']))
+        # return make_response("", 200)
+        pass
     if request.method == 'GET':
         return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
 
+@app.route('/jenia-test')
+def player_details():
+    return get_current_player_min_price('Clément Lenglet', 'NIF')
 
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():
