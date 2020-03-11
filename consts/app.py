@@ -8,10 +8,15 @@ PLAYERS_JSON = 'players.json'
 SIGN_IN_URL = 'https://signin.ea.com/p/web2/login?execution=e1639509631s1&initref=https%3A%2F%2Faccounts.ea.com%3A443%2Fconnect%2Fauth%3Fprompt%3Dlogin%26accessToken%3Dnull%26client_id%3DFIFA-20-WEBCLIENT%26response_type%3Dtoken%26display%3Dweb2%252Flogin%26locale%3Den_US%26redirect_uri%3Dhttps%253A%252F%252Fwww.easports.com%252Ffifa%252Fultimate-team%252Fweb-app%252Fauth.html%26release_type%3Dprod%26scope%3Dbasic.identity%2Boffline%2Bsignin%2Bbasic.entitlement%2Bbasic.persona'
 COOKIES_FILE_NAME = 'cookies.txt'
 FUTBIN_PLAYER_PRICE_URL = 'https://www.futbin.com/20/playerPrices?player='
+FUTHEAD_PLAYER ='https://www.futhead.com/quicksearch/player/20/?term='
 PROFIT_MULTIPLIER = 0.05
 EA_TAX = 0.95
 # IN SECS
 AMOUNT_OF_SEARCHES_BEFORE_SLEEP = 20
 SLEEP_MID_OPERATION_DURATION = 10
 ONE_SEARCH_DELTA = 10
+SANE_PRICE_RATIO = 0.94
+MAX_PRICE = 15000000
+DECREASE_SALE_PRICE_PERCENTAGE = 0.94
+
 
