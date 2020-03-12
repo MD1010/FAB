@@ -55,7 +55,7 @@ class Fab:
         try:
             initialize_driver(self)
             initialize_element_actions(self)
-            if not os.path.isfile(app.COOKIES_FILE_NAME):
+            if os.path.isfile(app.COOKIES_FILE_NAME):
                 if not login_with_cookies(self, password):
                     return server_status_messages.FAILED_AUTH, 401
 
