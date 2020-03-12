@@ -24,6 +24,13 @@ def wait_for_code(self):
     # status code is set
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    if not check_for_login_error(self, elements.CODE_ERROR):
+        self.set_status_code('')
+        return False
+    set_auth_status(self, True)
+    return True
+
+
 
 def login_with_cookies(self, password):
     self.driver.delete_all_cookies()
@@ -38,17 +45,23 @@ def login_with_cookies(self, password):
     # Entering password left, and you are in!
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    if not check_for_login_error(self, elements.LOGIN_ERROR):
+        return False
     set_auth_status(self, True)
+    return True
 
 def login_first_time(self, email, password):
     self.driver.get(app.SIGN_IN_URL)
     self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    if not check_for_login_error(self, elements.LOGIN_ERROR):
+        return False
     # check the SMS option
     self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
     # send the sms verfication
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    return True
 
 def remember_logged_in_user(self):
     eaCookies = self.driver.get_cookies()
@@ -63,3 +76,9 @@ def remember_logged_in_user(self):
     # takes 10-15 secs
     saveToCookiesFile(eaCookies, app.COOKIES_FILE_NAME)
     self.driver.back()
+def check_for_login_error(self, ERROR):
+    login_error = self.element_actions.get_element(ERROR)
+    if login_error:
+        set_auth_status(self, False)
+        return False
+    return True

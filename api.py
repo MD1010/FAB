@@ -62,8 +62,7 @@ def player_details():
 def send_status_code():
     code = request.get_json()['code']
     fab_driver.set_status_code(code)
-    # change this nonesense
-    return code, 200
+    return (server_status_messages.SUCCESS_AUTH, 200) if fab_driver.is_authenticated else (server_status_messages.FAILED_AUTH, 401)
 
 
 if __name__ == '__main__':

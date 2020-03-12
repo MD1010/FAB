@@ -29,3 +29,5 @@ DECREASE_PRICE_AFTER_LIST="/html/body/main/section/section/div[2]/div/div/sectio
 MIN_BIN_PRICE_INPUT_AFTER_LIST="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/div[2]/div[2]/div[2]/input"
 MAX_BIN_PRICE_INPUT_AFTER_LIST="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/div[2]/div[3]/div[2]/input"
 LIST_ITEM_ON_TRANSFER_LIST="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/div[2]/button"
+LOGIN_ERROR = "general-error"
+CODE_ERROR = "origin-ux-textbox-status-message"

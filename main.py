@@ -21,7 +21,7 @@ def run_loop(self, time_to_run_in_sec):
     while True:
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
-        player_bought = self.playerActions.buy_player()
+
 
         #give time for the elements in the page to render - if remove stale exception
         time.sleep(1)
@@ -55,14 +55,22 @@ class Fab:
         try:
             initialize_driver(self)
             initialize_element_actions(self)
-            if os.path.isfile(app.COOKIES_FILE_NAME):
-                login_with_cookies(self, password)
+            if not os.path.isfile(app.COOKIES_FILE_NAME):
+                if not login_with_cookies(self, password):
+                    return server_status_messages.FAILED_AUTH, 401
 
             # cookies file was not found - log in the first time
             else:
-                login_first_time(self, email, password)
+                if not login_first_time(self, email, password):
+                    return server_status_messages.FAILED_AUTH, 401
                 # can be screwed here, may send bad status here..
-                wait_for_code(self)
+                tries = 3
+                while tries > 0:
+                    if not wait_for_code(self):
+                        pass
+                    tries -= 1
+                if tries == 0 :
+                    return (server_status_messages.LIMIT_TRIES, 401)
                 remember_logged_in_user(self)
                 set_auth_status(self, True)
             return server_status_messages.SUCCESS_AUTH, 200
