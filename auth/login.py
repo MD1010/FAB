@@ -8,7 +8,7 @@ def check_auth_status(func):
     @wraps(func)
     def determine_if_func_should_run(self, *args):
         if self.is_authenticated:
-            return func(self, args[0])
+            return func(self, *args)
         else:
             return server_status_messages.FAILED_AUTH, 401
 
