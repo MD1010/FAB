@@ -3,14 +3,14 @@ from user_info import user
 
 
 class Player:
-    def __init__(self, id, name, rating, market_price):
+    def __init__(self, id, name, rating, revision, market_price):
         self.id = id
         self.name = name
         self.rating = rating
+        self.revision = revision
         self.market_price = market_price
         self.profit = 0
         self.max_buy_price = 0
-        self.loop_time = 0
 
         self._calculate_max_buy_price()
         self._calculate_profit()

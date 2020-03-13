@@ -31,9 +31,10 @@ def start_fab_loop():
     # my_selenium.start_login(email, password)
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
+    requested_players = jsonData.get('requested_players')
     if time_to_run is None:
         return server_status_messages.BAD_REQUEST, 400
-    return fab_driver.start_loop(time_to_run)
+    return fab_driver.start_loop(time_to_run,requested_players)
 
 
 @app.route('/api/players-list')
@@ -53,10 +54,6 @@ def user_players():
         pass
     if request.method == 'GET':
         return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
-
-@app.route('/jenia-test')
-def player_details():
-    return get_current_player_min_price('Clément Lenglet', 'NIF')
 
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():

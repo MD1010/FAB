@@ -8,7 +8,7 @@ def check_auth_status(func):
     @wraps(func)
     def determine_if_func_should_run(self, *args):
         if self.is_authenticated:
-            return func(self, args[0])
+            return func(self, *args)
         else:
             return server_status_messages.FAILED_AUTH, 401
 
@@ -76,6 +76,7 @@ def remember_logged_in_user(self):
     # takes 10-15 secs
     saveToCookiesFile(eaCookies, app.COOKIES_FILE_NAME)
     self.driver.back()
+
 def check_for_login_error(self, ERROR):
     login_error = self.element_actions.get_element(ERROR)
     if login_error:

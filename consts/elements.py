@@ -19,8 +19,8 @@ BUY_BTN = "/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div
 CANCEL_BUY_BTN = "/html/body/div[4]/section/div/div/button[2]"
 CONFIRM_BUY_BTN = "/html/body/div[4]/section/div/div/button[1]"
 NAVIGATE_BACK = "ut-navigation-button-control"
-INCREASE_PRICE_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]"
-DECREASE_PRICE_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]"
+INCREASE_PRICE_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[2]"
+DECREASE_PRICE_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/button[1]"
 NO_RESULTS_FOUND = "/html/body/main/section/section/div[2]/div/div/section/div/div[2]/div/span"
 #SEND_TO_TRANSFER_BTN="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[3]/button[7]"
 LIST_ON_TRANSFER_BTN="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/div[1]/button"
@@ -31,3 +31,6 @@ MAX_BIN_PRICE_INPUT_AFTER_LIST="/html/body/main/section/section/div[2]/div/div/s
 LIST_ITEM_ON_TRANSFER_LIST="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/div[2]/button"
 LOGIN_ERROR = "general-error"
 CODE_ERROR = "origin-ux-textbox-status-message"
+# SEND_TO_TRANSFER_BTN="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[3]/button[7]"
+COIN_BALANCE = "view-navbar-currency-coins"
+
