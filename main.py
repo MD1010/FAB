@@ -4,18 +4,13 @@ import time
 import os.path
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from players.player_buy import decrease_increase_min_price, get_player_to_search, get_sell_price, open_trasfer_market
+from players.player_buy import decrease_increase_min_price, get_player_to_search, get_next_player_search, get_coin_balance
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
 from elements.elements_manager import ElementCallback, initialize_element_actions
 from driver import initialize_driver
 from user_info import user
-
-
-def get_coin_balance(self):
-    coin_balance = self.element_actions.get_element(elements.COIN_BALANCE).text
-    return int(coin_balance.replace(',', ''))
 
 
 def run_loop(self, time_to_run_in_sec, requested_players):
@@ -25,7 +20,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     player_to_search = get_player_to_search(requested_players)
     if player_to_search is None:
         return False
-    # open_trasfer_market(self)
+    get_next_player_search(self,player_to_search)
 
     start = time.time()
     while True:
@@ -35,9 +30,8 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             player_to_search = get_player_to_search(requested_players)
             if player_to_search is None:
                 return False
-        search_max_price = str(player_to_search.max_buy_price)
-        search_player_name = player_to_search.name
-        self.playerActions.init_search_player_info(search_player_name, search_max_price)
+            get_next_player_search(self,player_to_search)
+
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
         # give time for the elements in the page to render - if remove stale exception

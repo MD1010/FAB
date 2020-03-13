@@ -6,12 +6,14 @@ import json
 from players.models.player import Player
 from consts.app import FUTBIN_PLAYER_PRICE_URL, MAX_PRICE, SANE_PRICE_RATIO, FUTHEAD_PLAYER, DECREASE_SALE_PRICE_PERCENTAGE
 
+def get_coin_balance(self):
+    coin_balance = self.element_actions.get_element(elements.COIN_BALANCE).text
+    return int(coin_balance.replace(',', ''))
 
-def open_trasfer_market(self):
-    # click on TRANSFERS
-    self.element_actions.execute_element_action(elements.ICON_TRANSFER_BTN, ElementCallback.CLICK)
-    # click on search on transfer market
-    self.element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
+def get_next_player_search(self,player_to_search):
+    search_max_price = str(player_to_search.max_buy_price)
+    search_player_name = player_to_search.name
+    self.playerActions.init_search_player_info(search_player_name, search_max_price)
 
 def decrease_increase_min_price(self, increase_price):
     # check if price can be decreased
@@ -28,21 +30,8 @@ def decrease_increase_min_price(self, increase_price):
         self.element_actions.execute_element_action(elements.DECREASE_PRICE_BTN, ElementCallback.CLICK)
 
 
-def build_player_objects(requested_players):
-    result = []
-    for player in requested_players:
-        player_name = player["name"]
-        player_revision = player["revision"]
-        player_id = get_player_attribute_from_json(player_name,player_revision,'def_id')
-        player_rating = get_player_attribute_from_json(player_name,player_revision,'rating')
-        player_market_price = get_current_player_min_price(player_name,player_revision)
-        player_obj = Player(player_id,player_name,player_rating,player_revision,player_market_price)
-        result.append(player_obj)
-    return result
-
-
 def get_player_to_search(requested_players):
-    requested_players = list(build_player_objects(requested_players))
+    requested_players = list(_build_player_objects(requested_players))
     sorted_by_profit = sorted(requested_players, key=lambda player: player.profit, reverse=True)
     most_profitable_player = sorted_by_profit[0]
     # if all the players are above the budget
@@ -95,3 +84,15 @@ def min_price_after_prices_sanity_check(player_prices):
 
 def get_sell_price(min_price):
     return min_price * DECREASE_SALE_PRICE_PERCENTAGE
+
+def _build_player_objects(requested_players):
+    result = []
+    for player in requested_players:
+        player_name = player["name"]
+        player_revision = player["revision"]
+        player_id = get_player_attribute_from_json(player_name,player_revision,'def_id')
+        player_rating = get_player_attribute_from_json(player_name,player_revision,'rating')
+        player_market_price = get_current_player_min_price(player_name,player_revision)
+        player_obj = Player(player_id,player_name,player_rating,player_revision,player_market_price)
+        result.append(player_obj)
+    return result
