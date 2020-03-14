@@ -4,7 +4,7 @@ import time
 import os.path
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from players.player_buy import decrease_increase_min_price, get_player_to_search, get_next_player_search, get_coin_balance
+from players.player_buy import decrease_increase_min_price, get_player_to_search, get_next_player_search, get_coin_balance, get_sell_price
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
@@ -38,13 +38,12 @@ def run_loop(self, time_to_run_in_sec, requested_players):
 
         # give time for the elements in the page to render - if remove stale exception
         time.sleep(1)
-        # player_bought = self.playerActions.buy_player()
-        player_bought = None
+        player_bought = self.playerActions.buy_player()
+        # player_bought = None
 
         if player_bought:
-            pass
-            # list_price = get_sell_price(player_to_search.market_price)
-            # self.playerActions.list_player(list_price)
+            list_price = get_sell_price(player_to_search.market_price)
+            self.playerActions.list_player(str(list_price))
         else:
             self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
         decrease_increase_min_price(self, increase_min_price)
@@ -55,7 +54,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         num_of_tries += 1
         if num_of_tries % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
             time.sleep(SLEEP_MID_OPERATION_DURATION)
-
+        time.sleep(2)
     return True
 
 

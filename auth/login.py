@@ -24,7 +24,7 @@ def wait_for_code(self):
     # status code is set
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not check_for_login_error(self, elements.CODE_ERROR):
+    if not check_for_login_error(self):
         self.set_status_code('')
         return False
     set_auth_status(self, True)
@@ -45,7 +45,7 @@ def login_with_cookies(self, password):
     # Entering password left, and you are in!
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not check_for_login_error(self, elements.LOGIN_ERROR):
+    if not check_for_login_error(self):
         return False
     set_auth_status(self, True)
     return True
@@ -55,7 +55,7 @@ def login_first_time(self, email, password):
     self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not check_for_login_error(self, elements.LOGIN_ERROR):
+    if not check_for_login_error(self):
         return False
     # check the SMS option
     self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
@@ -77,8 +77,8 @@ def remember_logged_in_user(self):
     saveToCookiesFile(eaCookies, app.COOKIES_FILE_NAME)
     self.driver.back()
 
-def check_for_login_error(self, ERROR):
-    login_error = self.element_actions.get_element(ERROR)
+def check_for_login_error(self):
+    login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
     if login_error:
         set_auth_status(self, False)
         return False

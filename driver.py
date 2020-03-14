@@ -1,3 +1,4 @@
+from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from consts import app
@@ -8,7 +9,10 @@ class Driver:
         self.driver = driver
 
 def initialize_driver(self):
-    self.driver = webdriver.Chrome(ChromeDriverManager().install())
-    self.driver.get(app.WEB_APP_URL)
+    try:
+        self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        self.driver.get(app.WEB_APP_URL)
+    except:
+        raise WebDriverException()
     # self.driver.find_element_by_xpath().
 
