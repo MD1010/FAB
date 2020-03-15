@@ -1,33 +1,39 @@
+import json
+
+import requests
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
 import time
 import os.path
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
-from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
+from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, FUTHEAD_PLAYER
 from helper_functions import saveToCookiesFile
-from players.player_search import decrease_increase_min_price, get_player_to_search, get_next_player_search, enter_transfer_market, get_all_players_RT_prices
+from players.models.player import Player
+from players.player_search import decrease_increase_min_price, get_player_to_search, get_next_player_search, enter_transfer_market, get_all_players_RT_prices, \
+    get_all_players_full_data
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
 from elements.elements_manager import ElementCallback, initialize_element_actions
 from driver import initialize_driver
 from user_info import user
-from user_info.user import get_coin_balance
+from user_info.user import get_coin_balance, get_user_platform
 
 
 def run_loop(self, time_to_run_in_sec, requested_players):
     increase_min_price = True
     num_of_tries = 0
     user.coin_balance = get_coin_balance(self)
-    #get updated prices
+    user.user_platform = get_user_platform(self)
+    # get updated prices
     enter_transfer_market(self)
-    real_prices = get_all_players_RT_prices(self,requested_players)
-    player_to_search = get_player_to_search(requested_players,real_prices)
+    real_prices = get_all_players_RT_prices(self, requested_players)
+    player_to_search = get_player_to_search(requested_players, real_prices)
     if player_to_search is None:
         return server_status_messages.NO_BUDGET_LEFT, 503
     enter_transfer_market(self)
     time.sleep(1)
-    found_next_player = get_next_player_search(self,player_to_search)
+    found_next_player = get_next_player_search(self, player_to_search)
     if found_next_player is False:
         return server_status_messages.SEARCH_PROBLEM, 503
 
@@ -37,10 +43,10 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         if user.coin_balance != current_coin_balance:
             user.coin_balance = current_coin_balance
             # real_prices = get_all_players_RT_prices(self, requested_players)
-            player_to_search = get_player_to_search(requested_players,real_prices)
+            player_to_search = get_player_to_search(requested_players, real_prices)
             if player_to_search is None:
                 return server_status_messages.NO_BUDGET_LEFT, 503
-            found_next_player = get_next_player_search(self,player_to_search)
+            found_next_player = get_next_player_search(self, player_to_search)
             if found_next_player is False:
                 return server_status_messages.SEARCH_PROBLEM, 503
 
@@ -98,7 +104,7 @@ class Fab:
                     if not wait_for_code(self):
                         pass
                     tries -= 1
-                if tries == 0 :
+                if tries == 0:
                     return server_status_messages.LIMIT_TRIES, 401
                 remember_logged_in_user(self)
                 set_auth_status(self, True)
@@ -123,3 +129,5 @@ class Fab:
     def set_status_code(self, code):
         self.statusCode = code
         return server_status_messages.STATUS_CODE_SET_CORRECTLY, 200
+
+

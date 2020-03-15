@@ -10,7 +10,7 @@ from consts.app import *
 
 from flask import Flask, request, make_response
 
-from players.player_search import get_approximate_min_price
+from players.player_search import get_approximate_min_price, get_all_players_full_data
 
 app = Flask(__name__)
 fab_driver = Fab()
@@ -43,17 +43,16 @@ def players_list():
     players_json = response.json()
     return players_json
 
-@app.route('/api/user-players', methods=['POST', 'GET'])
-#fix this
-def user_players():
-    if request.method == 'POST':
-        # jsonData = request.get_json()
-        # playersSavedList.append(
-        #     Player(jsonData['id'], jsonData['name'], jsonData['maxBuyPrice'], jsonData['searchTime'],jsonData['shouldSell']))
-        # return make_response("", 200)
-        pass
-    if request.method == 'GET':
-        return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
+@app.route('/api/all-cards', methods=['GET'])
+def get_all_cards():
+    response = requests.get(url=base_players_url)
+    ea_players_json = response.json()
+    result = get_all_players_full_data(ea_players_json)
+    return json.dumps(list(map(lambda p: p.player_json(),result)))
+    # ea_players_json = json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
+    # return fab_driver.get_all_players_full_data(ea_players_json)
+    # return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
+
 
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():
@@ -64,5 +63,4 @@ def send_status_code():
 
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
-    playersSavedList = []
     app.run(debug=True)
