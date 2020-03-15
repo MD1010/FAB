@@ -10,7 +10,7 @@ from consts.app import *
 
 from flask import Flask, request, make_response
 
-from players.player_buy import get_current_player_min_price
+from players.player_search import get_approximate_min_price
 
 app = Flask(__name__)
 fab_driver = Fab()

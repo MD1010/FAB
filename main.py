@@ -4,48 +4,61 @@ import time
 import os.path
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from players.player_buy import decrease_increase_min_price, get_player_to_search, get_next_player_search, get_coin_balance, get_sell_price
+from helper_functions import saveToCookiesFile
+from players.player_search import decrease_increase_min_price, get_player_to_search, get_next_player_search, enter_transfer_market, get_all_players_RT_prices
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
 from elements.elements_manager import ElementCallback, initialize_element_actions
 from driver import initialize_driver
 from user_info import user
+from user_info.user import get_coin_balance
 
 
 def run_loop(self, time_to_run_in_sec, requested_players):
     increase_min_price = True
     num_of_tries = 0
     user.coin_balance = get_coin_balance(self)
-    player_to_search = get_player_to_search(requested_players)
+    #get updated prices
+    enter_transfer_market(self)
+    real_prices = get_all_players_RT_prices(self,requested_players)
+    player_to_search = get_player_to_search(requested_players,real_prices)
     if player_to_search is None:
-        return False
-    get_next_player_search(self,player_to_search)
+        return server_status_messages.NO_BUDGET_LEFT, 503
+    enter_transfer_market(self)
+    time.sleep(1)
+    found_next_player = get_next_player_search(self,player_to_search)
+    if found_next_player is False:
+        return server_status_messages.SEARCH_PROBLEM, 503
 
     start = time.time()
     while True:
         current_coin_balance = get_coin_balance(self)
         if user.coin_balance != current_coin_balance:
             user.coin_balance = current_coin_balance
-            player_to_search = get_player_to_search(requested_players)
+            # real_prices = get_all_players_RT_prices(self, requested_players)
+            player_to_search = get_player_to_search(requested_players,real_prices)
             if player_to_search is None:
-                return False
-            get_next_player_search(self,player_to_search)
-
+                return server_status_messages.NO_BUDGET_LEFT, 503
+            found_next_player = get_next_player_search(self,player_to_search)
+            if found_next_player is False:
+                return server_status_messages.SEARCH_PROBLEM, 503
 
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
-
         # give time for the elements in the page to render - if remove stale exception
         time.sleep(1)
-        player_bought = self.playerActions.buy_player()
-        # player_bought = None
+        # player_bought = self.player_actions.buy_player()
+        print(player_to_search.max_buy_price)
+        player_bought = None
 
         if player_bought:
-            list_price = get_sell_price(player_to_search.market_price)
-            self.playerActions.list_player(str(list_price))
-        else:
-            self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
+            list_price = player_to_search.sell_price
+            self.player_actions.list_player(str(list_price))
+
+        self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
+        # else:
+        #     self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
         decrease_increase_min_price(self, increase_min_price)
         increase_min_price = not increase_min_price
         curr_time = time.time()
@@ -54,8 +67,9 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         num_of_tries += 1
         if num_of_tries % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
             time.sleep(SLEEP_MID_OPERATION_DURATION)
-        time.sleep(2)
-    return True
+        time.sleep(1.5)
+    print(num_of_tries)
+    return server_status_messages.FAB_LOOP_FINISHED, 200
 
 
 class Fab:
@@ -64,7 +78,7 @@ class Fab:
         self.driver = None
         self.statusCode = ''
         self.element_actions = None
-        self.playerActions = None
+        self.player_actions = None
 
     def start_login(self, email, password):
         try:
@@ -85,7 +99,7 @@ class Fab:
                         pass
                     tries -= 1
                 if tries == 0 :
-                    return (server_status_messages.LIMIT_TRIES, 401)
+                    return server_status_messages.LIMIT_TRIES, 401
                 remember_logged_in_user(self)
                 set_auth_status(self, True)
             return server_status_messages.SUCCESS_AUTH, 200
@@ -97,14 +111,10 @@ class Fab:
     @check_auth_status
     def start_loop(self, time_to_run_in_sec, requested_players):
         try:
-            self.playerActions = PlayerActions(self.driver)
+            self.player_actions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
             self.element_actions.remove_unexpected_popups()
-            result = run_loop(self, time_to_run_in_sec, requested_players)
-            if result is True:
-                return server_status_messages.FAB_LOOP_FINISHED, 200
-            else:
-                return server_status_messages.NO_BUDGET_LEFT, 503
+            return run_loop(self, time_to_run_in_sec, requested_players)
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")

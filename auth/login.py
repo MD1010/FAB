@@ -20,8 +20,6 @@ def set_auth_status(self, is_auth):
 def wait_for_code(self):
     while self.statusCode is '':
         pass
-    # What happens if the user is stupid enough to type the wrong code ? ? ?
-    # status code is set
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     if not check_for_login_error(self):
