@@ -1,6 +1,10 @@
 import concurrent
+import multiprocessing
+from multiprocessing import Process
 from concurrent import futures
+from multiprocessing.pool import ThreadPool
 
+import db
 from consts import elements
 from elements.elements_manager import ElementCallback
 import requests
@@ -119,13 +123,12 @@ def _build_player_objects(requested_players, real_prices):
                 if name == player_name:
                     player_market_price = price_obj[player_name]
                     break
-        player_obj = Player(specific_card_id,player_name,rating,revision,nation,position,club)
+        player_obj = Player(specific_card_id, player_name, rating, revision, nation, position, club)
         player_obj.set_market_price(player_market_price)
         player_obj.calculate_max_buy_price()
         player_obj.calculate_profit()
         result.append(player_obj)
     return result
-
 
 def build_full_player_data_obj(ea_player_data):
     if ea_player_data.get("c") is not None:
@@ -148,30 +151,44 @@ def build_full_player_data_obj(ea_player_data):
             position = player_in_json_futhead["position"]
             club = player_in_json_futhead["club_name"]
             cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club))
-    return cards_from_the_same_id
+            return cards_from_the_same_id
 
 
-def get_all_players_full_data(ea_players_json):
-    all = []
-    ea_players_json = list(ea_players_json.values())
-    for i in range(len(ea_players_json)):
-        for player_obj in ea_players_json[i]:
-            all.append(player_obj)
+def get_type_results(searched_player):
+     return list(db.players_collection.find({ '$or':[{'f':{'$regex':searched_player,'$options':'i'}},
+                                                           {'l':{'$regex':searched_player,'$options':'i'}},
+                                                           {'c':{'$regex':searched_player,'$options':'i'}}]}).sort([{'r',-1}]).limit(25))
 
-    for player_obj in range(len(all)):
-        all_data = []
-        with concurrent.futures.ThreadPoolExecutor(len(all)) as executor:
-            for player_data in all:
-                future = executor.submit(build_full_player_data_obj, player_data)
-                print(future.result())
-                all_data.append(future.result())
+
+    # all = []
+    # ea_players_json = list(ea_players_json.values())
+    # for i in range(len(ea_players_json)):
+    #     for player_obj in ea_players_json[i]:
+    #         all.append(player_obj)
+
+    # p = ThreadPool(len(all))
+    # x = p.imap(build_full_player_data_obj, all)
+    # p.close()
+    # p.join()
+    #
+    # print(x)
+    # return x
+        # with concurrent.futures.ThreadPoolExecutor(len(all)) as executor:
+        #     for player_data in all:
+        #         future = executor.submit(build_full_player_data_obj, player_data)
+        #         # print(future.result())
+        #         global count
+        #         count+=1
+        #         from shutil import get_terminal_size
+        #         print(f'{count}/17218')
+        #         all_data.append(future.result())
 
     # with concurrent.futures.ProcessPoolExecutor() as executor:
     #     for i in range(len(ea_players_json)):
     #         for player_data in ea_players_json:
     #             ea_player_obj = player_data[i]
     #             executor.map(build_full_player_data_obj, ea_player_obj)
-
+#
 # def get_all_players_full_data(ea_players_json):
 #     all_full_data_players = []
 #     # Legends or Players

@@ -10,7 +10,7 @@ from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURA
 from helper_functions import saveToCookiesFile
 from players.models.player import Player
 from players.player_search import decrease_increase_min_price, get_player_to_search, get_next_player_search, enter_transfer_market, get_all_players_RT_prices, \
-    get_all_players_full_data
+    get_type_results
 from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
@@ -129,5 +129,3 @@ class Fab:
     def set_status_code(self, code):
         self.statusCode = code
         return server_status_messages.STATUS_CODE_SET_CORRECTLY, 200
-
-

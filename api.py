@@ -4,13 +4,12 @@ import json
 from main import Fab
 from consts import server_status_messages
 
-from players.models.player import Player
 from consts.app import *
 
+from flask import Flask, request
 
-from flask import Flask, request, make_response
-
-from players.player_search import get_approximate_min_price, get_all_players_full_data
+from players.player_search import get_type_results
+from bson import json_util
 
 app = Flask(__name__)
 fab_driver = Fab()
@@ -34,7 +33,7 @@ def start_fab_loop():
     requested_players = jsonData.get('requested_players')
     if time_to_run is None:
         return server_status_messages.BAD_REQUEST, 400
-    return fab_driver.start_loop(time_to_run,requested_players)
+    return fab_driver.start_loop(time_to_run, requested_players)
 
 
 @app.route('/api/players-list')
@@ -43,12 +42,14 @@ def players_list():
     players_json = response.json()
     return players_json
 
-@app.route('/api/all-cards', methods=['GET'])
-def get_all_cards():
+
+@app.route('/api/players-list/<string:searched_player>', methods=['GET'])
+def get_all_cards(searched_player):
     response = requests.get(url=base_players_url)
     ea_players_json = response.json()
-    result = get_all_players_full_data(ea_players_json)
-    return json.dumps(list(map(lambda p: p.player_json(),result)))
+    result = get_type_results(searched_player)
+    return {"found":json.loads(json_util.dumps(result))}
+    # return json.dumps(list(map(lambda p: p.player_json(), result)))
     # ea_players_json = json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
     # return fab_driver.get_all_players_full_data(ea_players_json)
     # return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
