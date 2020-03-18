@@ -165,6 +165,7 @@ def _build_full_player_data_obj(ea_player_data):
 
 
 def _get_player_full_futhead_data(contain_searched_term_players):
+    if len(contain_searched_term_players) == 0: return []
     player_thread_pool = ThreadPool(len(contain_searched_term_players))
     players_imap_iterator = player_thread_pool.imap(_build_full_player_data_obj, contain_searched_term_players)
     player_thread_pool.close()
