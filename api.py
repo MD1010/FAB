@@ -8,7 +8,7 @@ from consts.app import *
 
 from flask import Flask, request
 
-from players.player_search import get_type_results
+from players.player_search import get_all_players_cards
 from bson import json_util
 
 app = Flask(__name__)
@@ -47,7 +47,7 @@ def players_list():
 def get_all_cards(searched_player):
     response = requests.get(url=base_players_url)
     ea_players_json = response.json()
-    result = get_type_results(searched_player)
+    result = get_all_players_cards(searched_player)
     # return {"found":json.loads(json_util.dumps(result))}
     return json.dumps(list(map(lambda p: p.player_json(), result)))
     # ea_players_json = json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))

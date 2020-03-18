@@ -91,6 +91,13 @@ def get_all_players_RT_prices(self, required_players):
     return RT_prices
 
 
+def get_all_players_cards(searched_player_name_string):
+    contain_searched_term_players = list(db.players_collection.find({'$or': [{'f': {'$regex': searched_player_name_string, '$options': 'i'}},
+                                                                             {'l': {'$regex': searched_player_name_string, '$options': 'i'}},
+                                                                             {'c': {'$regex': searched_player_name_string, '$options': 'i'}}]}).sort([{'r', -1}]).limit(15))
+    return _get_player_full_futhead_data(contain_searched_term_players)
+
+
 def _min_price_after_prices_sanity_check(player_prices):
     player_prices = [int(price) for price in player_prices]
     if player_prices[0] == 0:
@@ -131,7 +138,7 @@ def _build_player_objects(requested_players, real_prices):
     return result
 
 
-def build_full_player_data_obj(ea_player_data):
+def _build_full_player_data_obj(ea_player_data):
     if ea_player_data.get("c") is not None:
         player_full_name = ea_player_data.get("c")
     else:
@@ -155,21 +162,20 @@ def build_full_player_data_obj(ea_player_data):
     return cards_from_the_same_id
 
 
-def get_type_results(searched_player):
-    contain_searched_term_players = list(db.players_collection.find({'$or': [{'f': {'$regex': searched_player, '$options': 'i'}},
-                                                                             {'l': {'$regex': searched_player, '$options': 'i'}},
-                                                                             {'c': {'$regex': searched_player, '$options': 'i'}}]}).sort([{'r', -1}]).limit(15))
 
+
+def _get_player_full_futhead_data(contain_searched_term_players):
     player_thread_pool = ThreadPool(len(contain_searched_term_players))
-    players_imap_iterator = player_thread_pool.imap(build_full_player_data_obj, contain_searched_term_players)
+    players_imap_iterator = player_thread_pool.imap(_build_full_player_data_obj, contain_searched_term_players)
     player_thread_pool.close()
     player_thread_pool.join()
     result = []
     for _, player_record in players_imap_iterator._items:
-        if len(player_record) > 0 :
+        if len(player_record) > 0:
             for player_data in player_record:
                 # id, name, rating, revision, nation, position, club = player_data.values()
-                player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position, player_data.club)
+                player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position,
+                                     player_data.club)
                 result.append(player_card)
     return result
 
