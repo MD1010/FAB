@@ -130,6 +130,7 @@ def _build_player_objects(requested_players, real_prices):
         result.append(player_obj)
     return result
 
+
 def build_full_player_data_obj(ea_player_data):
     if ea_player_data.get("c") is not None:
         player_full_name = ea_player_data.get("c")
@@ -151,68 +152,24 @@ def build_full_player_data_obj(ea_player_data):
             position = player_in_json_futhead["position"]
             club = player_in_json_futhead["club_name"]
             cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club))
-            return cards_from_the_same_id
+    return cards_from_the_same_id
 
 
 def get_type_results(searched_player):
-     return list(db.players_collection.find({ '$or':[{'f':{'$regex':searched_player,'$options':'i'}},
-                                                           {'l':{'$regex':searched_player,'$options':'i'}},
-                                                           {'c':{'$regex':searched_player,'$options':'i'}}]}).sort([{'r',-1}]).limit(25))
+    contain_searched_term_players = list(db.players_collection.find({'$or': [{'f': {'$regex': searched_player, '$options': 'i'}},
+                                                                             {'l': {'$regex': searched_player, '$options': 'i'}},
+                                                                             {'c': {'$regex': searched_player, '$options': 'i'}}]}).sort([{'r', -1}]).limit(15))
 
+    player_thread_pool = ThreadPool(len(contain_searched_term_players))
+    players_imap_iterator = player_thread_pool.imap(build_full_player_data_obj, contain_searched_term_players)
+    player_thread_pool.close()
+    player_thread_pool.join()
+    result = []
+    for _, player_record in players_imap_iterator._items:
+        if len(player_record) > 0 :
+            for player_data in player_record:
+                # id, name, rating, revision, nation, position, club = player_data.values()
+                player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position, player_data.club)
+                result.append(player_card)
+    return result
 
-    # all = []
-    # ea_players_json = list(ea_players_json.values())
-    # for i in range(len(ea_players_json)):
-    #     for player_obj in ea_players_json[i]:
-    #         all.append(player_obj)
-
-    # p = ThreadPool(len(all))
-    # x = p.imap(build_full_player_data_obj, all)
-    # p.close()
-    # p.join()
-    #
-    # print(x)
-    # return x
-        # with concurrent.futures.ThreadPoolExecutor(len(all)) as executor:
-        #     for player_data in all:
-        #         future = executor.submit(build_full_player_data_obj, player_data)
-        #         # print(future.result())
-        #         global count
-        #         count+=1
-        #         from shutil import get_terminal_size
-        #         print(f'{count}/17218')
-        #         all_data.append(future.result())
-
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
-    #     for i in range(len(ea_players_json)):
-    #         for player_data in ea_players_json:
-    #             ea_player_obj = player_data[i]
-    #             executor.map(build_full_player_data_obj, ea_player_obj)
-#
-# def get_all_players_full_data(ea_players_json):
-#     all_full_data_players = []
-#     # Legends or Players
-#     for player_data in ea_players_json.values():
-#         for index in range(len(player_data)):
-#             if player_data[index].get("c") is not None:
-#                 player_full_name = player_data[index].get("c")
-#             else:
-#                 player_full_name = player_data[index].get("f") + " " + player_data[index].get("l")
-#             player_id = player_data[index].get("id")
-#             # go to futhead to find all cards of that player
-#             futhead_url_player_data = f'{FUTHEAD_PLAYER}{player_full_name}'
-#             details_of_specific_player = json.loads(requests.get(futhead_url_player_data).content)
-#
-#             for player_in_json_futhead in details_of_specific_player:
-#                 if player_in_json_futhead["player_id"] == player_id:
-#                     rating = player_in_json_futhead["rating"]
-#                     specific_card_id = player_in_json_futhead["def_id"]
-#                     revision = player_in_json_futhead["revision_type"]
-#                     name = player_in_json_futhead["full_name"]
-#                     nation = player_in_json_futhead["nation_name"]
-#                     position = player_in_json_futhead["position"]
-#                     club = player_in_json_futhead["club_name"]
-#
-#                     all_full_data_players.append(Player(specific_card_id, name, rating, revision, nation, position, club))
-#                     print(Player(specific_card_id, name, rating, revision, nation, position, club))
-#     return all_full_data_players

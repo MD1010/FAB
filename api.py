@@ -48,8 +48,8 @@ def get_all_cards(searched_player):
     response = requests.get(url=base_players_url)
     ea_players_json = response.json()
     result = get_type_results(searched_player)
-    return {"found":json.loads(json_util.dumps(result))}
-    # return json.dumps(list(map(lambda p: p.player_json(), result)))
+    # return {"found":json.loads(json_util.dumps(result))}
+    return json.dumps(list(map(lambda p: p.player_json(), result)))
     # ea_players_json = json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
     # return fab_driver.get_all_players_full_data(ea_players_json)
     # return json.dumps(list(map(lambda p: p.player_json(), playersSavedList)))
