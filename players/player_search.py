@@ -4,6 +4,8 @@ from multiprocessing import Process
 from concurrent import futures
 from multiprocessing.pool import ThreadPool
 
+import pymongo
+from bson.son import SON
 import db
 from consts import elements
 from elements.elements_manager import ElementCallback
@@ -92,9 +94,31 @@ def get_all_players_RT_prices(self, required_players):
 
 
 def get_all_players_cards(searched_player_name_string):
-    contain_searched_term_players = list(db.players_collection.find({'$or': [{'f': {'$regex': searched_player_name_string, '$options': 'i'}},
-                                                                             {'l': {'$regex': searched_player_name_string, '$options': 'i'}},
-                                                                             {'c': {'$regex': searched_player_name_string, '$options': 'i'}}]}).sort([{'r', -1}]).limit(15))
+    # search_options = []
+    # contain_searched_term_players = list(db.players_collection.find({ '$text': { '$search': searched_player_name_string } }).sort([{'rating', -1}]).limit(15))
+    # for i in range(len(searched_player_name_string)):
+    #     for ind in range(i + 3, len(searched_player_name_string) + 1):
+    #         if searched_player_name_string.strip()[i: ind] not in search_options:
+    #             search_options.append(searched_player_name_string.strip()[i: ind])
+
+    contain_searched_term_players = list(db.players_collection.find({"name" : {'$regex' : f".*{searched_player_name_string}.*",'$options': 'i'}}).limit(20).sort('rating', -1))
+
+    #.sort([{'rating', -1}]).limit(15))                                         #
+
+    # contain_searched_term_players = list(db.players_collection.find({'name': {'$regex': searched_player_name_string, '$options': 'i'}}))
+    # found_players = []
+
+    # for regex in searched_player_name_string.split():
+    #     contain_searched_term_players = db.players_collection.find({'$or': [{'f': {'$regex': regex, '$options': 'i'}},
+    #                                                                         {'l': {'$regex': regex, '$options': 'i'}},
+    #                                                                         {'c': {'$regex': regex, '$options': 'i'}}]})
+    #     for player in contain_searched_term_players:
+    #         # The next line avoids creating duplicate answers if there are multiple matches for the same player
+    #         if player['_id'] not in [o['_id'] for o in found_players]:
+    #             found_players.append(player)
+    #
+    # # Sort the output by "r" - highest first
+    # contain_searched_term_players = sorted(found_players, key=lambda o: o['r'], reverse=True)
     return _get_player_full_futhead_data(contain_searched_term_players)
 
 
@@ -139,10 +163,11 @@ def _build_player_objects(requested_players, real_prices):
 
 
 def _build_full_player_data_obj(ea_player_data):
-    if ea_player_data.get("c") is not None:
-        player_full_name = ea_player_data.get("c")
-    else:
-        player_full_name = ea_player_data.get("f") + " " + ea_player_data.get("l")
+    # if ea_player_data.get("c") is not None:
+    #     player_full_name = ea_player_data.get("c")
+    # else:
+    #     player_full_name = ea_player_data.get("f") + " " + ea_player_data.get("l")
+    player_full_name = ea_player_data.get("name")
     player_id = ea_player_data.get("id")
     # go to futhead to find all cards of that player
     futhead_url_player_data = f'{FUTHEAD_PLAYER}{player_full_name}'
@@ -162,8 +187,6 @@ def _build_full_player_data_obj(ea_player_data):
     return cards_from_the_same_id
 
 
-
-
 def _get_player_full_futhead_data(contain_searched_term_players):
     if len(contain_searched_term_players) == 0: return []
     player_thread_pool = ThreadPool(len(contain_searched_term_players))
@@ -179,4 +202,3 @@ def _get_player_full_futhead_data(contain_searched_term_players):
                                      player_data.club)
                 result.append(player_card)
     return result
-
