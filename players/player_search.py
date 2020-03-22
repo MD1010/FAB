@@ -93,33 +93,12 @@ def get_all_players_RT_prices(self, required_players):
     return RT_prices
 
 
+
 def get_all_players_cards(searched_player_name_string):
-    # search_options = []
-    # contain_searched_term_players = list(db.players_collection.find({ '$text': { '$search': searched_player_name_string } }).sort([{'rating', -1}]).limit(15))
-    # for i in range(len(searched_player_name_string)):
-    #     for ind in range(i + 3, len(searched_player_name_string) + 1):
-    #         if searched_player_name_string.strip()[i: ind] not in search_options:
-    #             search_options.append(searched_player_name_string.strip()[i: ind])
-
     contain_searched_term_players = list(db.players_collection.find({"name" : {'$regex' : f".*{searched_player_name_string}.*",'$options': 'i'}}).limit(20).sort('rating', -1))
-
-    #.sort([{'rating', -1}]).limit(15))                                         #
-
-    # contain_searched_term_players = list(db.players_collection.find({'name': {'$regex': searched_player_name_string, '$options': 'i'}}))
-    # found_players = []
-
-    # for regex in searched_player_name_string.split():
-    #     contain_searched_term_players = db.players_collection.find({'$or': [{'f': {'$regex': regex, '$options': 'i'}},
-    #                                                                         {'l': {'$regex': regex, '$options': 'i'}},
-    #                                                                         {'c': {'$regex': regex, '$options': 'i'}}]})
-    #     for player in contain_searched_term_players:
-    #         # The next line avoids creating duplicate answers if there are multiple matches for the same player
-    #         if player['_id'] not in [o['_id'] for o in found_players]:
-    #             found_players.append(player)
-    #
-    # # Sort the output by "r" - highest first
-    # contain_searched_term_players = sorted(found_players, key=lambda o: o['r'], reverse=True)
-    return _get_player_full_futhead_data(contain_searched_term_players)
+    unsorted_result = _get_player_full_futhead_data(contain_searched_term_players)
+    sorted_by_rating_result = sorted(unsorted_result, key=lambda player: player.rating, reverse=True)
+    return sorted_by_rating_result
 
 
 def _min_price_after_prices_sanity_check(player_prices):
