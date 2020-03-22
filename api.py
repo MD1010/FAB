@@ -34,7 +34,7 @@ def start_fab_loop():
     requested_players = jsonData.get('requested_players')
     if time_to_run is None:
         return server_status_messages.BAD_REQUEST, 400
-    return fab_driver.start_loop(time_to_run,requested_players)
+    return fab_driver.start_loop(time_to_run, requested_players)
 
 
 @app.route('/api/players-list')

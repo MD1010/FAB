@@ -30,7 +30,9 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
                 else partial(web_element.send_keys, callback_params[0], callback_params[1])
             )()
     }
+
     return action_switcher[callback]()
+
 
 def get_path_by(actual_path):
     if str(actual_path).startswith('/'):

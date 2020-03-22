@@ -21,7 +21,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     user.coin_balance = get_coin_balance(self)
     #get updated prices
     enter_transfer_market(self)
-    real_prices = get_all_players_RT_prices(self,requested_players)
+    real_prices = get_all_players_RT_prices(self, requested_players)
     player_to_search = get_player_to_search(requested_players,real_prices)
     if player_to_search is None:
         return server_status_messages.NO_BUDGET_LEFT, 503

@@ -12,6 +12,7 @@ def initialize_driver(self):
     try:
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
         self.driver.get(app.WEB_APP_URL)
+
     except:
         raise WebDriverException()
     # self.driver.find_element_by_xpath().

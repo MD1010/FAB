@@ -70,12 +70,12 @@ def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
         if element.get('full_name') == full_name and element.get('revision_type') == revision_type:
             return str(element.get(player_attribute))
 
-def get_all_players_RT_prices(self,required_players):
+def get_all_players_RT_prices(self, required_players):
     RT_prices = []
     for player in required_players:
         player_name = player["name"]
         player_revision = player["revision"]
-        real_price = self.player_actions.check_player_RT_price(player_name,player_revision)
+        real_price = self.player_actions.check_player_RT_price(player_name, player_revision)
         RT_prices.append({player_name:real_price})
     return RT_prices
 
