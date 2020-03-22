@@ -79,7 +79,7 @@ def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
     futhead_url_player_data = f'{FUTHEAD_PLAYER}{full_name}'
     details_of_specific_player = json.loads(requests.get(futhead_url_player_data).content)
     for element in details_of_specific_player:
-        if element.get('full_name') == full_name and element.get('revision_type') == revision_type:
+        if element.get('full_name') == full_name and element.get('revision_type') == revision_type :
             return str(element.get(player_attribute))
 
 

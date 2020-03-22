@@ -61,6 +61,9 @@ def send_status_code():
     fab_driver.set_status_code(code)
     return (server_status_messages.SUCCESS_AUTH, 200) if fab_driver.is_authenticated else (server_status_messages.FAILED_AUTH, 401)
 
+@app.route("/api/close-driver")
+def close_driver():
+    return fab_driver.close_driver()
 
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)

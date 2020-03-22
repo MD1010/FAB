@@ -129,3 +129,10 @@ class Fab:
     def set_status_code(self, code):
         self.statusCode = code
         return server_status_messages.STATUS_CODE_SET_CORRECTLY, 200
+
+    def close_driver(self):
+       if self.driver is not None:
+           self.driver.quit()
+           return server_status_messages.FAB_DRIVER_CLOSE_SUCCESS,200
+       else:
+           return server_status_messages.FAB_DRIVER_CLOSE_FAIL,503
