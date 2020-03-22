@@ -28,8 +28,6 @@ def wait_for_code(self):
     set_auth_status(self, True)
     return True
 
-
-
 def login_with_cookies(self, password):
     self.driver.delete_all_cookies()
     cookies = loadCookiesFile(app.COOKIES_FILE_NAME)

@@ -15,7 +15,8 @@ from consts import app, elements, server_status_messages
 from players.players_actions import PlayerActions
 
 from elements.elements_manager import ElementCallback, initialize_element_actions
-from driver import initialize_driver
+from driver import initialize_driver, DriverState
+from server_status import ServerStatus
 from user_info import user
 from user_info.user import get_coin_balance, get_user_platform
 
@@ -30,12 +31,12 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     real_prices = get_all_players_RT_prices(self, requested_players)
     player_to_search = get_player_to_search(requested_players, real_prices)
     if player_to_search is None:
-        return server_status_messages.NO_BUDGET_LEFT, 503
+        return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
     enter_transfer_market(self)
     time.sleep(1)
     found_next_player = get_next_player_search(self, player_to_search)
     if found_next_player is False:
-        return server_status_messages.SEARCH_PROBLEM, 503
+        return ServerStatus(server_status_messages.SEARCH_PROBLEM, 503).jsonify()
 
     start = time.time()
     while True:
@@ -45,10 +46,10 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             # real_prices = get_all_players_RT_prices(self, requested_players)
             player_to_search = get_player_to_search(requested_players, real_prices)
             if player_to_search is None:
-                return server_status_messages.NO_BUDGET_LEFT, 503
+                return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
             found_next_player = get_next_player_search(self, player_to_search)
             if found_next_player is False:
-                return server_status_messages.SEARCH_PROBLEM, 503
+                return ServerStatus(server_status_messages.SEARCH_PROBLEM, 503).jsonify()
 
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
@@ -75,7 +76,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             time.sleep(SLEEP_MID_OPERATION_DURATION)
         time.sleep(1.5)
     print(num_of_tries)
-    return server_status_messages.FAB_LOOP_FINISHED, 200
+    return ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200).jsonify()
 
 
 class Fab:
@@ -85,19 +86,22 @@ class Fab:
         self.statusCode = ''
         self.element_actions = None
         self.player_actions = None
+        self.driver_state = DriverState.OFF
 
     def start_login(self, email, password):
+        if email is None or password is None:
+            return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
             initialize_driver(self)
             initialize_element_actions(self)
             if os.path.isfile(app.COOKIES_FILE_NAME):
                 if not login_with_cookies(self, password):
-                    return server_status_messages.FAILED_AUTH, 401
+                    return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
 
             # cookies file was not found - log in the first time
             else:
                 if not login_first_time(self, email, password):
-                    return server_status_messages.FAILED_AUTH, 401
+                    return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
                 # can be screwed here, may send bad status here..
                 tries = 3
                 while tries > 0:
@@ -105,17 +109,19 @@ class Fab:
                         pass
                     tries -= 1
                 if tries == 0:
-                    return server_status_messages.LIMIT_TRIES, 401
+                    return ServerStatus(server_status_messages.LIMIT_TRIES, 401).jsonify()
                 remember_logged_in_user(self)
                 set_auth_status(self, True)
-            return server_status_messages.SUCCESS_AUTH, 200
+            return ServerStatus(server_status_messages.SUCCESS_AUTH, 200).jsonify()
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
-            return server_status_messages.FAILED_AUTH, 401
+            return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
 
     @check_auth_status
     def start_loop(self, time_to_run_in_sec, requested_players):
+        if time_to_run_in_sec is None:
+            return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
             self.player_actions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
@@ -124,15 +130,16 @@ class Fab:
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
-            return server_status_messages.FAB_LOOP_FAILED, 503
+            return ServerStatus(server_status_messages.FAB_LOOP_FAILED, 503).jsonify()
 
     def set_status_code(self, code):
         self.statusCode = code
-        return server_status_messages.STATUS_CODE_SET_CORRECTLY, 200
+        return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY, 200).jsonify()
 
     def close_driver(self):
-       if self.driver is not None:
-           self.driver.quit()
-           return server_status_messages.FAB_DRIVER_CLOSE_SUCCESS,200
-       else:
-           return server_status_messages.FAB_DRIVER_CLOSE_FAIL,503
+        if self.driver is not None:
+            self.driver.quit()
+            self.driver_state = DriverState.OFF
+            return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, 200).jsonify()
+        else:
+            return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_FAIL, 503).jsonify()

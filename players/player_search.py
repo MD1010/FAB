@@ -1,11 +1,5 @@
-import concurrent
-import multiprocessing
-from multiprocessing import Process
-from concurrent import futures
 from multiprocessing.pool import ThreadPool
 
-import pymongo
-from bson.son import SON
 import db
 from consts import elements
 from elements.elements_manager import ElementCallback
@@ -91,7 +85,6 @@ def get_all_players_RT_prices(self, required_players):
         real_price = self.player_actions.check_player_RT_price(player_name, player_revision)
         RT_prices.append({player_name: real_price})
     return RT_prices
-
 
 
 def get_all_players_cards(searched_player_name_string):
