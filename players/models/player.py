@@ -1,4 +1,5 @@
-from consts.app import EA_TAX, PROFIT_MULTIPLIER, DECREASE_SALE_PRICE_PERCENTAGE
+from consts.app import EA_TAX, PROFIT_MULTIPLIER
+from consts.prices import DECREASE_SALE_PRICE_PERCENTAGE
 from user_info import user
 
 

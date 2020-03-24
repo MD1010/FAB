@@ -4,7 +4,10 @@ import requests
 import json
 
 from players.models.player import Player
-from consts.app import FUTBIN_PLAYER_PRICE_URL, MAX_PRICE, SANE_PRICE_RATIO, FUTHEAD_PLAYER, MIN_PRICE
+from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
+from consts.prices import MAX_PRICE, SANE_PRICE_RATIO, MIN_PRICE
+from players.player_min_prices import check_player_price_regular_search, check_player_price_binary_search, \
+    check_if_get_results_in_current_price
 
 
 def enter_transfer_market(self):
@@ -13,10 +16,12 @@ def enter_transfer_market(self):
     # click on search on transfer market
     self.element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
 
+
 def get_next_player_search(self,player_to_search):
     search_max_price = str(player_to_search.max_buy_price)
     search_player_name = player_to_search.name
-    return self.player_actions.init_search_player_info(search_player_name, search_max_price)
+    self.player_actions.init_search_player_info(search_player_name, search_max_price)
+
 
 def decrease_increase_min_price(self, increase_price):
     # check if price can be decreased
@@ -54,7 +59,10 @@ def get_approximate_min_price(full_name, revision_type):
     prices_of_specific_player = json.loads(requests.get(url_of_specific_player_prices).content)
 
     for LCPrice in required_prices:
-        player_prices.append(prices_of_specific_player[player_id]['prices']['xbox'][LCPrice])
+        if prices_of_specific_player[player_id] is None:
+            player_prices.append(0)
+        else:
+            player_prices.append(prices_of_specific_player[player_id]['prices']['xbox'][LCPrice])
 
     for price_index in range(len(player_prices)):
         if ',' in str(player_prices[price_index]):
@@ -70,14 +78,28 @@ def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
         if element.get('full_name') == full_name and element.get('revision_type') == revision_type:
             return str(element.get(player_attribute))
 
+
+def _check_player_RT_price(self, player_name, player_revision):
+
+    player_futbin_price = get_approximate_min_price(player_name, player_revision)
+    self.player_actions.init_search_player_info(player_name, player_futbin_price)
+    find_player_from_regular_search, player_price = check_player_price_regular_search(self, player_futbin_price)
+    if find_player_from_regular_search:
+        return player_price
+    player_price = check_if_get_results_in_current_price(self, player_price)
+    find_player_from_binary_search, min_price = check_player_price_binary_search(self, player_price)
+    return min_price
+
+
 def get_all_players_RT_prices(self, required_players):
     RT_prices = []
     for player in required_players:
         player_name = player["name"]
         player_revision = player["revision"]
-        real_price = self.player_actions.check_player_RT_price(player_name, player_revision)
+        real_price = _check_player_RT_price(self, player_name, player_revision)
         RT_prices.append({player_name:real_price})
     return RT_prices
+
 
 def _min_price_after_prices_sanity_check(player_prices):
     player_prices = [int(price) for price in player_prices]

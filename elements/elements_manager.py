@@ -65,7 +65,7 @@ class ElementActions(Driver):
             # WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
             # option 2 - wait a bit
             WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
-            time.sleep(4)
+            time.sleep(6)
         except TimeoutException as e:
             raise TimeoutException(e)
 
