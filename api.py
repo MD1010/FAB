@@ -34,6 +34,7 @@ def start_fab_loop():
     return Response(response=response_obj, mimetype="application/json")
 
 
+
 @app.route('/api/players-list')
 def players_list():
     response = requests.get(url=base_players_url)

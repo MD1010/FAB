@@ -7,8 +7,13 @@ import requests
 import json
 
 from players.models.player import Player
-from consts.app import FUTBIN_PLAYER_PRICE_URL, MAX_PRICE, SANE_PRICE_RATIO, FUTHEAD_PLAYER, MIN_PRICE
+
+from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
 from user_info import user
+
+from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
+from consts.prices import MAX_PRICE, SANE_PRICE_RATIO, MIN_PRICE
+from players.player_min_prices import check_player_price_regular_search, check_player_price_binary_search, check_if_get_results_in_current_price
 
 
 def enter_transfer_market(self):
@@ -18,10 +23,12 @@ def enter_transfer_market(self):
     self.element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
 
 
-def get_next_player_search(self, player_to_search):
+
+def get_next_player_search(self,player_to_search):
     search_max_price = str(player_to_search.max_buy_price)
     search_player_name = player_to_search.name
-    return self.player_actions.init_search_player_info(search_player_name, search_max_price)
+    self.player_actions.init_search_player_info(search_player_name, search_max_price)
+
 
 
 def decrease_increase_min_price(self, increase_price):
@@ -50,17 +57,20 @@ def get_player_to_search(requested_players, real_prices):
         return sorted_by_profit[0]
 
 
-def get_approximate_min_price(full_name, revision_type):
+def get_approximate_min_price(player_obj):
     player_prices = []
     required_prices = ['LCPrice', 'LCPrice2', 'LCPrice3']
 
-    player_id = _get_player_attribute_from_json(full_name, revision_type, 'def_id')
-
+    # player_id = _get_player_attribute_from_json(full_name, revision_type, 'def_id')
+    player_id = str(player_obj["id"])
     url_of_specific_player_prices = f'{FUTBIN_PLAYER_PRICE_URL}{player_id}'
     prices_of_specific_player = json.loads(requests.get(url_of_specific_player_prices).content)
 
     for LCPrice in required_prices:
-        player_prices.append(prices_of_specific_player[player_id]['prices'][user.user_platform][LCPrice])
+        if prices_of_specific_player[player_id] is None:
+            player_prices.append(0)
+        else:
+            player_prices.append(prices_of_specific_player[player_id]['prices'][user.user_platform][LCPrice])
 
     for price_index in range(len(player_prices)):
         if ',' in str(player_prices[price_index]):
@@ -69,21 +79,33 @@ def get_approximate_min_price(full_name, revision_type):
     return price_after_sanity
 
 
-def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
-    futhead_url_player_data = f'{FUTHEAD_PLAYER}{full_name}'
-    details_of_specific_player = json.loads(requests.get(futhead_url_player_data).content)
-    for element in details_of_specific_player:
-        if element.get('full_name') == full_name and element.get('revision_type') == revision_type :
-            return str(element.get(player_attribute))
+# def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
+#     futhead_url_player_data = f'{FUTHEAD_PLAYER}{full_name}'
+#     details_of_specific_player = json.loads(requests.get(futhead_url_player_data).content)
+#     for element in details_of_specific_player:
+#         if element.get('full_name') == full_name and element.get('revision_type') == revision_type :
+#             return str(element.get(player_attribute))
+#
+
+def _check_player_RT_price(self,player_obj):
+    player_futbin_price = get_approximate_min_price(player_obj)
+    self.player_actions.init_search_player_info(player_obj["name"], player_futbin_price)
+    find_player_from_regular_search, player_price = check_player_price_regular_search(self, player_futbin_price)
+    if find_player_from_regular_search:
+        return player_price
+    is_found_price, player_price = check_if_get_results_in_current_price(self, player_price)
+    if(is_found_price):
+        find_player_from_binary_search, min_price = check_player_price_binary_search(self, player_price)
+        return min_price
+    else:
+        return MAX_PRICE
 
 
 def get_all_players_RT_prices(self, required_players):
     RT_prices = []
-    for player in required_players:
-        player_name = player["name"]
-        player_revision = player["revision"]
-        real_price = self.player_actions.check_player_RT_price(player_name, player_revision)
-        RT_prices.append({player_name: real_price})
+    for player_obj in required_players:
+        real_price = _check_player_RT_price(self,player_obj)
+        RT_prices.append({player_obj["name"]: real_price})
     return RT_prices
 
 
@@ -113,12 +135,12 @@ def _build_player_objects(requested_players, real_prices):
     for player in requested_players:
         player_name = player["name"]
         rating = player["rating"]
-        specific_card_id = player["def_id"]
-        revision = player["revision_type"]
-        name = player["full_name"]
-        nation = player["nation_name"]
+        specific_card_id = player["id"]
+        revision = player["revision"]
+        name = player["name"]
+        nation = player["nation"]
         position = player["position"]
-        club = player["club_name"]
+        club = player["club"]
 
         player_market_price = 0
         for price_obj in real_prices:
@@ -135,10 +157,6 @@ def _build_player_objects(requested_players, real_prices):
 
 
 def _build_full_player_data_obj(ea_player_data):
-    # if ea_player_data.get("c") is not None:
-    #     player_full_name = ea_player_data.get("c")
-    # else:
-    #     player_full_name = ea_player_data.get("f") + " " + ea_player_data.get("l")
     player_full_name = ea_player_data.get("name")
     player_id = ea_player_data.get("id")
     # go to futhead to find all cards of that player
@@ -169,7 +187,6 @@ def _get_player_full_futhead_data(contain_searched_term_players):
     for _, player_record in players_imap_iterator._items:
         if len(player_record) > 0:
             for player_data in player_record:
-                # id, name, rating, revision, nation, position, club = player_data.values()
                 player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position,
                                      player_data.club)
                 result.append(player_card)

@@ -26,6 +26,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     num_of_tries = 0
     user.coin_balance = get_coin_balance(self)
     user.user_platform = get_user_platform(self)
+    self.element_actions.wait_for_page_to_load()
     # get updated prices
     enter_transfer_market(self)
     real_prices = get_all_players_RT_prices(self, requested_players)
@@ -37,6 +38,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     found_next_player = get_next_player_search(self, player_to_search)
     if found_next_player is False:
         return ServerStatus(server_status_messages.SEARCH_PROBLEM, 503).jsonify()
+    get_next_player_search(self, player_to_search)
 
     start = time.time()
     while True:
@@ -47,20 +49,18 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             player_to_search = get_player_to_search(requested_players, real_prices)
             if player_to_search is None:
                 return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
-            found_next_player = get_next_player_search(self, player_to_search)
-            if found_next_player is False:
-                return ServerStatus(server_status_messages.SEARCH_PROBLEM, 503).jsonify()
+            get_next_player_search(self, player_to_search)
 
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
         # give time for the elements in the page to render - if remove stale exception
         time.sleep(1)
-        # player_bought = self.player_actions.buy_player()
-        print(player_to_search.max_buy_price)
-        player_bought = None
+        player_bought = self.player_actions.buy_player()
 
         if player_bought:
+            player_to_search.get_sell_price()
             list_price = player_to_search.sell_price
+            print(f"listed={list_price}")
             self.player_actions.list_player(str(list_price))
 
         self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)

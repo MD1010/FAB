@@ -21,5 +21,4 @@ def initialize_driver(self):
         self.driver_state = DriverState.ON
     except:
         raise WebDriverException()
-    # self.driver.find_element_by_xpath().
 

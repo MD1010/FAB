@@ -30,7 +30,9 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
                 else partial(web_element.send_keys, callback_params[0], callback_params[1])
             )()
     }
+
     return action_switcher[callback]()
+
 
 def get_path_by(actual_path):
     if str(actual_path).startswith('/'):
@@ -57,13 +59,12 @@ class ElementActions(Driver):
 
     def wait_for_page_to_load(self, timeout=40):
         try:
-            # option 1 - remove the backfrop loading indication
-            # unclickable_element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.CLASS_NAME, "ut-click-shield")))
-            # self.driver.execute_script(selenium.REMOVE_ELEMENT, unclickable_element)
-            # WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
-            # option 2 - wait a bit
+            WebDriverWait(self.driver, timeout).until_not(EC.presence_of_element_located((By.CLASS_NAME, "showing")))
             WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
-            time.sleep(4)
+            time.sleep(3)
+            WebDriverWait(self.driver, timeout).until_not(EC.presence_of_element_located((By.CLASS_NAME, "showing")))
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
+
         except TimeoutException as e:
             raise TimeoutException(e)
 

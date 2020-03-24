@@ -3,6 +3,8 @@ from functools import wraps
 from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
 from helper_functions import loadCookiesFile, saveToCookiesFile
+from server_status import ServerStatus
+
 
 def check_auth_status(func):
     @wraps(func)
@@ -10,7 +12,7 @@ def check_auth_status(func):
         if self.is_authenticated:
             return func(self, *args)
         else:
-            return server_status_messages.FAILED_AUTH, 401
+            return ServerStatus(server_status_messages.FAILED_AUTH,401).jsonify()
 
     return determine_if_func_should_run
 
