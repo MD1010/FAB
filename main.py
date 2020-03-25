@@ -6,9 +6,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 import time
 import os.path
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
-from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, FUTHEAD_PLAYER
-from helper_functions import saveToCookiesFile
-from players.models.player import Player
+from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, FUTHEAD_PLAYER, CHROME_DRIVER_PROCESS_NAME
 from players.player_search import decrease_increase_min_price, get_player_to_search, get_next_player_search, enter_transfer_market, get_all_players_RT_prices, \
     get_all_players_cards
 from consts import app, elements, server_status_messages
@@ -19,6 +17,8 @@ from driver import initialize_driver, DriverState
 from server_status import ServerStatus
 from user_info import user
 from user_info.user import get_coin_balance, get_user_platform
+
+import psutil
 
 
 def run_loop(self, time_to_run_in_sec, requested_players):
@@ -149,6 +149,9 @@ class Fab:
     def close_driver(self):
         if self.driver is not None:
             self.driver.quit()
+            for proc in psutil.process_iter():
+                if proc.name() == CHROME_DRIVER_PROCESS_NAME:
+                    proc.kill()
             self.driver_state = DriverState.OFF
             return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, 200).jsonify()
         else:
