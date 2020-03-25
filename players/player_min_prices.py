@@ -26,7 +26,8 @@ def check_player_price_regular_search(self, player_price):
         if not no_results_banner:
             self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             # found finally a result save the price and update the flag
-            time.sleep(1)
+            # time.sleep(1)
+            self.element_actions.wait_untill_visible(elements.MAX_BIN_PRICE_INPUT)
             player_price = self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
             found_correct_price = True
             self.element_actions.execute_element_action(elements.DECREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
@@ -84,9 +85,9 @@ def _change_max_bin_price(self, new_price):
     self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.CLICK)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, Keys.CONTROL, "a")
-    time.sleep(0.5)
+    time.sleep(1)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, str(new_price))
-    time.sleep(0.5)
+    time.sleep(1)
     self.element_actions.execute_element_action(elements.SEARCH_PRICE_HEADER, ElementCallback.CLICK)
     return int(self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value").replace(',', ''))
 

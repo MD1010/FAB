@@ -33,7 +33,6 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
 
     return action_switcher[callback]()
 
-
 def get_path_by(actual_path):
     if str(actual_path).startswith('/'):
         return ElementPathBy.XPATH
@@ -88,6 +87,19 @@ class ElementActions(Driver):
             WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path))) \
                 if path_by == ElementPathBy.XPATH \
                 else WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
+        except TimeoutException as e:
+            if timeout == 60:  # stuck on login
+                print("Unable to log into the web app")
+            else:
+                raise TimeoutException(f"{actual_path} element was not found - Timeout")
+
+    def wait_untill_visible(self, actual_path,timeout=40):
+        path_by = get_path_by(actual_path)
+        try:
+            # change this stupid logic
+            WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, actual_path))) \
+                if path_by == ElementPathBy.XPATH \
+                else WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, actual_path)))
         except TimeoutException as e:
             if timeout == 60:  # stuck on login
                 print("Unable to log into the web app")

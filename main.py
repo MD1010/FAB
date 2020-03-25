@@ -35,9 +35,6 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
     enter_transfer_market(self)
     time.sleep(1)
-    found_next_player = get_next_player_search(self, player_to_search)
-    if found_next_player is False:
-        return ServerStatus(server_status_messages.SEARCH_PROBLEM, 503).jsonify()
     get_next_player_search(self, player_to_search)
 
     start = time.time()
@@ -54,7 +51,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
         # give time for the elements in the page to render - if remove stale exception
-        time.sleep(1)
+        time.sleep(0.5)
         player_bought = self.player_actions.buy_player()
 
         if player_bought:
@@ -69,15 +66,21 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         decrease_increase_min_price(self, increase_min_price)
         increase_min_price = not increase_min_price
         curr_time = time.time()
-        if curr_time - start > time_to_run_in_sec:
+        elapsed_time = curr_time - start
+        if elapsed_time > time_to_run_in_sec:
             break
+        self.time_left_to_run = time_to_run_in_sec - elapsed_time
         num_of_tries += 1
         if num_of_tries % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
             time.sleep(SLEEP_MID_OPERATION_DURATION)
-        time.sleep(1.5)
-    print(num_of_tries)
+        time.sleep(1)
+        print(num_of_tries)
     return ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200).jsonify()
 
+
+def initialize_user_details(self,email, password):
+    self.connected_user_details["email"] = email
+    self.connected_user_details["password"] = password
 
 class Fab:
     def __init__(self):
@@ -87,11 +90,14 @@ class Fab:
         self.element_actions = None
         self.player_actions = None
         self.driver_state = DriverState.OFF
+        self.connected_user_details = {}
+        self.time_left_to_run = 0
 
     def start_login(self, email, password):
         if email is None or password is None:
             return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
+            initialize_user_details(self,email,password)
             initialize_driver(self)
             initialize_element_actions(self)
             if os.path.isfile(app.COOKIES_FILE_NAME):
@@ -130,7 +136,11 @@ class Fab:
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
-            return ServerStatus(server_status_messages.FAB_LOOP_FAILED, 503).jsonify()
+            print("restarting FAB...")
+            self.close_driver()
+            self.start_login(self.connected_user_details["email"],self.connected_user_details["password"])
+            self.start_loop(self.time_left_to_run,requested_players)
+            # return ServerStatus(server_status_messages.FAB_LOOP_FAILED, 503).jsonify()
 
     def set_status_code(self, code):
         self.statusCode = code
