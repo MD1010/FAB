@@ -16,6 +16,9 @@ def check_auth_status(func):
 
     return determine_if_func_should_run
 
+def initialize_user_details(self,email, password):
+    self.connected_user_details["email"] = email
+    self.connected_user_details["password"] = password
 
 def set_auth_status(self, is_auth):
     self.is_authenticated = is_auth

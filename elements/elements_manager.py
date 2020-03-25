@@ -93,7 +93,7 @@ class ElementActions(Driver):
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
-    def wait_untill_visible(self, actual_path,timeout=40):
+    def wait_until_visible(self, actual_path, timeout=40):
         path_by = get_path_by(actual_path)
         try:
             # change this stupid logic

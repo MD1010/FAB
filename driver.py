@@ -32,8 +32,8 @@ def initialize_driver(self):
 
 
 def restart_driver_when_crashed(self, requested_players):
-    close_driver(self)
-    self.start_login(self.connected_user_details["email"], self.connected_user_details["password"])
+    # close_driver(self)
+    # self.start_login(self.connected_user_details["email"], self.connected_user_details["password"])
     self.start_loop(self.time_left_to_run, requested_players)
 
 def close_driver(self):

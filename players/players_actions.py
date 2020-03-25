@@ -30,7 +30,6 @@ class PlayerActions(Driver):
 
     def buy_player(self):
         # give time for the elements in the page to render - if remove stale exception
-        time.sleep(0.5)
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:
@@ -62,3 +61,4 @@ class PlayerActions(Driver):
         self.element_actions.execute_element_action(elements.MIN_BIN_PRICE_INPUT_AFTER_LIST, ElementCallback.SEND_KEYS, price)
         # List player on transfer market
         self.element_actions.execute_element_action(elements.LIST_ITEM_ON_TRANSFER_LIST, ElementCallback.CLICK)
+        time.sleep(1)

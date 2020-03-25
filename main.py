@@ -1,74 +1,16 @@
-import json
+import os.path
+import os.path
 
-import requests
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
-import time
-import os.path
-from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code
-from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, FUTHEAD_PLAYER, CHROME_DRIVER_PROCESS_NAME
-from players.player_search import decrease_increase_min_price, get_player_to_search, init_new_search, enter_transfer_market, get_all_players_RT_prices, \
-    get_all_players_cards, update_search_player_if_coin_balance_changed
-from consts import app, elements, server_status_messages
+from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code, initialize_user_details
+from consts import app, server_status_messages
+from driver import initialize_driver, DriverState, restart_driver_when_crashed
+from elements.elements_manager import initialize_element_actions
+from fab_loop import run_loop
 from players.players_actions import PlayerActions
-
-from elements.elements_manager import ElementCallback, initialize_element_actions
-from driver import initialize_driver, DriverState, restart_driver_when_crashed, evaluate_driver_operation_time
 from server_status import ServerStatus
-from user_info import user
-from user_info.user import get_coin_balance, get_user_platform
 
-import psutil
-
-
-def run_loop(self, time_to_run_in_sec, requested_players):
-    increase_min_price = True
-    num_of_tries = 0
-    user.coin_balance = get_coin_balance(self)
-    user.user_platform = get_user_platform(self)
-    self.element_actions.wait_for_page_to_load()
-    # get updated prices
-    enter_transfer_market(self)
-    real_prices = get_all_players_RT_prices(self, requested_players)
-    player_to_search = get_player_to_search(requested_players, real_prices)
-    if player_to_search is None:
-        return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
-    enter_transfer_market(self)
-    init_new_search(self, player_to_search)
-
-    start = time.time()
-    while True:
-        ### search
-        player_to_search = update_search_player_if_coin_balance_changed(self,player_to_search,requested_players,real_prices)
-        if player_to_search is None:
-            return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
-
-        self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
-
-        ### buy
-        player_bought = self.player_actions.buy_player()
-        if player_bought:
-            player_to_search.get_sell_price()
-            list_price = player_to_search.sell_price
-            print(f"listed={list_price}")
-            self.player_actions.list_player(str(list_price))
-
-        self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
-        if player_bought: time.sleep(1)
-
-        decrease_increase_min_price(self, increase_min_price)
-        increase_min_price = not increase_min_price
-
-        ### time check
-        num_of_tries = evaluate_driver_operation_time(self,start,time_to_run_in_sec,num_of_tries)
-        if num_of_tries is False: break
-        print(num_of_tries)
-    return ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200).jsonify()
-
-
-def initialize_user_details(self,email, password):
-    self.connected_user_details["email"] = email
-    self.connected_user_details["password"] = password
 
 class Fab:
     def __init__(self):
@@ -85,7 +27,7 @@ class Fab:
         if email is None or password is None:
             return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
-            initialize_user_details(self,email,password)
+            initialize_user_details(self, email, password)
             initialize_driver(self)
             initialize_element_actions(self)
             if os.path.isfile(app.COOKIES_FILE_NAME):
@@ -125,4 +67,4 @@ class Fab:
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             print("restarting FAB...")
-            restart_driver_when_crashed(self,requested_players)
+            restart_driver_when_crashed(self, requested_players)

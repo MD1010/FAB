@@ -27,7 +27,7 @@ def check_player_price_regular_search(self, player_price):
             self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             # found finally a result save the price and update the flag
             # time.sleep(1)
-            self.element_actions.wait_untill_visible(elements.MAX_BIN_PRICE_INPUT)
+            self.element_actions.wait_until_visible(elements.MAX_BIN_PRICE_INPUT)
             player_price = self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
             found_correct_price = True
             self.element_actions.execute_element_action(elements.DECREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
