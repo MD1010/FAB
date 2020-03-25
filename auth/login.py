@@ -12,12 +12,17 @@ def check_auth_status(func):
         if self.is_authenticated:
             return func(self, *args)
         else:
-            return ServerStatus(server_status_messages.FAILED_AUTH,401).jsonify()
+            return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
 
     return determine_if_func_should_run
 
+
 def set_auth_status(self, is_auth):
     self.is_authenticated = is_auth
+
+def set_status_code(self, code):
+    self.statusCode = code
+    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY, 200).jsonify()
 
 def wait_for_code(self):
     while self.statusCode is '':
@@ -29,6 +34,7 @@ def wait_for_code(self):
         return False
     set_auth_status(self, True)
     return True
+
 
 def login_with_cookies(self, password):
     self.driver.delete_all_cookies()
@@ -48,6 +54,7 @@ def login_with_cookies(self, password):
     set_auth_status(self, True)
     return True
 
+
 def login_first_time(self, email, password):
     self.driver.get(app.SIGN_IN_URL)
     self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
@@ -60,6 +67,7 @@ def login_first_time(self, email, password):
     # send the sms verfication
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     return True
+
 
 def remember_logged_in_user(self):
     eaCookies = self.driver.get_cookies()
@@ -74,6 +82,7 @@ def remember_logged_in_user(self):
     # takes 10-15 secs
     saveToCookiesFile(eaCookies, app.COOKIES_FILE_NAME)
     self.driver.back()
+
 
 def check_for_login_error(self):
     login_error = self.element_actions.get_element(elements.LOGIN_ERROR)

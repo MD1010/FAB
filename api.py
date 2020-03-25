@@ -1,7 +1,9 @@
 import requests
 import json
 
+from auth.login import set_status_code
 from auth.signup import sign_up
+from driver import close_driver
 from main import Fab
 from consts import server_status_messages
 
@@ -44,8 +46,6 @@ def players_list():
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
 def get_all_cards(searched_player):
-    response = requests.get(url=base_players_url)
-    ea_players_json = response.json()
     result = get_all_players_cards(searched_player)
     response_obj = json.dumps(list(map(lambda p: p.player_json(), result)))
     return Response(response=response_obj, mimetype="application/json")
@@ -54,7 +54,7 @@ def get_all_cards(searched_player):
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():
     code = request.get_json()['code']
-    fab_driver.set_status_code(code)
+    set_status_code(fab_driver,code)
     response_obj = ServerStatus(server_status_messages.SUCCESS_AUTH, 200).jsonify() \
         if fab_driver.is_authenticated \
         else ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
@@ -62,8 +62,8 @@ def send_status_code():
 
 
 @app.route("/api/close-driver")
-def close_driver():
-    response_obj = fab_driver.close_driver()
+def close_running_driver():
+    response_obj = close_driver(fab_driver)
     return Response(response=response_obj, mimetype="application/json")
 
 

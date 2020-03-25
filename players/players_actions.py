@@ -29,6 +29,8 @@ class PlayerActions(Driver):
                                                     str(player_futbin_price))
 
     def buy_player(self):
+        # give time for the elements in the page to render - if remove stale exception
+        time.sleep(0.5)
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:

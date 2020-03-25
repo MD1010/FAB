@@ -1,3 +1,4 @@
+import time
 from multiprocessing.pool import ThreadPool
 
 import db
@@ -14,6 +15,7 @@ from user_info import user
 from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
 from consts.prices import MAX_PRICE, SANE_PRICE_RATIO, MIN_PRICE
 from players.player_min_prices import check_player_price_regular_search, check_player_price_binary_search, check_if_get_results_in_current_price
+from user_info.user import get_coin_balance
 
 
 def enter_transfer_market(self):
@@ -21,15 +23,20 @@ def enter_transfer_market(self):
     self.element_actions.execute_element_action(elements.ICON_TRANSFER_BTN, ElementCallback.CLICK)
     # click on search on transfer market
     self.element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
+    time.sleep(1)
 
+def update_search_player_if_coin_balance_changed(self,player_to_search,requested_players,real_prices):
+    current_coin_balance = get_coin_balance(self)
+    if user.coin_balance != current_coin_balance:
+        user.coin_balance = current_coin_balance
+        player_to_search = get_player_to_search(requested_players, real_prices)
+        init_new_search(self, player_to_search)
+    return player_to_search
 
-
-def get_next_player_search(self,player_to_search):
+def init_new_search(self, player_to_search):
     search_max_price = str(player_to_search.max_buy_price)
     search_player_name = player_to_search.name
     self.player_actions.init_search_player_info(search_player_name, search_max_price)
-
-
 
 def decrease_increase_min_price(self, increase_price):
     # check if price can be decreased
