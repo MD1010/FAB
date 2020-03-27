@@ -43,8 +43,10 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         if player_bought and bought_for:
             list_price = player_to_search.get_sell_price()
             print(f"bought for={bought_for}")
-            print(f"listed={list_price}")
-            self.player_actions.list_player(str(list_price))
+            # print(f"listed={list_price}")
+            # self.player_actions.list_player(str(list_price))
+            self.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN,ElementCallback.CLICK)
+            print("sent to tr")
             time.sleep(2)
         self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
