@@ -27,6 +27,8 @@ def run_loop(self, time_to_run_in_sec, requested_players):
 
     start = time.time()
     while True:
+        num_of_tries = evaluate_driver_operation_time(self, start, time_to_run_in_sec, num_of_tries)
+        if num_of_tries is False: break
         ### search
         player_to_search = update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices)
         if player_to_search is None:
@@ -35,23 +37,22 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
 
         ### buy
-        time.sleep(0.3)
-        player_bought = self.player_actions.buy_player()
-        if player_bought:
-            player_to_search.get_sell_price()
-            list_price = player_to_search.sell_price
+        time.sleep(0.5)
+
+        player_bought, bought_for = self.player_actions.buy_player()
+        if player_bought and bought_for:
+            list_price = player_to_search.get_sell_price()
+            print(f"bought for={bought_for}")
             print(f"listed={list_price}")
             self.player_actions.list_player(str(list_price))
-
+            time.sleep(2)
         self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
-
         decrease_increase_min_price(self, increase_min_price)
-        print(self.time_left_to_run)
         increase_min_price = not increase_min_price
 
         ### time check
-        num_of_tries = evaluate_driver_operation_time(self, start, time_to_run_in_sec, num_of_tries)
-        if num_of_tries is False: break
         print(num_of_tries)
+
+
     return ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200).jsonify()

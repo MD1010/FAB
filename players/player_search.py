@@ -34,7 +34,7 @@ def update_search_player_if_coin_balance_changed(self,player_to_search,requested
     return player_to_search
 
 def init_new_search(self, player_to_search):
-    search_max_price = str(player_to_search.max_buy_price)
+    search_max_price = str(player_to_search.get_max_buy_price())
     search_player_name = player_to_search.name
     self.player_actions.init_search_player_info(search_player_name, search_max_price)
 
@@ -157,7 +157,6 @@ def _build_player_objects(requested_players, real_prices):
                     break
         player_obj = Player(specific_card_id, player_name, rating, revision, nation, position, club)
         player_obj.set_market_price(player_market_price)
-        player_obj.calculate_max_buy_price()
         player_obj.calculate_profit()
         result.append(player_obj)
     return result

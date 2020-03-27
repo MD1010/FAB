@@ -60,14 +60,11 @@ class ElementActions(Driver):
         try:
             WebDriverWait(self.driver, timeout).until_not(EC.presence_of_element_located((By.CLASS_NAME, "showing")))
             WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
-            time.sleep(3)
-            WebDriverWait(self.driver, timeout).until_not(EC.presence_of_element_located((By.CLASS_NAME, "showing")))
-            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, elements.SCREEN_AFTER_LOADING)))
 
         except TimeoutException as e:
             raise TimeoutException(e)
 
-    def execute_element_action(self, actual_path, callback, *callback_params, timeout=40):
+    def execute_element_action(self, actual_path, callback, *callback_params, timeout=10):
         try:
             self.wait_untill_clickable(timeout, actual_path)
             web_element = self.get_element(actual_path)
@@ -93,7 +90,7 @@ class ElementActions(Driver):
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
-    def wait_until_visible(self, actual_path, timeout=40):
+    def wait_until_visible(self, actual_path, timeout=10):
         path_by = get_path_by(actual_path)
         try:
             # change this stupid logic

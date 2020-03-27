@@ -30,8 +30,10 @@ def initialize_driver(self):
     except:
         raise WebDriverException()
 
+def initialize_time_left(self,time_to_run_in_sec):
+    self.time_left_to_run = time_to_run_in_sec
 
-def restart_driver_when_crashed(self, requested_players):
+def restart_driver_when_crashed(self,requested_players):
     # close_driver(self)
     # self.start_login(self.connected_user_details["email"], self.connected_user_details["password"])
     self.start_loop(self.time_left_to_run, requested_players)
@@ -43,6 +45,7 @@ def close_driver(self):
             if proc.name() == CHROME_DRIVER_PROCESS_NAME:
                 proc.kill()
         self.driver_state = DriverState.OFF
+        self.set_auth_status = False
         return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, 200).jsonify()
     else:
         return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_FAIL, 503).jsonify()

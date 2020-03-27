@@ -33,7 +33,6 @@ def start_fab_loop():
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
     response_obj = fab_driver.start_loop(time_to_run, requested_players)
-    close_driver(fab_driver)
     return Response(response=response_obj, mimetype="application/json")
 
 

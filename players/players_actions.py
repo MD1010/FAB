@@ -3,10 +3,10 @@ import time
 from selenium.webdriver.common.keys import Keys
 
 from consts import elements
-from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
-from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE
 from driver import Driver
 from elements.elements_manager import ElementCallback, ElementActions
+from user_info import user
+from user_info.user import get_coin_balance
 
 
 class PlayerActions(Driver):
@@ -29,20 +29,27 @@ class PlayerActions(Driver):
                                                     str(player_futbin_price))
 
     def buy_player(self):
+        coin_balance_before_buy = user.coin_balance
         # give time for the elements in the page to render - if remove stale exception
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:
-            return False
+            return False, None
         if not no_results_banner:
             buy_btn = self.element_actions.get_element(elements.BUY_BTN)
             can_buy = buy_btn.is_enabled() if buy_btn else False
             if can_buy:
                 self.element_actions.execute_element_action(elements.BUY_BTN, ElementCallback.CLICK)
                 self.element_actions.execute_element_action(elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
-                return True
+                time.sleep(1)
+                user.coin_balance = get_coin_balance(self)
+                bought_for = coin_balance_before_buy - user.coin_balance
+                return True, bought_for
             else:
-                return False
+                return False, None
+        else:
+            return False, None
+
 
     def list_player(self, price):
         # check if elemenet is listable - maybe if the time has expired..

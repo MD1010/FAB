@@ -5,7 +5,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code, initialize_user_details
 from consts import app, server_status_messages
-from driver import initialize_driver, DriverState, restart_driver_when_crashed
+from driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left
 from elements.elements_manager import initialize_element_actions
 from fab_loop import run_loop
 from players.players_actions import PlayerActions
@@ -59,12 +59,17 @@ class Fab:
         if time_to_run_in_sec is None:
             return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
+
             self.player_actions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
             self.element_actions.remove_unexpected_popups()
-            return run_loop(self, time_to_run_in_sec, requested_players)
+            run_loop_response = run_loop(self, time_to_run_in_sec, requested_players)
+            close_driver(self)
+            set_auth_status(self,False)
+            return run_loop_response
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             print("restarting FAB...")
+            initialize_time_left(self,time_to_run_in_sec)
             restart_driver_when_crashed(self, requested_players)
