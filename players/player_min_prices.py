@@ -39,9 +39,9 @@ def _get_scale_from_dict(self, upper_bound, lower_bound):
     possible_scales = []
     for element in MAP_INC_DEC_PRICES.items():
         values = element[0].split("-")
-        if upper_bound > int(values[0]) and upper_bound < int(values[1]):
+        if int(values[0]) < upper_bound < int(values[1]):
             possible_scales.append(int(element[1]))
-        elif lower_bound > int(values[0]) and lower_bound < int(values[1]):
+        elif int(values[0]) < lower_bound < int(values[1]):
             possible_scales.append(int(element[1]))
     return possible_scales
 
