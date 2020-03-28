@@ -1,6 +1,8 @@
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from consts import elements
-from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
+from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH, MAX_CARD_ON_PAGE
+from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE, MAX_PRICE
 from elements.models.actions_for_execution import ElementCallback
 import time
@@ -24,7 +26,10 @@ def check_player_price_regular_search(self, player_price):
             self.element_actions.execute_element_action(elements.INCREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
             player_price = self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
         if not no_results_banner:
-            self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
+            is_next_button = _check_if_next_button_clickable(self)
+            if not is_next_button:
+
+                self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             # found finally a result save the price and update the flag
             # time.sleep(1)
             self.element_actions.wait_until_visible(elements.MAX_BIN_PRICE_INPUT)
@@ -33,6 +38,22 @@ def check_player_price_regular_search(self, player_price):
             self.element_actions.execute_element_action(elements.DECREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
 
     return False, player_price
+
+def _check_if_next_button_clickable(self):
+    try:
+        self.element_actions.execute_element_action(elements.NEXT_BUTTON, ElementCallback.CLICK)
+    except WebDriverException:
+        return False
+
+def _get_player_min_price_on_page(self):
+    min_prices_on_page = []
+    for i in range (1,MAX_CARD_ON_PAGE+1):
+        if self.element_actions.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE,i,END_PLAYER_PRICE_ON_PAGE)) is not None:
+            min_prices_on_page.append(self.element_actions.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE,i,END_PLAYER_PRICE_ON_PAGE)).text)
+
+
+
+
 
 
 def _get_scale_from_dict(self, upper_bound, lower_bound):

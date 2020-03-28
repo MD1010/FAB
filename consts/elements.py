@@ -16,6 +16,7 @@ FIRST_RESULT_INPUT_SEARCH = "/html/body/main/section/section/div[2]/div/div[2]/d
 MAX_BIN_PRICE_INPUT = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[6]/div[2]/input"
 MIN_BIN_PRICE_INPUT = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[2]/div[5]/div[2]/input"
 SEARCH_PLAYER_BTN = "call-to-action"
+NEXT_BUTTON = "flat pagination next"
 BUY_BTN = "/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[2]/button[2]"
 CANCEL_BUY_BTN = "/html/body/div[4]/section/div/div/button[2]"
 CONFIRM_BUY_BTN = "/html/body/div[4]/section/div/div/button[1]"
@@ -38,5 +39,7 @@ COIN_BALANCE = "view-navbar-currency-coins"
 SETTINGS_ICON="/html/body/main/section/nav/button[8]"
 PLATFORM_ICON="/html/body/main/section/section/div[2]/div/div/div[1]/div/div[2]"
 NEXT_PAGE="/html/body/main/section/section/div[2]/div/div/section[1]/div/div/button[2]"
+START_PLAYER_PRICE_ON_PAGE = "/html/body/main/section/section/div[2]/div/div/section[1]/div/ul/li["
+END_PLAYER_PRICE_ON_PAGE ="]/div/div[2]/div[3]/span[2]"
 
 

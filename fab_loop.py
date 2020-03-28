@@ -42,6 +42,8 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         player_bought, bought_for = self.player_actions.buy_player()
         if player_bought and bought_for:
             list_price = player_to_search.get_sell_price()
+            screen_shot_name = "min price_{}, bought for_{}.png".format(list_price, bought_for)
+            self.driver.save_screenshot(screen_shot_name)
             print(f"bought for={bought_for}")
             # print(f"listed={list_price}")
             # self.player_actions.list_player(str(list_price))

@@ -56,6 +56,7 @@ class Fab:
 
     @check_auth_status
     def start_loop(self, time_to_run_in_sec, requested_players):
+
         if time_to_run_in_sec is None:
             return ServerStatus(server_status_messages.BAD_REQUEST, 400).jsonify()
         try:
