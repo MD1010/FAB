@@ -5,7 +5,7 @@ import psutil
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from consts import app, server_status_messages
+from consts import app, server_status_messages, elements
 from selenium import webdriver
 
 from consts.app import CHROME_DRIVER_PROCESS_NAME, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
@@ -61,3 +61,15 @@ def evaluate_driver_operation_time(self,start_time,time_to_run_in_sec,num_of_tri
         time.sleep(SLEEP_MID_OPERATION_DURATION)
     time.sleep(1)
     return num_of_tries
+
+def check_if_web_app_is_available(self):
+    getting_started = self.element_actions.get_element(elements.GETTING_STARTED)
+    logged_on_console = self.element_actions.get_element(elements.LOGGED_ON_CONSOLE)
+    login_captcha = self.element_actions.get_element(elements.LOGIN_CAPTHA)
+    login_popup = self.element_actions.get_element(elements.LOGIN_POPUP)
+    if getting_started or logged_on_console or login_captcha or login_popup:
+        return False
+    return True
+
+
+

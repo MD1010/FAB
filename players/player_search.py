@@ -1,21 +1,17 @@
+import json
 import time
 from multiprocessing.pool import ThreadPool
 
+import requests
+
 import db
 from consts import elements
-from elements.elements_manager import ElementCallback
-import requests
-import json
-
-from players.models.player import Player
-
-from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
-from user_info import user
-
 from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
 from consts.prices import MAX_PRICE, SANE_PRICE_RATIO, MIN_PRICE
+from elements.elements_manager import ElementCallback
+from players.models.player import Player
 from players.player_min_prices import check_player_price_regular_search, check_player_price_binary_search, check_if_get_results_in_current_price
-from user_info.user import get_coin_balance
+from user_info import user
 
 
 def enter_transfer_market(self):
@@ -25,18 +21,20 @@ def enter_transfer_market(self):
     self.element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
     time.sleep(1)
 
-def update_search_player_if_coin_balance_changed(self,player_to_search,requested_players,real_prices):
-    current_coin_balance = get_coin_balance(self)
-    if user.coin_balance != current_coin_balance:
-        user.coin_balance = current_coin_balance
+
+def update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices, coin_balance_before_attempt_to_buy):
+    if user.coin_balance != coin_balance_before_attempt_to_buy:
         player_to_search = get_player_to_search(requested_players, real_prices)
-        init_new_search(self, player_to_search)
+        if player_to_search is not None:
+            init_new_search(self, player_to_search)
     return player_to_search
+
 
 def init_new_search(self, player_to_search):
     search_max_price = str(player_to_search.get_max_buy_price())
     search_player_name = player_to_search.name
     self.player_actions.init_search_player_info(search_player_name, search_max_price)
+
 
 def decrease_increase_min_price(self, increase_price):
     # check if price can be decreased
@@ -68,7 +66,6 @@ def get_approximate_min_price(player_obj):
     player_prices = []
     required_prices = ['LCPrice', 'LCPrice2', 'LCPrice3']
 
-    # player_id = _get_player_attribute_from_json(full_name, revision_type, 'def_id')
     player_id = str(player_obj["id"])
     url_of_specific_player_prices = f'{FUTBIN_PLAYER_PRICE_URL}{player_id}'
     prices_of_specific_player = json.loads(requests.get(url_of_specific_player_prices).content)
@@ -86,22 +83,14 @@ def get_approximate_min_price(player_obj):
     return price_after_sanity
 
 
-# def _get_player_attribute_from_json(full_name, revision_type, player_attribute):
-#     futhead_url_player_data = f'{FUTHEAD_PLAYER}{full_name}'
-#     details_of_specific_player = json.loads(requests.get(futhead_url_player_data).content)
-#     for element in details_of_specific_player:
-#         if element.get('full_name') == full_name and element.get('revision_type') == revision_type :
-#             return str(element.get(player_attribute))
-#
-
-def _check_player_RT_price(self,player_obj):
+def _check_player_RT_price(self, player_obj):
     player_futbin_price = get_approximate_min_price(player_obj)
     self.player_actions.init_search_player_info(player_obj["name"], player_futbin_price)
     find_player_from_regular_search, player_price = check_player_price_regular_search(self, player_futbin_price)
     if find_player_from_regular_search:
         return player_price
     is_found_price, player_price = check_if_get_results_in_current_price(self, player_price)
-    if(is_found_price):
+    if (is_found_price):
         find_player_from_binary_search, min_price = check_player_price_binary_search(self, player_price)
         return min_price
     else:
@@ -111,13 +100,14 @@ def _check_player_RT_price(self,player_obj):
 def get_all_players_RT_prices(self, required_players):
     RT_prices = []
     for player_obj in required_players:
-        real_price = _check_player_RT_price(self,player_obj)
+        real_price = _check_player_RT_price(self, player_obj)
         RT_prices.append({player_obj["name"]: real_price})
     return RT_prices
 
 
 def get_all_players_cards(searched_player_name_string):
-    contain_searched_term_players = list(db.players_collection.find({"name" : {'$regex' : f".*{searched_player_name_string}.*",'$options': 'i'}}).limit(20).sort('rating', -1))
+    contain_searched_term_players = list(
+        db.players_collection.find({"name": {'$regex': f".*{searched_player_name_string}.*", '$options': 'i'}}).limit(20).sort('rating', -1))
     unsorted_result = _get_player_full_futhead_data(contain_searched_term_players)
     sorted_by_rating_result = sorted(unsorted_result, key=lambda player: player.rating, reverse=True)
     return sorted_by_rating_result

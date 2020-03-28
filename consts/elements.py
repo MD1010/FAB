@@ -38,5 +38,10 @@ COIN_BALANCE = "view-navbar-currency-coins"
 SETTINGS_ICON="/html/body/main/section/nav/button[8]"
 PLATFORM_ICON="/html/body/main/section/section/div[2]/div/div/div[1]/div/div[2]"
 NEXT_PAGE="/html/body/main/section/section/div[2]/div/div/section[1]/div/div/button[2]"
+GETTING_STARTED="/html/body/main/section/div/div/div/div[2]/div[2]"
+LOGGED_ON_CONSOLE="ut-logged-on-console"
+LOGIN_CAPTHA="ut-fun-captcha-required"
+LOGIN_POPUP="ut-login-generic"
+
 
 

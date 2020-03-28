@@ -5,7 +5,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from auth.login import set_auth_status, check_auth_status, login_with_cookies, login_first_time, remember_logged_in_user, wait_for_code, initialize_user_details
 from consts import app, server_status_messages
-from driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left
+from driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left, check_if_web_app_is_available
 from elements.elements_manager import initialize_element_actions
 from fab_loop import run_loop
 from players.players_actions import PlayerActions
@@ -62,8 +62,13 @@ class Fab:
 
             self.player_actions = PlayerActions(self.driver)
             self.element_actions.wait_for_page_to_load()
-            self.element_actions.remove_unexpected_popups()
-            run_loop_response = run_loop(self, time_to_run_in_sec, requested_players)
+
+            if not check_if_web_app_is_available(self):
+                run_loop_response =  ServerStatus(server_status_messages.WEB_APP_NOT_AVAILABLE, 503).jsonify()
+            else:
+                self.element_actions.remove_unexpected_popups()
+                run_loop_response = run_loop(self, time_to_run_in_sec, requested_players)
+
             close_driver(self)
             set_auth_status(self,False)
             return run_loop_response
@@ -71,5 +76,8 @@ class Fab:
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             print("restarting FAB...")
+            #dont initialize if got into the loop
+            # only if it has not started yet, if started get the time that left
+            #if self.time_left_to_run == time_to_run_in_sec
             initialize_time_left(self,time_to_run_in_sec)
             restart_driver_when_crashed(self, requested_players)
