@@ -1,6 +1,6 @@
 from multiprocessing.pool import ThreadPool
 
-import db
+from utils import db
 from players.player import Player
 from user_info import user
 from players.players_objects import build_player_objects, get_cards_from_the_same_player

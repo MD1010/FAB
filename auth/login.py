@@ -2,8 +2,8 @@ from functools import wraps
 
 from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
-from helper_functions import loadCookiesFile, saveToCookiesFile
-from server_status import ServerStatus
+from utils.helper_functions import loadCookiesFile, saveToCookiesFile
+from utils.server_status import ServerStatus
 
 
 def check_auth_status(func):
@@ -13,21 +13,10 @@ def check_auth_status(func):
             return func(self, *args)
         else:
             return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
-
     return determine_if_func_should_run
 
-def initialize_user_details(self,email, password):
-    self.connected_user_details["email"] = email
-    self.connected_user_details["password"] = password
 
-def set_auth_status(self, is_auth):
-    self.is_authenticated = is_auth
-
-def set_status_code(self, code):
-    self.statusCode = code
-    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY,200)
-
-def wait_for_code(self):
+def _wait_for_code(self):
     while self.statusCode is '':
         pass
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
@@ -36,6 +25,35 @@ def wait_for_code(self):
         return False
     set_auth_status(self, True)
     return True
+
+
+def get_status_code_from_user(self):
+    tries = 3
+    while tries > 0:
+        wait_for_code_response = _wait_for_code(self)
+        if wait_for_code_response:
+            break
+        else:
+            # emit wrong code was sent message...
+            self.statusCode = ''
+            tries -= 1
+    if tries == 0:
+        return False
+    return True
+
+
+def initialize_user_details(self, email, password):
+    self.connected_user_details["email"] = email
+    self.connected_user_details["password"] = password
+
+
+def set_auth_status(self, is_auth):
+    self.is_authenticated = is_auth
+
+
+def set_status_code(self, code):
+    self.statusCode = code
+    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY, 200)
 
 
 def login_with_cookies(self, password):
@@ -63,9 +81,9 @@ def is_login_success_from_first_time(self, email, password):
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     if not check_for_login_error(self):
-    # check the SMS option
+        # check the SMS option
         self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
-    # send the sms verfication
+        # send the sms verfication
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         return True
     return False

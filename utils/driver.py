@@ -9,7 +9,7 @@ from consts import app, server_status_messages, elements
 from selenium import webdriver
 
 from consts.app import CHROME_DRIVER_PROCESS_NAME, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from server_status import ServerStatus
+from utils.server_status import ServerStatus
 
 
 class DriverState(Enum):

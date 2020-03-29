@@ -6,10 +6,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
+from consts.selenium_scripts import REMOVE_ELEMENT
 from elements.actions_for_execution import ElementCallback
 from elements.path_by import ElementPathBy
-from scripts import selenium
-from driver import Driver
+from utils.driver import Driver
 
 from consts import elements
 
@@ -75,7 +75,7 @@ class ElementActions(Driver):
     def remove_unexpected_popups(self):
         popup = self.get_element(elements.VIEW_MODAL_CONTAINER)
         if popup:
-            self.driver.execute_script(selenium.REMOVE_ELEMENT, popup)
+            self.driver.execute_script(REMOVE_ELEMENT, popup)
 
     def wait_untill_clickable(self,timeout, actual_path):
         path_by = get_path_by(actual_path)

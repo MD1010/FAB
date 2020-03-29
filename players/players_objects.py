@@ -1,7 +1,10 @@
-from players.player import Player
-from consts.app import FUTBIN_PLAYER_PRICE_URL, FUTHEAD_PLAYER
 import json
+
 import requests
+
+from consts.app import FUTHEAD_PLAYER
+from players.player import Player
+
 
 def build_player_objects(requested_players, real_prices):
     result = []
@@ -26,6 +29,7 @@ def build_player_objects(requested_players, real_prices):
         player_obj.calculate_profit()
         result.append(player_obj)
     return result
+
 
 def get_cards_from_the_same_player(ea_player_data):
     player_full_name = ea_player_data.get("name")

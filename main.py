@@ -3,13 +3,14 @@ import os.path
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
-from auth.login import set_auth_status, check_auth_status, login_with_cookies, initialize_user_details, is_login_success_from_first_time, wait_for_code, remember_logged_in_user
+from auth.login import set_auth_status, check_auth_status, login_with_cookies, initialize_user_details, is_login_success_from_first_time, _wait_for_code, \
+    remember_logged_in_user, get_status_code_from_user
 from consts import app, server_status_messages
-from driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left, check_if_web_app_is_available
+from utils.driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left, check_if_web_app_is_available
 from elements.elements_manager import initialize_element_actions
-from fab_loop import run_loop
+from utils.fab_loop import run_loop
 from players.players_actions import PlayerActions
-from server_status import ServerStatus
+from utils.server_status import ServerStatus
 
 
 class Fab:
@@ -38,17 +39,8 @@ class Fab:
             else:
                 if not is_login_success_from_first_time(self, email, password):
                     return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
-                # can be screwed here, may send bad status here..
-                tries = 3
-                while tries > 0:
-                    wait_for_code_response = wait_for_code(self)
-                    if wait_for_code_response:
-                        break
-                    else:
-                        # emit wrong code was sent message...
-                        self.statusCode = ''
-                        tries -= 1
-                if tries == 0:
+                status_code_response = get_status_code_from_user(self)
+                if not status_code_response:
                     return ServerStatus(server_status_messages.LIMIT_TRIES, 401).jsonify()
                 remember_logged_in_user(self)
                 set_auth_status(self, True)

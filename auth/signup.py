@@ -1,10 +1,8 @@
-import json
-
-import db
+from utils import db
 import bcrypt
 
 from consts import server_status_messages
-from server_status import ServerStatus
+from utils.server_status import ServerStatus
 
 
 def check_if_new_user(email):

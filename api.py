@@ -3,7 +3,7 @@ import json
 
 from auth.login import set_status_code
 from auth.signup import sign_up
-from driver import close_driver
+from utils.driver import close_driver
 from main import Fab
 from consts import server_status_messages
 
@@ -12,7 +12,6 @@ from consts.app import *
 from flask import Flask, request, Response
 
 from players.player_search import get_all_players_cards
-from server_status import ServerStatus
 
 app = Flask(__name__)
 fab_driver = Fab()

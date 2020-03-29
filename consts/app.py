@@ -1,3 +1,5 @@
+import os
+
 ROOT_URL = 'https://www.easports.com'
 BASE_URL = 'fifa/ultimate-team/web-app/content'
 WEB_APP_URL = "https://www.easports.com/fifa/ultimate-team/web-app/"
@@ -18,6 +20,7 @@ ONE_SEARCH_DELTA = 10
 CHROME_DRIVER_PROCESS_NAME = "chromedriver.exe"
 NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH = 5
 MAX_CARD_ON_PAGE = 20
+CURRENT_WORKING_DIR = os.path.abspath(os.getcwd())
 
 
 
