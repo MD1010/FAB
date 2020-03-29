@@ -54,10 +54,7 @@ def get_all_cards(searched_player):
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():
     code = request.get_json()['code']
-    set_status_code(fab_driver,code)
-    response_obj = ServerStatus(server_status_messages.SUCCESS_AUTH, 200).jsonify() \
-        if fab_driver.is_authenticated \
-        else ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
+    response_obj = set_status_code(fab_driver,code)
     return Response(response=response_obj, mimetype="application/json")
 
 

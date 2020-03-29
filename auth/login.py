@@ -25,15 +25,14 @@ def set_auth_status(self, is_auth):
 
 def set_status_code(self, code):
     self.statusCode = code
-    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY, 200).jsonify()
+    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY,200)
 
 def wait_for_code(self):
     while self.statusCode is '':
         pass
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS, self.statusCode)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not check_for_login_error(self):
-        self.set_status_code('')
+    if check_for_login_error(self):
         return False
     set_auth_status(self, True)
     return True
@@ -52,24 +51,24 @@ def login_with_cookies(self, password):
     # Entering password left, and you are in!
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not check_for_login_error(self):
+    if check_for_login_error(self):
         return False
     set_auth_status(self, True)
     return True
 
 
-def login_first_time(self, email, password):
+def is_login_success_from_first_time(self, email, password):
     self.driver.get(app.SIGN_IN_URL)
     self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     if not check_for_login_error(self):
-        return False
     # check the SMS option
-    self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
+        self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
     # send the sms verfication
-    self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    return True
+        self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+        return True
+    return False
 
 
 def remember_logged_in_user(self):
@@ -91,5 +90,5 @@ def check_for_login_error(self):
     login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
     if login_error:
         set_auth_status(self, False)
-        return False
-    return True
+        return True
+    return False
