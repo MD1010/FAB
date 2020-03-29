@@ -1,4 +1,3 @@
-import time
 from functools import partial
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -7,8 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
-from elements.models.actions_for_execution import ElementCallback
-from elements.models.path_by import ElementPathBy
+from elements.actions_for_execution import ElementCallback
+from elements.path_by import ElementPathBy
 from scripts import selenium
 from driver import Driver
 

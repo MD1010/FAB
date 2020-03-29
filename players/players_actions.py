@@ -50,7 +50,6 @@ class PlayerActions(Driver):
         else:
             return False, None
 
-
     def list_player(self, price):
         # check if elemenet is listable - maybe if the time has expired..
         list_element = self.element_actions.get_element(elements.LIST_ON_TRANSFER_BTN)

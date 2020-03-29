@@ -54,9 +54,12 @@ class Fab:
                 set_auth_status(self, True)
             return ServerStatus(server_status_messages.SUCCESS_AUTH, 200).jsonify()
 
-        except (WebDriverException, TimeoutException) as e:
+        except TimeoutException as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             return ServerStatus(server_status_messages.FAILED_AUTH, 401).jsonify()
+        except Exception as e:
+            print(f"Server problem.. kill all drivers {e.msg}")
+            return ServerStatus(server_status_messages.DRIVER_ERROR, 503).jsonify()
 
     @check_auth_status
     def start_loop(self, time_to_run_in_sec, requested_players):
