@@ -1,6 +1,8 @@
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from consts import elements
-from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
+from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH, MAX_CARD_ON_PAGE
+from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE, MAX_PRICE
 from elements.models.actions_for_execution import ElementCallback
 import time
@@ -13,7 +15,7 @@ def check_player_price_regular_search(self, player_price):
         if int(str(player_price).replace(',', '')) == MIN_PRICE:
             return True, MIN_PRICE
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
-        time.sleep(1)
+        self.element_actions.wait_for_page_to_load_without_timeout()
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # check if the player is less than the approximate price or not
         if no_results_banner and found_correct_price:
@@ -24,6 +26,11 @@ def check_player_price_regular_search(self, player_price):
             self.element_actions.execute_element_action(elements.INCREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
             player_price = self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
         if not no_results_banner:
+
+            is_last_element_exist = self.element_actions.check_if_last_element_exist()
+            if not is_last_element_exist:
+                return _get_player_min_price_on_page(self)
+
             self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             # found finally a result save the price and update the flag
             # time.sleep(1)
@@ -33,6 +40,24 @@ def check_player_price_regular_search(self, player_price):
             self.element_actions.execute_element_action(elements.DECREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
 
     return False, player_price
+
+
+
+
+
+def _get_player_min_price_on_page(self):
+    min_prices_on_page = []
+    for i in range(1, MAX_CARD_ON_PAGE + 1):
+        if self.element_actions.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE,i,END_PLAYER_PRICE_ON_PAGE)) is not None:
+            min_prices_on_page.append(int(self.element_actions.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE,i,END_PLAYER_PRICE_ON_PAGE)).text.replace(",","")))
+        else:
+            break
+    return True, min(min_prices_on_page)
+
+
+
+
+
 
 
 def _get_scale_from_dict(self, upper_bound, lower_bound):
@@ -61,7 +86,7 @@ def check_player_price_binary_search(self, player_price):
     player_price_after_webapp_transfer = _change_max_bin_price(self, player_new_max_price)
     self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
     while up_limit - down_limit not in search_scales:
-        time.sleep(1)
+        self.element_actions.wait_for_page_to_load_without_timeout()
         is_no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         if is_no_results_banner:
             down_limit = player_price_after_webapp_transfer
@@ -70,6 +95,9 @@ def check_player_price_binary_search(self, player_price):
 
             search_scales = _get_scale_from_dict(self, down_limit, up_limit)
         else:
+            is_last_element_exist = self.element_actions.check_if_last_element_exist()
+            if not is_last_element_exist:
+                return _get_player_min_price_on_page(self)
             up_limit = player_price_after_webapp_transfer
             player_new_max_price = _calc_new_max_price(down_limit, up_limit, 0)
             player_price_after_webapp_transfer = _change_max_bin_price(self, player_new_max_price)
@@ -85,9 +113,9 @@ def _change_max_bin_price(self, new_price):
     self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.CLICK)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, Keys.CONTROL, "a")
-    time.sleep(1)
+    time.sleep(0.5)
     self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, str(new_price))
-    time.sleep(1)
+    time.sleep(0.5)
     self.element_actions.execute_element_action(elements.SEARCH_PRICE_HEADER, ElementCallback.CLICK)
     return int(self.element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value").replace(',', ''))
 

@@ -84,7 +84,8 @@ def get_approximate_min_price(player_obj):
 
 
 def _check_player_RT_price(self, player_obj):
-    player_futbin_price = get_approximate_min_price(player_obj)
+    #player_futbin_price = get_approximate_min_price(player_obj)
+    player_futbin_price = 15000000
     self.player_actions.init_search_player_info(player_obj["name"], player_futbin_price)
     find_player_from_regular_search, player_price = check_player_price_regular_search(self, player_futbin_price)
     if find_player_from_regular_search:

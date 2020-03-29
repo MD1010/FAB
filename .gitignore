@@ -2,3 +2,5 @@
 /venv/
 /_pycache/
 __pycache__/
+/*.png
+

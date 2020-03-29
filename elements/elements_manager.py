@@ -1,11 +1,12 @@
 import time
 from functools import partial
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from elements.models.actions_for_execution import ElementCallback
 from elements.models.path_by import ElementPathBy
 from scripts import selenium
@@ -102,3 +103,20 @@ class ElementActions(Driver):
                 print("Unable to log into the web app")
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
+
+    def wait_for_page_to_load_without_timeout(self):
+        while self.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1,
+                                                               END_PLAYER_PRICE_ON_PAGE)) is None and self.get_element(
+                elements.NO_RESULTS_FOUND) is None:
+            pass
+
+    def check_if_last_element_exist(self):
+        while True:
+            try:
+                self.execute_element_action(elements.NEXT_BUTTON, ElementCallback.CLICK, timeout=0)
+                return True
+
+            except WebDriverException:
+                if self.get_element(
+                        "{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1, END_PLAYER_PRICE_ON_PAGE)):
+                    return False
