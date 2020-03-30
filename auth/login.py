@@ -20,6 +20,10 @@ def check_auth_status(func):
     return determine_if_func_should_run
 
 
+def generate_access_token():
+    return "asde123ad123sad123"
+
+
 def get_user_details_if_exists(email, password):
     user_in_db = db.users_collection.find_one({"email": email})
     if not user_in_db:
@@ -125,6 +129,7 @@ def remember_logged_in_user(self):
     # update the db
     user_id = self.connected_user_details["_id"]
     db.users_collection.update({"_id": user_id}, {"$set": {"cookies": eaCookies}})
+    set_auth_status(self, True)
     self.driver.back()
 
 

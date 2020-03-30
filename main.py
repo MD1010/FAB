@@ -1,14 +1,11 @@
-import os.path
-import os.path
+from selenium.common.exceptions import WebDriverException, TimeoutException
 
-from selenium.common.exceptions import TimeoutException, WebDriverException
-
-from auth.login import set_auth_status, check_auth_status, login_with_cookies, initialize_user_details, is_login_successfull_from_first_time, remember_logged_in_user, \
-    get_status_code_from_user, get_user_details_if_exists, check_if_user_has_saved_cookies
-from consts import app, server_status_messages
+from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, check_if_user_has_saved_cookies, login_with_cookies, \
+    is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user, generate_access_token
+from consts import server_status_messages
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
-from utils.driver import initialize_driver, DriverState, restart_driver_when_crashed, close_driver, initialize_time_left, check_if_web_app_is_available
+from utils.driver import DriverState, check_if_web_app_is_available, close_driver, initialize_time_left, restart_driver_when_crashed, initialize_driver
 from utils.fab_loop import run_loop
 from utils.helper_functions import jsonify
 from utils.server_status import ServerStatus
@@ -46,18 +43,21 @@ class Fab:
                 if not status_code_response:
                     return jsonify(ServerStatus(server_status_messages.LIMIT_TRIES, 401))
                 remember_logged_in_user(self)
-                set_auth_status(self, True)
-            return jsonify(ServerStatus(server_status_messages.SUCCESS_AUTH, 200))
 
-        except TimeoutException as e:
-            print(f"Oops :( Something went wrong.. {e.msg}")
+            success_login_response = ServerStatus(server_status_messages.SUCCESS_AUTH, 200).__dict__
+            success_login_response["token"] = generate_access_token()
+            return jsonify(success_login_response)
+
+        except TimeoutException:
+            print(f"Oops :( Something went wrong..")
             return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
-        except Exception as e:
-            print(f"Server problem.. kill all drivers {e.msg}")
+        except Exception:
+            print(f"Server problem.. kill all processes")
             return jsonify(ServerStatus(server_status_messages.DRIVER_ERROR, 503))
 
+
     @check_auth_status
-    def start_loop(self, time_to_run_in_sec, requested_players):
+    def start_fab(self, time_to_run_in_sec, requested_players):
         if time_to_run_in_sec is None:
             return jsonify(ServerStatus(server_status_messages.BAD_REQUEST, 400))
         try:

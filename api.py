@@ -1,24 +1,22 @@
-import requests
 import json
+
+import requests
+from flask import Flask, request, Response
 
 from auth.login import set_status_code
 from auth.signup import sign_up
-from utils.driver import close_driver
-from main import Fab
 from consts import server_status_messages
-
 from consts.app import *
-
-from flask import Flask, request, Response
-
+from main import Fab
 from players.player_search import get_all_players_cards
+from utils.driver import close_driver
 
 app = Flask(__name__)
 fab_driver = Fab()
 
-
 @app.route('/api/login', methods=['POST'])
 def user_login():
+    #apend new fab to fab_list
     jsonData = request.get_json()
     email = jsonData.get('email')
     password = jsonData.get('password')
@@ -31,9 +29,8 @@ def start_fab_loop():
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    response_obj = fab_driver.start_loop(time_to_run, requested_players)
+    response_obj = fab_driver.start_fab(time_to_run, requested_players)
     return Response(response=response_obj, mimetype="application/json")
-
 
 
 @app.route('/api/players-list')
@@ -53,7 +50,7 @@ def get_all_cards(searched_player):
 @app.route('/api/send-status-code', methods=['POST'])
 def send_status_code():
     code = request.get_json()['code']
-    response_obj = set_status_code(fab_driver,code)
+    response_obj = set_status_code(fab_driver, code)
     return Response(response=response_obj, mimetype="application/json")
 
 
