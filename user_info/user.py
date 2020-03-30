@@ -15,3 +15,13 @@ def get_user_platform(self):
     platform_icon_class = self.element_actions.get_element(elements.PLATFORM_ICON).get_attribute("class")
     return platforms.get(platform_icon_class)
 
+class User:
+    def __init__(self, email, password, cookies=None, is_active=False, coins_earned=0, total_run_time=0):
+        if cookies is None:
+            cookies = []
+        self.email = email
+        self.password = password
+        self.cookies = cookies
+        self.is_active = is_active
+        self.coins_earned = coins_earned
+        self.total_run_time = total_run_time

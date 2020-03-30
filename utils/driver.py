@@ -9,6 +9,7 @@ from consts import app, server_status_messages, elements
 from selenium import webdriver
 
 from consts.app import CHROME_DRIVER_PROCESS_NAME, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
+from utils.helper_functions import jsonify
 from utils.server_status import ServerStatus
 
 
@@ -46,9 +47,9 @@ def close_driver(self):
                 proc.kill()
         self.driver_state = DriverState.OFF
         self.set_auth_status = False
-        return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, 200).jsonify()
+        return jsonify(ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, 200))
     else:
-        return ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_FAIL, 503).jsonify()
+        return jsonify(ServerStatus(server_status_messages.FAB_DRIVER_CLOSE_FAIL, 503))
 
 def evaluate_driver_operation_time(self,start_time,time_to_run_in_sec,num_of_tries):
     curr_time = time.time()

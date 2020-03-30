@@ -8,6 +8,7 @@ from players.player_search import get_player_to_search, init_new_search, update_
 from user_info import user
 from user_info.user import get_coin_balance, get_user_platform
 from utils.driver import evaluate_driver_operation_time
+from utils.helper_functions import jsonify
 from utils.market import enter_transfer_market, decrease_increase_min_price
 from utils.server_status import ServerStatus
 
@@ -23,7 +24,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     real_prices = get_all_players_RT_prices(self, requested_players)
     player_to_search = get_player_to_search(requested_players, real_prices)
     if player_to_search is None:
-        return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
+        return jsonify(ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503))
 
     enter_transfer_market(self)
     init_new_search(self, player_to_search)
@@ -51,7 +52,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
 
         player_to_search = update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices)
         if player_to_search is None:
-            return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
+            return jsonify(ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503))
 
         decrease_increase_min_price(self, increase_min_price)
         increase_min_price = not increase_min_price
@@ -59,4 +60,4 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         ### time check
         print(num_of_tries)
 
-    return ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200).jsonify()
+    return jsonify(ServerStatus(server_status_messages.FAB_LOOP_FINISHED, 200))

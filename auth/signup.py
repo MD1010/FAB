@@ -1,7 +1,9 @@
-from utils import db
-import bcrypt
+import json
 
 from consts import server_status_messages
+from user_info.user import User
+from utils import db
+from utils.helper_functions import hash_password, jsonify
 from utils.server_status import ServerStatus
 
 
@@ -12,16 +14,11 @@ def check_if_new_user(email):
     return True
 
 
-def hash_password(password):
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-
 def sign_up(email, password):
     is_new_user = check_if_new_user(email)
     if is_new_user:
         hashed_password = hash_password(password)
-        cookies = []
-        db.users_collection.insert({'email': email, 'password': hashed_password, 'cookies': cookies})
-        return ServerStatus(server_status_messages.USER_CREATED,201).jsonify()
+        db.users_collection.insert(User(email,hashed_password).__dict__)
+        return jsonify(ServerStatus(server_status_messages.USER_CREATED, 201))
     else:
-        return ServerStatus(server_status_messages.USER_EXISTS,400).jsonify()
+        return jsonify(ServerStatus(server_status_messages.USER_EXISTS, 400))
