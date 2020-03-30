@@ -54,6 +54,7 @@ def evaluate_driver_operation_time(self,start_time,time_to_run_in_sec,num_of_tri
     curr_time = time.time()
     elapsed_time = curr_time - start_time
     if elapsed_time > time_to_run_in_sec:
+        self.time_left_to_run = 0
         return False
     self.time_left_to_run = time_to_run_in_sec - elapsed_time
     num_of_tries += 1

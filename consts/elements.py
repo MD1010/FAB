@@ -45,6 +45,7 @@ LOGIN_CAPTHA="ut-fun-captcha-required"
 LOGIN_POPUP="ut-login-generic"
 START_PLAYER_PRICE_ON_PAGE = "/html/body/main/section/section/div[2]/div/div/section[1]/div/ul/li["
 END_PLAYER_PRICE_ON_PAGE ="]/div/div[2]/div[3]/span[2]"
+BOUGHT_FOR="/html/body/main/section/section/div[2]/div/div/section[2]/div/div/div[2]/div[1]/div[2]/div/span[2]"
 
 
 

@@ -74,8 +74,7 @@ class Fab:
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             print("restarting FAB...")
-            #dont initialize if got into the loop
-            # only if it has not started yet, if started get the time that left
-            #if self.time_left_to_run == time_to_run_in_sec
-            initialize_time_left(self,time_to_run_in_sec)
+            # only if it has not started yet
+            if self.time_left_to_run == 0:
+                initialize_time_left(self,time_to_run_in_sec)
             restart_driver_when_crashed(self, requested_players)

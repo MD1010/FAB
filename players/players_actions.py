@@ -42,8 +42,7 @@ class PlayerActions(Driver):
                 self.element_actions.execute_element_action(elements.BUY_BTN, ElementCallback.CLICK)
                 self.element_actions.execute_element_action(elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
                 time.sleep(1)
-                user.coin_balance = get_coin_balance(self)
-                bought_for = coin_balance_before_buy - user.coin_balance
+                bought_for = int(str(self.element_actions.get_element(elements.BOUGHT_FOR).text).replace(',', ''))
                 return True, bought_for
             else:
                 return False, None

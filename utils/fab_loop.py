@@ -2,16 +2,15 @@ import time
 
 from consts import server_status_messages, elements
 from consts.app import CURRENT_WORKING_DIR
-from utils.driver import evaluate_driver_operation_time
 from elements.actions_for_execution import ElementCallback
 from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
-from utils.server_status import ServerStatus
 from user_info import user
 from user_info.user import get_coin_balance, get_user_platform
+from utils.driver import evaluate_driver_operation_time
 from utils.market import enter_transfer_market, decrease_increase_min_price
+from utils.server_status import ServerStatus
 
-import os
 
 def run_loop(self, time_to_run_in_sec, requested_players):
     increase_min_price = True
@@ -37,7 +36,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
         self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
         ### buy
         time.sleep(0.5)
-        coin_balance_before_attempt_to_buy = get_coin_balance(self)
+
         player_bought, bought_for = self.player_actions.buy_player()
         if player_bought and bought_for:
             list_price = player_to_search.get_sell_price()
@@ -50,7 +49,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             time.sleep(2)
         self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
-        player_to_search = update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices,coin_balance_before_attempt_to_buy)
+        player_to_search = update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices)
         if player_to_search is None:
             return ServerStatus(server_status_messages.NO_BUDGET_LEFT, 503).jsonify()
 
