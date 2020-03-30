@@ -3,8 +3,8 @@ import os.path
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
-from auth.login import set_auth_status, check_auth_status, login_with_cookies, initialize_user_details, is_login_success_from_first_time, remember_logged_in_user, \
-    get_status_code_from_user
+from auth.login import set_auth_status, check_auth_status, login_with_cookies, initialize_user_details, is_login_successfull_from_first_time, remember_logged_in_user, \
+    get_status_code_from_user, get_user_details_if_exists, check_if_user_has_saved_cookies
 from consts import app, server_status_messages
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
@@ -26,19 +26,21 @@ class Fab:
         self.time_left_to_run = 0
 
     def start_login(self, email, password):
-        if email is None or password is None:
-            return jsonify(ServerStatus(server_status_messages.BAD_REQUEST, 400))
+        user_details = get_user_details_if_exists(email, password)
+        if not user_details:
+            return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
         try:
-            initialize_user_details(self, email, password)
+            initialize_user_details(self, user_details)
             initialize_driver(self)
             initialize_element_actions(self)
-            if os.path.isfile(app.COOKIES_FILE_NAME):
-                if not login_with_cookies(self, password):
+
+            if check_if_user_has_saved_cookies(user_details):
+                if not login_with_cookies(self, user_details):
                     return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
 
             # cookies file was not found - log in the first time
             else:
-                if not is_login_success_from_first_time(self, email, password):
+                if not is_login_successfull_from_first_time(self, email, password):
                     return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
                 status_code_response = get_status_code_from_user(self)
                 if not status_code_response:
