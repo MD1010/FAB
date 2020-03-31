@@ -1,8 +1,9 @@
-from consts import server_status_messages, app
+from flask import jsonify
+
+from consts import server_status_messages
 from user_info.user import User
 from utils import db
-from utils.helper_functions import jsonify, hash_password
-from utils.server_status import ServerStatus
+from utils.helper_functions import hash_password
 
 
 def check_if_new_user(email):
@@ -16,7 +17,7 @@ def sign_up(email, password):
     is_new_user = check_if_new_user(email)
     if is_new_user:
         hashed_password = hash_password(password)
-        db.users_collection.insert(User(email,hashed_password).__dict__)
-        return jsonify(ServerStatus(server_status_messages.USER_CREATED, 201))
+        db.users_collection.insert(User(email, hashed_password).__dict__)
+        return jsonify(msg=server_status_messages.USER_CREATED, code=201)
     else:
-        return jsonify(ServerStatus(server_status_messages.USER_EXISTS, 400))
+        return jsonify(msg=server_status_messages.USER_EXISTS, code=409)

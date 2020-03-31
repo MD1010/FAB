@@ -2,7 +2,7 @@ import datetime
 import json
 
 import requests
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
 from flask_jwt_extended import jwt_required, JWTManager, create_access_token
 
 from auth.login import set_status_code
@@ -28,7 +28,7 @@ def user_login():
     email = jsonData.get('email')
     password = jsonData.get('password')
     response_obj = fab_driver.start_login(email, password)
-    return Response(response=response_obj, mimetype="application/json")
+    return response_obj
 
 
 @app.route('/api/start-fab', methods=['POST'])
@@ -37,45 +37,35 @@ def start_fab_loop():
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    response_obj = fab_driver.start_fab(time_to_run, requested_players)
-    return Response(response=response_obj, mimetype="application/json")
-
-
-@app.route('/api/players-list')
-@jwt_required
-def players_list():
-    response = requests.get(url=base_players_url)
-    players_json = response.json()
-    return Response(response=players_json, mimetype="application/json")
+    return fab_driver.start_fab(time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-@jwt_required
+# @jwt_required
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
-    response_obj = json.dumps(list(map(lambda p: p.player_json(), result)))
-    return Response(response=response_obj, mimetype="application/json")
+    return Response(json.dumps(list(map(lambda p: p.player_json(), result))),mimetype="application/json")
+    # return Response(response=response_obj, mimetype="application/json")
 
 
 @app.route('/api/send-status-code', methods=['POST'])
 @jwt_required
 def send_status_code():
     code = request.get_json()['code']
-    response_obj = set_status_code(fab_driver, code)
-    return Response(response=response_obj, mimetype="application/json")
+    return set_status_code(fab_driver, code)
+    # return Response(response=response_obj, mimetype="application/json")
 
 
 @app.route("/api/close-driver")
-@jwt_required
+# @jwt_required
 def close_running_driver():
-    response_obj = close_driver(fab_driver)
-    return Response(response=response_obj, mimetype="application/json")
+    return close_driver(fab_driver)
 
 
 @app.route("/api/driver-state")
 @jwt_required
 def check_driver_state():
-    return {'state': fab_driver.driver_state.value}
+    return jsonify(state=fab_driver.driver_state.value)
 
 
 @app.route("/api/signup", methods=['POST'])
@@ -85,8 +75,7 @@ def sign_up_user():
     password = jsonData.get('password')
     if email is None or password is None:
         return server_status_messages.BAD_REQUEST, 400
-    response_obj = sign_up(email, password)
-    return Response(response=response_obj, mimetype="application/json")
+    return sign_up(email, password)
 
 
 if __name__ == '__main__':

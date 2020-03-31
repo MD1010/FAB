@@ -15,7 +15,3 @@ def loadCookiesFile(name):
 
 def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-
-def jsonify(self):
-    return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

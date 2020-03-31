@@ -1,14 +1,12 @@
 from functools import wraps
 
 import bcrypt
+from flask import jsonify
 
 from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
 from utils import db
-from utils.helper_functions import jsonify
-from utils.server_status import ServerStatus
 
-from flask_jwt_extended import create_access_token
 
 def check_auth_status(func):
     @wraps(func)
@@ -16,7 +14,7 @@ def check_auth_status(func):
         if self.is_authenticated:
             return func(self, *args)
         else:
-            return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
+            return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
 
     return determine_if_func_should_run
 
@@ -72,7 +70,7 @@ def set_auth_status(self, is_auth):
 
 def set_status_code(self, code):
     self.statusCode = code
-    return ServerStatus(server_status_messages.STATUS_CODE_SET_CORRECTLY, 200)
+    return jsonify(msg=server_status_messages.STATUS_CODE_SET_CORRECTLY,code=200)
 
 
 def login_with_cookies(self, user_details):
