@@ -21,7 +21,6 @@ fab_driver = Fab()
 @app.route('/api/login', methods=['POST'])
 def user_login():
     # apend new fab to fab_list
-
     jsonData = request.get_json()
     email = jsonData.get('email')
     password = jsonData.get('password')
@@ -39,7 +38,7 @@ def start_fab_loop():
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-# @jwt_required
+@jwt_required
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
@@ -53,13 +52,13 @@ def send_status_code():
 
 
 @app.route("/api/close-driver")
-# @jwt_required
+@jwt_required
 def close_running_driver():
     return close_driver(fab_driver)
 
 
 @app.route("/api/driver-state")
-# @jwt_required
+@jwt_required
 def check_driver_state():
     return jsonify(state=fab_driver.driver_state.value)
 

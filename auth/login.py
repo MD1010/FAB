@@ -6,7 +6,6 @@ from flask import jsonify
 from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
 from utils import db
-from utils.driver import DriverState
 
 
 def check_auth_status(func):

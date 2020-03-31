@@ -43,7 +43,6 @@ def close_driver(self):
             if proc.name() == CHROME_DRIVER_PROCESS_NAME:
                 proc.kill()
         self.driver_state = DriverState.OFF
-        self.set_auth_status = False
         return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
     else:
         return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)

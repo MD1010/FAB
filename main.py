@@ -71,8 +71,8 @@ class Fab:
                 self.element_actions.remove_unexpected_popups()
                 run_loop_response = run_loop(self, time_to_run_in_sec, requested_players)
 
-            close_driver(self)
             set_auth_status(self, False)
+            close_driver(self)
             return run_loop_response
 
         except MaxRetryError as e:
