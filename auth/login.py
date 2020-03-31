@@ -8,6 +8,7 @@ from utils import db
 from utils.helper_functions import jsonify
 from utils.server_status import ServerStatus
 
+from flask_jwt_extended import create_access_token
 
 def check_auth_status(func):
     @wraps(func)
@@ -18,11 +19,6 @@ def check_auth_status(func):
             return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
 
     return determine_if_func_should_run
-
-
-def generate_access_token():
-    return "asde123ad123sad123"
-
 
 def get_user_details_if_exists(email, password):
     user_in_db = db.users_collection.find_one({"email": email})

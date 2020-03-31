@@ -1,7 +1,10 @@
+import datetime
+
+from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import WebDriverException, TimeoutException
 
 from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, check_if_user_has_saved_cookies, login_with_cookies, \
-    is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user, generate_access_token
+    is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user
 from consts import server_status_messages
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
@@ -45,7 +48,8 @@ class Fab:
                 remember_logged_in_user(self)
 
             success_login_response = ServerStatus(server_status_messages.SUCCESS_AUTH, 200).__dict__
-            success_login_response["token"] = generate_access_token()
+            access_token = create_access_token({'id': str(user_details["_id"])}, expires_delta=datetime.timedelta(hours=1))
+            success_login_response["access_token"] = access_token
             return jsonify(success_login_response)
 
         except TimeoutException:
@@ -54,7 +58,6 @@ class Fab:
         except Exception:
             print(f"Server problem.. kill all processes")
             return jsonify(ServerStatus(server_status_messages.DRIVER_ERROR, 503))
-
 
     @check_auth_status
     def start_fab(self, time_to_run_in_sec, requested_players):

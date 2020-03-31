@@ -5,3 +5,4 @@ __pycache__/
 /*.png
 /cookies.txt
 /screenshots/
+/consts/db_connection.py
