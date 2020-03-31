@@ -3,6 +3,7 @@ import datetime
 from flask import jsonify
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import WebDriverException, TimeoutException
+from urllib3.exceptions import NewConnectionError, MaxRetryError
 
 from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, check_if_user_has_saved_cookies, login_with_cookies, \
     is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user
@@ -74,11 +75,15 @@ class Fab:
             set_auth_status(self, False)
             return run_loop_response
 
+        except MaxRetryError as e:
+            return jsonify(msg=server_status_messages.DRIVER_OFF,code=503)
+
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
             print("restarting FAB...")
             # only if it has not started yet
             if self.time_left_to_run == 0:
                 initialize_time_left(self, time_to_run_in_sec)
-            if self.driver_state is not DriverState.OFF:
+            if self.driver_state == DriverState.ON:
                 restart_driver_when_crashed(self, requested_players)
+

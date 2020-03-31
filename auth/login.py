@@ -6,15 +6,15 @@ from flask import jsonify
 from consts import server_status_messages, app, elements
 from elements.elements_manager import ElementCallback
 from utils import db
+from utils.driver import DriverState
 
 
 def check_auth_status(func):
     @wraps(func)
     def determine_if_func_should_run(self, *args):
-        if self.is_authenticated:
-            return func(self, *args)
-        else:
+        if not self.is_authenticated:
             return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+        return func(self, *args)
 
     return determine_if_func_should_run
 

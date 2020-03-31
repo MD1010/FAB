@@ -1,9 +1,7 @@
-import datetime
 import json
 
-import requests
 from flask import Flask, request, Response, jsonify
-from flask_jwt_extended import jwt_required, JWTManager, create_access_token
+from flask_jwt_extended import jwt_required, JWTManager
 
 from auth.login import set_status_code
 from auth.signup import sign_up
@@ -44,8 +42,7 @@ def start_fab_loop():
 # @jwt_required
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
-    return Response(json.dumps(list(map(lambda p: p.player_json(), result))),mimetype="application/json")
-    # return Response(response=response_obj, mimetype="application/json")
+    return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
 @app.route('/api/send-status-code', methods=['POST'])
@@ -53,7 +50,6 @@ def get_all_cards(searched_player):
 def send_status_code():
     code = request.get_json()['code']
     return set_status_code(fab_driver, code)
-    # return Response(response=response_obj, mimetype="application/json")
 
 
 @app.route("/api/close-driver")
@@ -63,7 +59,7 @@ def close_running_driver():
 
 
 @app.route("/api/driver-state")
-@jwt_required
+# @jwt_required
 def check_driver_state():
     return jsonify(state=fab_driver.driver_state.value)
 

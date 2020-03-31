@@ -9,7 +9,7 @@ from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
 from user_info import user
 from user_info.user import get_coin_balance, get_user_platform
-from utils.driver import evaluate_driver_operation_time
+from utils.driver import evaluate_driver_operation_time, DriverState
 from utils.market import enter_transfer_market, decrease_increase_min_price
 
 
@@ -30,7 +30,7 @@ def run_loop(self, time_to_run_in_sec, requested_players):
     init_new_search(self, player_to_search)
 
     start = time.time()
-    while True:
+    while self.driver_state == DriverState.ON:
         num_of_tries = evaluate_driver_operation_time(self, start, time_to_run_in_sec, num_of_tries)
         if num_of_tries is False: break
         ### search

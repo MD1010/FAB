@@ -12,5 +12,6 @@ FAB_DRIVER_CLOSE_FAIL = "Unable to close driver, try kill the app via the app ma
 USER_CREATED = "New user created successfully"
 USER_EXISTS = "User already exists"
 WEB_APP_NOT_AVAILABLE = "FIFA Auto Buyer is not available right now.Please log into the console or into the web app and check the issue"
-DRIVER_ERROR="Server error. Try to kill all processes running"
+DRIVER_ERROR="Driver error. Try to kill all processes running"
 VALID_TOKEN_IS_MISSING = "a valid token is missing"
+DRIVER_OFF="Driver is off. Try to log in again"
