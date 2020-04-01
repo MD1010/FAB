@@ -21,4 +21,5 @@ ONE_SEARCH_DELTA = 10
 CHROME_DRIVER_PROCESS_NAME = "chromedriver.exe"
 NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH = 5
 MAX_CARD_ON_PAGE = 20
+users_rooms = {}
 CURRENT_WORKING_DIR = os.path.abspath(os.getcwd())

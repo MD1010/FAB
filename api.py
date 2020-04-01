@@ -1,7 +1,10 @@
 import json
 
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response
+from flask import jsonify
+from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
+from flask_socketio import SocketIO, join_room, leave_room, send
 
 from auth.login import set_status_code
 from auth.signup import sign_up
@@ -13,8 +16,11 @@ from utils.driver import close_driver
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
-
 jwt = JWTManager(app)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+# app.config['transports'] = 'websocket'
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 fab_driver = Fab()
 
 
@@ -48,7 +54,7 @@ def get_all_cards(searched_player):
 @jwt_required
 def send_status_code():
     code = request.get_json()['code']
-    return set_status_code(fab_driver, code)
+    return set_status_code(fab_driver, code, fab_driver.connected_user_details.get("_id"))
 
 
 @app.route("/api/close-driver")
@@ -73,6 +79,37 @@ def sign_up_user():
     return sign_up(email, password)
 
 
+@socketio.on('join')
+def on_join():
+    user_id = fab_driver.connected_user_details.get("_id")
+    join_room(user_id)
+    # users_rooms[user_id] = user_id
+    # emit('joined', "You successfully enter the room", room=user_id)
+    send("joined successfully!", room=user_id)
+
+
+@socketio.on('leave')
+def on_leave(data):
+    user_id = data['userid']
+    leave_room(users_rooms.get('user_id'))
+    del users_rooms[user_id]
+
+
+@socketio.on('set_status_code')
+def set_code(data):
+    code = data['code']
+    room_id = fab_driver.connected_user_details.get("_id")
+
+    # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
+    if set_status_code(fab_driver, code, room_id):
+        # room=fab_driver.connected_user_details.get("_id")
+        send("You successfully loged in", room=room_id)
+    elif fab_driver.tries_with_status_code:
+        send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=room_id)
+
+
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
-    app.run(debug=True)
+    # cookies = loadCookiesFile("cookies.txt")
+    # db.users_collection.update_one({"_id": ObjectId("5e83e525bc17fd543de6e304")}, {"$set": {"cookies": cookies}})
+    socketio.run(app)

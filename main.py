@@ -3,14 +3,16 @@ import datetime
 from flask import jsonify
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import WebDriverException, TimeoutException
-from urllib3.exceptions import NewConnectionError, MaxRetryError
+from urllib3.exceptions import MaxRetryError
 
-from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, check_if_user_has_saved_cookies, login_with_cookies, \
-    is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user
+from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, \
+    check_if_user_has_saved_cookies, login_with_cookies, \
+    is_login_successfull_from_first_time, remember_logged_in_user
 from consts import server_status_messages
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
-from utils.driver import DriverState, check_if_web_app_is_available, close_driver, initialize_time_left, restart_driver_when_crashed, initialize_driver
+from utils.driver import DriverState, check_if_web_app_is_available, close_driver, initialize_time_left, \
+    restart_driver_when_crashed, initialize_driver
 from utils.fab_loop import run_loop
 
 
@@ -24,6 +26,7 @@ class Fab:
         self.driver_state = DriverState.OFF
         self.connected_user_details = {}
         self.time_left_to_run = 0
+        self.tries_with_status_code = 3
 
     def start_login(self, email, password):
         user_details = get_user_details_if_exists(email, password)
@@ -42,13 +45,14 @@ class Fab:
             else:
                 if not is_login_successfull_from_first_time(self, email, password):
                     return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-                status_code_response = get_status_code_from_user(self)
-                if not status_code_response:
-                    return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+                while not self.is_authenticated:
+                    if not self.tries_with_status_code:
+                        return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
                 remember_logged_in_user(self)
-
-            access_token = create_access_token({'id': str(user_details["_id"])}, expires_delta=datetime.timedelta(hours=1))
+            access_token = create_access_token({'id': str(user_details["_id"])},
+                                               expires_delta=datetime.timedelta(hours=1))
             return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
+
 
         except TimeoutException:
             print(f"Oops :( Something went wrong..")
@@ -76,7 +80,7 @@ class Fab:
             return run_loop_response
 
         except MaxRetryError as e:
-            return jsonify(msg=server_status_messages.DRIVER_OFF,code=503)
+            return jsonify(msg=server_status_messages.DRIVER_OFF, code=503)
 
         except (WebDriverException, TimeoutException) as e:
             print(f"Oops :( Something went wrong.. {e.msg}")
@@ -86,4 +90,3 @@ class Fab:
                 initialize_time_left(self, time_to_run_in_sec)
             if self.driver_state == DriverState.ON:
                 restart_driver_when_crashed(self, requested_players)
-
