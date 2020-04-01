@@ -1,7 +1,10 @@
+import threading
+import time
+
 from selenium.common.exceptions import WebDriverException, TimeoutException
 
 from auth.login import check_auth_status, set_auth_status, get_user_details_if_exists, initialize_user_details, check_if_user_has_saved_cookies, login_with_cookies, \
-    is_login_successfull_from_first_time, get_status_code_from_user, remember_logged_in_user, generate_access_token
+    is_login_successfull_from_first_time, remember_logged_in_user, generate_access_token
 from consts import server_status_messages
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
@@ -21,6 +24,15 @@ class Fab:
         self.driver_state = DriverState.OFF
         self.connected_user_details = {}
         self.time_left_to_run = 0
+        self.tries_with_status_code = 3
+
+    def whileLoop1(self):
+        while not self.is_authenticated:
+            print("mishok hushalta")
+            time.sleep(1)
+            if not self.tries_with_status_code:
+                failed_login_response = ServerStatus(server_status_messages.LIMIT_TRIES, 401).__dict__
+                return jsonify(failed_login_response)
 
     def start_login(self, email, password):
         user_details = get_user_details_if_exists(email, password)
@@ -39,11 +51,17 @@ class Fab:
             else:
                 if not is_login_successfull_from_first_time(self, email, password):
                     return jsonify(ServerStatus(server_status_messages.FAILED_AUTH, 401))
-                status_code_response = get_status_code_from_user(self)
-                if not status_code_response:
-                    return jsonify(ServerStatus(server_status_messages.LIMIT_TRIES, 401))
-                remember_logged_in_user(self)
+                # status_code_response = get_status_code_from_user(self)
+                # if not status_code_response:
+                #     return jsonify(ServerStatus(server_status_messages.LIMIT_TRIES, 401))
+                self.whileLoop1()
+                # thread1 = threading.Thread(target=self.whileLoop1)
+                # thread1.start()
+                #
+                # threading.Thread.join(thread1)
 
+                # Thread.join()
+                remember_logged_in_user(self)
             success_login_response = ServerStatus(server_status_messages.SUCCESS_AUTH, 200).__dict__
             success_login_response["token"] = generate_access_token()
             return jsonify(success_login_response)
