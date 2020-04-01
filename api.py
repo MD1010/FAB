@@ -119,5 +119,5 @@ def set_code(data):
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
     # cookies = loadCookiesFile("cookies.txt")
-    # db.users_collection.update_one({"_id": ObjectId("5e83b84d523912f266eaa77e")}, {"$set": {"cookies": cookies}})
+    # db.users_collection.update_one({"_id": ObjectId("5e83e525bc17fd543de6e304")}, {"$set": {"cookies": cookies}})
     socketio.run(app)

@@ -29,25 +29,26 @@ class PlayerActions(Driver):
                                                     str(player_futbin_price))
 
     def buy_player(self):
-        coin_balance_before_buy = user.coin_balance
-        # give time for the elements in the page to render - if remove stale exception
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:
             return False, None
-        if not no_results_banner:
+        # there is a result found - try to buy
+        else:
             buy_btn = self.element_actions.get_element(elements.BUY_BTN)
             can_buy = buy_btn.is_enabled() if buy_btn else False
-            if can_buy:
+            if not can_buy:
+                return False, None
+            else:
                 self.element_actions.execute_element_action(elements.BUY_BTN, ElementCallback.CLICK)
                 self.element_actions.execute_element_action(elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
                 time.sleep(1)
-                bought_for = int(str(self.element_actions.get_element(elements.BOUGHT_FOR).text).replace(',', ''))
-                return True, bought_for
-            else:
-                return False, None
-        else:
-            return False, None
+                bought_for_label = self.element_actions.get_element(elements.BOUGHT_FOR)
+                if bought_for_label:
+                    bought_for = int(str(bought_for_label.text).replace(',', ''))
+                    return True, bought_for
+                else:
+                    return False, None
 
     def list_player(self, price):
         # check if elemenet is listable - maybe if the time has expired..
