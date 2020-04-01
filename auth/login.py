@@ -42,15 +42,15 @@ def set_auth_status(self, is_auth):
     self.is_authenticated = is_auth
 
 
-def set_status_code(self, code, room_id):
+def set_status_code(self, code, socketio, room_id):
     self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
                                                 code)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
-    if not login_error:
+    status_code_error = self.element_actions.get_element(elements.CODE_ERROR)
+    if not status_code_error:
         set_auth_status(self, True)
         return True
-    self.send("Wrong code!", room=room_id)
+    socketio.send("Wrong code!", room=room_id)
     self.tries_with_status_code -= 1
     return False
 
@@ -81,10 +81,10 @@ def is_login_successfull_from_first_time(self, email, password):
     self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     if not is_login_error_exists(self):
-        # check the SMS option
-        # self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
-        # # send the sms verfication
-        # self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+        #check the SMS option
+        self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
+        # send the sms verfication
+        self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         #todo: return this lines after checking first time login.
         return True
     return False

@@ -9,6 +9,7 @@ from auth.login import check_auth_status, set_auth_status, get_user_details_if_e
     check_if_user_has_saved_cookies, login_with_cookies, \
     is_login_successfull_from_first_time, remember_logged_in_user
 from consts import server_status_messages
+from consts.app import STATUS_CODE_TRIES
 from elements.elements_manager import initialize_element_actions
 from players.players_actions import PlayerActions
 from utils.driver import DriverState, check_if_web_app_is_available, close_driver, initialize_time_left, \
@@ -26,7 +27,7 @@ class Fab:
         self.driver_state = DriverState.OFF
         self.connected_user_details = {}
         self.time_left_to_run = 0
-        self.tries_with_status_code = 3
+        self.tries_with_status_code = STATUS_CODE_TRIES
 
     def start_login(self, email, password):
         user_details = get_user_details_if_exists(email, password)

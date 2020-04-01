@@ -23,3 +23,4 @@ NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH = 5
 MAX_CARD_ON_PAGE = 20
 users_rooms = {}
 CURRENT_WORKING_DIR = os.path.abspath(os.getcwd())
+STATUS_CODE_TRIES = 5

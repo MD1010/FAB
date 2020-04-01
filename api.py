@@ -101,11 +101,14 @@ def set_code(data):
     room_id = fab_driver.connected_user_details.get("_id")
 
     # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
-    if set_status_code(fab_driver, code, room_id):
+    if set_status_code(fab_driver, code, socketio, room_id):
         # room=fab_driver.connected_user_details.get("_id")
         send("You successfully loged in", room=room_id)
     elif fab_driver.tries_with_status_code:
         send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=room_id)
+    else:
+        send("You exceeded the max tries to enter the code , restart the app and try again.", room=room_id)
+
 
 
 if __name__ == '__main__':
