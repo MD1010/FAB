@@ -50,13 +50,6 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
-@app.route('/api/send-status-code', methods=['POST'])
-@jwt_required
-def send_status_code():
-    code = request.get_json()['code']
-    return set_status_code(fab_driver, code, fab_driver.connected_user_details.get("_id"))
-
-
 @app.route("/api/close-driver")
 @jwt_required
 def close_running_driver():
@@ -108,7 +101,6 @@ def set_code(data):
         send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=room_id)
     else:
         send("You exceeded the max tries to enter the code , restart the app and try again.", room=room_id)
-
 
 
 if __name__ == '__main__':
