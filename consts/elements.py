@@ -36,6 +36,7 @@ LIST_ITEM_ON_TRANSFER_LIST="/html/body/main/section/section/div[2]/div/div/secti
 LOGIN_ERROR = "general-error"
 CODE_ERROR = "origin-ux-textbox-status-message"
 COIN_BALANCE = "view-navbar-currency-coins"
+USER_NAME="/html/body/main/section/section/div[2]/div/div/div[1]/div/div[1]/div/h1"
 SETTINGS_ICON="/html/body/main/section/nav/button[8]"
 PLATFORM_ICON="/html/body/main/section/section/div[2]/div/div/div[1]/div/div[2]"
 NEXT_PAGE="/html/body/main/section/section/div[2]/div/div/section[1]/div/div/button[2]"

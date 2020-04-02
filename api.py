@@ -6,13 +6,14 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from auth.login import set_status_code
+from auth.login import set_status_code, start_login
 from auth.signup import sign_up
 from consts import server_status_messages
 from consts.app import *
-from main import Fab
+from fab import Fab
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
+from utils.fab_loop import start_fab
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -26,11 +27,10 @@ fab_driver = Fab()
 
 @app.route('/api/login', methods=['POST'])
 def user_login():
-    # apend new fab to fab_list
-    jsonData = request.get_json()
-    email = jsonData.get('email')
-    password = jsonData.get('password')
-    response_obj = fab_driver.start_login(email, password)
+    json_data = request.get_json()
+    email = json_data.get('email')
+    password = json_data.get('password')
+    response_obj = start_login(email, password)
     return response_obj
 
 
@@ -40,7 +40,7 @@ def start_fab_loop():
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    return fab_driver.start_fab(time_to_run, requested_players)
+    return start_fab(time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
@@ -50,15 +50,8 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
-@app.route('/api/send-status-code', methods=['POST'])
-@jwt_required
-def send_status_code():
-    code = request.get_json()['code']
-    return set_status_code(fab_driver, code, fab_driver.connected_user_details.get("_id"))
-
-
 @app.route("/api/close-driver")
-@jwt_required
+# @jwt_required
 def close_running_driver():
     return close_driver(fab_driver)
 
@@ -110,9 +103,8 @@ def set_code(data):
         send("You exceeded the max tries to enter the code , restart the app and try again.", room=room_id)
 
 
-
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
     # cookies = loadCookiesFile("cookies.txt")
-    # db.users_collection.update_one({"_id": ObjectId("5e83e525bc17fd543de6e304")}, {"$set": {"cookies": cookies}})
-    socketio.run(app)
+    # db.users_collection.update_one({"_id": ObjectId("5e850e639cfb2c84a70de8fa")}, {"$set": {"cookies": cookies}})
+    socketio.run(app, debug=True)

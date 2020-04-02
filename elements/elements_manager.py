@@ -12,10 +12,10 @@ from elements.path_by import ElementPathBy
 from utils.driver import Driver
 
 from consts import elements
+from utils import globals
 
-
-def initialize_element_actions(self):
-    self.element_actions = ElementActions(self.driver)
+def initialize_element_actions(driver):
+    globals.element_actions = ElementActions(driver)
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     if web_element is None:

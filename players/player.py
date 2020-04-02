@@ -24,9 +24,9 @@ class Player:
     def get_sell_price(self):
         return self.market_price - (self.market_price * DECREASE_SALE_PRICE_PERCENTAGE)
 
-    def calculate_profit(self):
+    def calculate_profit(self, user_coin_balance):
         # if the user costs more than the user can afford then no profit can be made
-        if self.get_max_buy_price() > user.coin_balance:
+        if self.get_max_buy_price() > user_coin_balance:
             self.profit = 0
         else:
             self.profit = self.market_price - self.get_sell_price()
