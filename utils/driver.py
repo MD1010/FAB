@@ -9,7 +9,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from active.data import opened_drivers
 from consts import app, server_status_messages, elements
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from elements.elements_manager import initialize_element_actions
 
 
 class DriverState(Enum):
@@ -23,10 +22,10 @@ class Driver:
 
 
 
-def initialize_driver():
+def initialize_driver(email):
     try:
         driver = webdriver.Chrome(ChromeDriverManager().install())
-        opened_drivers.append(driver)
+        opened_drivers[email] = driver
         print(driver.service.process.pid)
         driver.get(app.WEB_APP_URL)
         return driver

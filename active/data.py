@@ -1,2 +1,3 @@
-opened_drivers = []
+opened_drivers = {}
 active_fabs = {}
+active_login_sessions = {}

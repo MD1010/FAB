@@ -15,3 +15,4 @@ WEB_APP_NOT_AVAILABLE = "FIFA Auto Buyer is not available right now.Please log i
 DRIVER_ERROR="Driver error. Try to kill all processes running"
 VALID_TOKEN_IS_MISSING = "a valid token is missing"
 DRIVER_OFF="Driver is off. Try to log in again"
+TIME_OUT_LOGIN="Your session is ended. Try to log in again"

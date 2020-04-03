@@ -1,4 +1,6 @@
 import datetime
+import gc
+import time
 from functools import wraps
 
 import bcrypt
@@ -6,8 +8,12 @@ from flask import jsonify
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
+from active.data import opened_drivers, active_fabs, active_login_sessions
+from auth.login_attempt import LoginAttempt
 from consts import server_status_messages, app, elements
+from consts.app import TIME_TO_LOGIN
 from elements.elements_manager import ElementCallback, initialize_element_actions
+from fab import Fab
 from utils import db
 from utils.driver import initialize_driver
 from utils.globals import element_actions
@@ -23,7 +29,16 @@ def check_auth_status(func):
     return determine_if_func_should_run
 
 
+
+
 def start_login(email, password):
+    if email in active_login_sessions:
+        if time.time() - active_login_sessions.get(email).timer >= TIME_TO_LOGIN:
+            gc.collect(active_login_sessions.get(email))
+            del active_login_sessions[email]
+            return jsonify(msg=server_status_messages.TIME_OUT_LOGIN, code=401)
+
+
     existing_user = get_user_details_if_exists(email, password)
     # todo remove this to separate route.
     # todo create fab object with the id from the db and append it to the running fubs object.
@@ -32,12 +47,21 @@ def start_login(email, password):
     try:
         # todo if a customer trying to enter to loged user, dont allow it.
         # initialize_user_details(self, user_details)
-        driver = initialize_driver()
-        initialize_element_actions(driver)
+        if email in opened_drivers:
+            driver = opened_drivers.get(email)
+        else:
+            driver = initialize_driver(email)
+            login_session = LoginAttempt()
+            active_login_sessions[email] = login_session
+            initialize_element_actions(driver)
+
         if existing_user:
             # if check_if_user_has_saved_cookies(email, password):
             if not login_with_cookies(driver, password,  existing_user["cookies"]):
+
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+            fab = Fab(driver=driver, is_authenticated=True)
+            active_fabs[existing_user["_id"]] = fab
             # todo 1.get id of current loged in user from db.
             # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
 
@@ -62,8 +86,8 @@ def start_login(email, password):
     except TimeoutException:
         print(f"Oops :( Something went wrong..")
         return jsonify(msg=server_status_messages.FAB_LOOP_FAILED, code=401)
-    except Exception:
-        print(f"Server problem.. kill all processes")
+    except Exception as e:
+        print(e)
         return jsonify(msg=server_status_messages.DRIVER_ERROR, code=503)
 
 

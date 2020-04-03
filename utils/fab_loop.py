@@ -53,7 +53,6 @@ def run_loop(self, time_to_run_in_sec, requested_players):
             # self.player_actions.list_player(str(list_price))
             self.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
             print("sent to transfer list")
-            time.sleep(10)
         self.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
         player_to_search = update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices)
