@@ -6,8 +6,12 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
+from active.data import active_login_sessions
 from auth.login import set_status_code, start_login
+from auth.login_attempt import LoginAttempt
 from auth.signup import sign_up
+from background_threads.login_timeout import check_login_timeout
+from background_threads.thread import open_thread
 from consts import server_status_messages
 from consts.app import *
 from fab import Fab
@@ -30,11 +34,16 @@ def user_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
+    if email not in active_login_sessions:
+        login_session = LoginAttempt()
+        active_login_sessions[email] = login_session
+        active_login_sessions.get(email).login_thread = open_thread(check_login_timeout, email)
     response_obj = start_login(email, password)
+
     return response_obj
 
 
-@app.route('/api/start-fab', methods=['POST'])
+@app.route('/api/start-fab/<int:id>', methods=['POST'])
 @jwt_required
 def start_fab_loop():
     jsonData = request.get_json()
@@ -94,6 +103,7 @@ def set_code(data):
     room_id = fab_driver.connected_user_details.get("_id")
 
     # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
+    # todo get the email of the user
     if set_status_code(fab_driver, code, socketio, room_id):
         # room=fab_driver.connected_user_details.get("_id")
         send("You successfully loged in", room=room_id)

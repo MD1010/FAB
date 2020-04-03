@@ -9,11 +9,10 @@ from user_info import user
 from user_info.user import get_coin_balance
 
 
-class PlayerActions(Driver):
-    def __init__(self, driver):
-        self.driver = driver
-        super().__init__(driver)
-        self.element_actions = ElementActions(self.driver)
+class PlayerActions:
+    def __init__(self, element_actions):
+        self.element_actions = element_actions
+
 
     def init_search_player_info(self, player_name, player_futbin_price):
         self.element_actions.execute_element_action(elements.SEARCHED_PLAYER_FIELD, ElementCallback.SEND_KEYS,
@@ -27,6 +26,7 @@ class PlayerActions(Driver):
         time.sleep(1)
         self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS,
                                                     str(player_futbin_price))
+
 
     def buy_player(self):
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)

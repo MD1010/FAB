@@ -1,6 +1,4 @@
 import datetime
-import gc
-import time
 from functools import wraps
 
 import bcrypt
@@ -9,10 +7,8 @@ from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
 from active.data import opened_drivers, active_fabs, active_login_sessions
-from auth.login_attempt import LoginAttempt
 from consts import server_status_messages, app, elements
-from consts.app import TIME_TO_LOGIN
-from elements.elements_manager import ElementCallback, initialize_element_actions
+from elements.elements_manager import ElementCallback, ElementActions
 from fab import Fab
 from utils import db
 from utils.driver import initialize_driver
@@ -29,16 +25,7 @@ def check_auth_status(func):
     return determine_if_func_should_run
 
 
-
-
 def start_login(email, password):
-    if email in active_login_sessions:
-        if time.time() - active_login_sessions.get(email).timer >= TIME_TO_LOGIN:
-            gc.collect(active_login_sessions.get(email))
-            del active_login_sessions[email]
-            return jsonify(msg=server_status_messages.TIME_OUT_LOGIN, code=401)
-
-
     existing_user = get_user_details_if_exists(email, password)
     # todo remove this to separate route.
     # todo create fab object with the id from the db and append it to the running fubs object.
@@ -51,35 +38,40 @@ def start_login(email, password):
             driver = opened_drivers.get(email)
         else:
             driver = initialize_driver(email)
-            login_session = LoginAttempt()
-            active_login_sessions[email] = login_session
-            initialize_element_actions(driver)
 
+        elemet_actions = ElementActions(driver)
         if existing_user:
             # if check_if_user_has_saved_cookies(email, password):
-            if not login_with_cookies(driver, password,  existing_user["cookies"]):
 
+            if not login_with_cookies(driver, element_actions, password, existing_user["cookies"]):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-            fab = Fab(driver=driver, is_authenticated=True)
-            active_fabs[existing_user["_id"]] = fab
+
             # todo 1.get id of current loged in user from db.
             # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
 
         # cookies file was not found - log in the first time
         else:
-            if not is_login_successfull_from_first_time(self, email, password):
+            if not is_login_successfull_from_first_time(driver, element_actions, email, password):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+            else:
             # todo if login was successfuly save to db
             # todo 1.get id of current loged in user from db.
             # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
-            while not self.is_authenticated:
-                if not self.tries_with_status_code:
+            while not active_login_sessions[email].is_authenticated:
+                if not active_login_sessions[email].tries_with_status_code:
                     return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
                 # todo check if driver opened more than specific time.
 
-            remember_logged_in_user(self)
-        access_token = create_access_token({'id': str(user_details["_id"])},
+            remember_logged_in_user(driver)
+
+        access_token = create_access_token({'id': str(existing_user["_id"])},
                                            expires_delta=datetime.timedelta(hours=1))
+        # active_login_sessions.get(email).is_authenticated = True
+
+        fab = Fab(driver=driver, element_actions=element_actions)
+        active_fabs[existing_user["_id"]] = fab
+        active_login_sessions.get(email).login_thread.kill()
+        del active_login_sessions[email]
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
 
@@ -117,20 +109,20 @@ def set_auth_status(self, is_auth):
     self.is_authenticated = is_auth
 
 
-def set_status_code(self, code, socketio, room_id):
-    self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                code)
-    self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    status_code_error = self.element_actions.get_element(elements.CODE_ERROR)
+def set_status_code(driver, element_actions, email, code, socketio, room_id):
+    element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                           code)
+    element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    status_code_error = element_actions.get_element(elements.CODE_ERROR)
     if not status_code_error:
-        set_auth_status(self, True)
+        set_auth_status(driver, True)
         return True
     socketio.send("Wrong code!", room=room_id)
-    self.tries_with_status_code -= 1
+    active_login_sessions[email].tries_with_status_code -= 1
     return False
 
 
-def login_with_cookies(driver, password, cookies):
+def login_with_cookies(driver, element_actions, password, cookies):
     driver.delete_all_cookies()
 
     for cookie in cookies:
@@ -143,22 +135,22 @@ def login_with_cookies(driver, password, cookies):
     # Entering password left, and you are in!
     element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
     element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if is_login_error_exists(driver):
+    if is_login_error_exists(driver, element_actions):
         return False
     set_auth_status(driver, True)
     return True
 
 
-def is_login_successfull_from_first_time(self, email, password):
-    self.driver.get(app.SIGN_IN_URL)
-    self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
-    self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
-    self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    if not is_login_error_exists(self):
+def is_login_successfull_from_first_time(driver, element_actions, email, password):
+    driver.get(app.SIGN_IN_URL)
+    element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
+    element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
+    element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    if not is_login_error_exists(driver, element_actions):
         # check the SMS option
-        self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
+        element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
         # send the sms verfication
-        self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+        element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # todo: return this lines after checking first time login.
         return True
     return False
@@ -185,9 +177,9 @@ def remember_logged_in_user(self):
     self.driver.back()
 
 
-def is_login_error_exists(self):
-    login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
+def is_login_error_exists(driver, element_actions):
+    login_error = element_actions.get_element(elements.LOGIN_ERROR)
     if login_error:
-        set_auth_status(self, False)
+        set_auth_status(driver, False)
         return True
     return False
