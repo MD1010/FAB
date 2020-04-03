@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from active.data import active_login_sessions
+from active.data import login_attempts
 from auth.login import set_status_code, start_login
 from auth.login_attempt import LoginAttempt
 from auth.signup import sign_up
@@ -34,10 +34,10 @@ def user_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    if email not in active_login_sessions:
+    if email not in login_attempts:
         login_session = LoginAttempt()
-        active_login_sessions[email] = login_session
-        active_login_sessions.get(email).login_thread = open_thread(check_login_timeout, email)
+        login_attempts[email] = login_session
+        login_attempts.get(email).login_thread = open_thread(check_login_timeout, email)
     response_obj = start_login(email, password)
 
     return response_obj
