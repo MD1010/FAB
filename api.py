@@ -6,10 +6,10 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from active.data import login_attempts
-from auth.login import set_status_code, start_login
+from active.data import users_attempted_login
+from auth.login import  start_login
 from auth.login_attempt import LoginAttempt
-from auth.signup import sign_up
+from auth.signup import register_new_user_to_db
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_thread
 from consts import server_status_messages
@@ -26,7 +26,6 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 # app.config['transports'] = 'websocket'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
-fab_driver = Fab()
 
 
 @app.route('/api/login', methods=['POST'])
@@ -34,10 +33,10 @@ def user_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    if email not in login_attempts:
+    if email not in users_attempted_login:
         login_session = LoginAttempt()
-        login_attempts[email] = login_session
-        login_attempts.get(email).login_thread = open_thread(check_login_timeout, email)
+        users_attempted_login[email] = login_session
+        users_attempted_login.get(email).login_thread = open_thread(check_login_timeout, email)
     response_obj = start_login(email, password)
 
     return response_obj
@@ -78,7 +77,7 @@ def sign_up_user():
     password = jsonData.get('password')
     if email is None or password is None:
         return server_status_messages.BAD_REQUEST, 400
-    return sign_up(email, password)
+    return register_new_user_to_db(email, password)
 
 
 @socketio.on('join')

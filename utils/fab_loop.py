@@ -4,7 +4,7 @@ from flask import jsonify
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from urllib3.exceptions import MaxRetryError
 
-from auth.login import check_auth_status, set_auth_status
+from auth.login import check_auth_status
 from consts import server_status_messages, elements
 from elements.actions_for_execution import ElementCallback
 from players.player_min_prices import get_all_players_RT_prices

@@ -9,7 +9,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from active.data import opened_drivers
 from consts import app, server_status_messages, elements
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
-from elements.elements_manager import ElementActions
 
 
 class DriverState(Enum):

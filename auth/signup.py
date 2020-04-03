@@ -13,7 +13,7 @@ def check_if_new_user(email):
     return True
 
 
-def sign_up(email, password):
+def register_new_user_to_db(email, password):
     is_new_user = check_if_new_user(email)
     if is_new_user:
         hashed_password = hash_password(password)

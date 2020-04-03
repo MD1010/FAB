@@ -1,5 +1,5 @@
-from active.data import login_attempts
-from auth.login import set_auth_status
+from active.data import users_attempted_login
+from auth.auth_status import set_auth_status
 from consts import elements, app
 from elements.actions_for_execution import ElementCallback
 from utils.driver import Driver
@@ -19,10 +19,10 @@ class SeleniumLogin(Driver):
             set_auth_status(self.driver, True)
             return True
         socketio.send("Wrong code!", room=room_id)
-        login_attempts[email].tries_with_status_code -= 1
+        users_attempted_login[email].tries_with_status_code -= 1
         return False
 
-    def login_with_cookies(self, password, cookies):
+    def login_with_cookies(self, password, email, cookies):
         self.driver.delete_all_cookies()
 
         for cookie in cookies:
@@ -35,17 +35,17 @@ class SeleniumLogin(Driver):
         # Entering password left, and you are in!
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-        if self._is_login_error_exists():
+        if self._is_login_error_exists(email):
             return False
-        set_auth_status(self.driver, True)
+        set_auth_status(email, True)
         return True
 
-    def is_login_successfull_from_first_time(self, email, password):
+    def login_first_time(self, email, password):
         self.driver.get(app.SIGN_IN_URL)
         self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-        if not self._is_login_error_exists():
+        if not self._is_login_error_exists(email):
             # check the SMS option
             self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
             # send the sms verfication
@@ -54,9 +54,9 @@ class SeleniumLogin(Driver):
             return True
         return False
 
-    def _is_login_error_exists(self):
+    def _is_login_error_exists(self,email):
         login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
         if login_error:
-            set_auth_status(self.driver, False)
+            set_auth_status(email, False)
             return True
         return False
