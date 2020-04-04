@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = APP_SECRET_KEY
 jwt = JWTManager(app)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-# app.config['transports'] = 'websocket'
+app.config['transports'] = 'websocket'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 
@@ -87,12 +87,12 @@ def sign_up_user():
 
 
 @socketio.on('join')
-def on_join():
-    user_id = fab_driver.connected_user_details.get("_id")
-    join_room(user_id)
+def on_join(data):
+    room_id = data["email"]
+    join_room(room_id)
     # users_rooms[user_id] = user_id
     # emit('joined', "You successfully enter the room", room=user_id)
-    send("joined successfully!", room=user_id)
+    socketio.send("joined successfully!", room=room_id)
 
 
 @socketio.on('leave')
