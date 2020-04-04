@@ -10,18 +10,6 @@ class SeleniumLogin(Driver):
         super().__init__(driver)
         self.element_actions = element_actions
 
-    def set_status_code(self, email, code, socketio, room_id):
-        self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                    code)
-        self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-        status_code_error = self.element_actions.get_element(elements.CODE_ERROR)
-        if not status_code_error:
-            set_auth_status(self.driver, True)
-            return True
-        socketio.send("Wrong code!", room=room_id)
-        users_attempted_login[email].tries_with_status_code -= 1
-        return False
-
     def login_with_cookies(self, password, email, cookies):
         self.driver.delete_all_cookies()
 
@@ -60,3 +48,15 @@ class SeleniumLogin(Driver):
             set_auth_status(email, False)
             return True
         return False
+
+def set_status_code(fab, email, code, socketio, room_id):
+    fab.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                                code)
+    fab.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    status_code_error = fab.element_actions.get_element(elements.CODE_ERROR)
+    if not status_code_error:
+        set_auth_status(fab.driver, True)
+        return True
+    socketio.send("Wrong code!", room=room_id)
+    users_attempted_login[email].tries_with_status_code -= 1
+    return False

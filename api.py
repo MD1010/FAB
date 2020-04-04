@@ -6,18 +6,19 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from active.data import users_attempted_login
-from auth.login import  start_login
+from active.data import users_attempted_login, active_fabs
+from auth.login import start_login
 from auth.login_attempt import LoginAttempt
+from auth.selenium_login import set_status_code
 from auth.signup import register_new_user_to_db
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_thread
 from consts import server_status_messages
 from consts.app import *
-from fab import Fab
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
+from utils.helper_functions import get_user_login_attempt
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -34,9 +35,9 @@ def user_login():
     email = json_data.get('email')
     password = json_data.get('password')
     if email not in users_attempted_login:
-        login_session = LoginAttempt()
-        users_attempted_login[email] = login_session
-        users_attempted_login.get(email).login_thread = open_thread(check_login_timeout, email)
+        login_attempt = LoginAttempt()
+        users_attempted_login[email] = login_attempt
+        get_user_login_attempt(email).login_thread = open_thread(check_login_timeout, email)
     response_obj = start_login(email, password)
 
     return response_obj
@@ -99,15 +100,17 @@ def on_leave(data):
 @socketio.on('set_status_code')
 def set_code(data):
     code = data['code']
-    room_id = fab_driver.connected_user_details.get("_id")
-
+    email = data['email']
+    room_id = email
+    user_fab = active_fabs.get(email)
+    login_attempt = get_user_login_attempt(email)
     # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
     # todo get the email of the user
-    if set_status_code(fab_driver, code, socketio, room_id):
+    if set_status_code(user_fab, email, code, socketio, room_id):
         # room=fab_driver.connected_user_details.get("_id")
         send("You successfully loged in", room=room_id)
-    elif fab_driver.tries_with_status_code:
-        send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=room_id)
+    elif login_attempt.tries_with_status_code:
+        send("Status code error, you have {} attempts left".format(login_attempt.tries_with_status_code), room=room_id)
     else:
         send("You exceeded the max tries to enter the code , restart the app and try again.", room=room_id)
 

@@ -2,8 +2,9 @@ import json
 
 import bcrypt
 
-from active.data import users_attempted_login
+from active.data import users_attempted_login, active_fabs
 from auth.login_attempt import LoginAttempt
+from fab import Fab
 
 
 def saveToCookiesFile(obj, name):
@@ -22,3 +23,6 @@ def hash_password(password):
 def get_user_login_attempt(email):
     return users_attempted_login[email]
 
+def create_new_fab(driver,element_actions,email):
+    fab = Fab(driver=driver, element_actions=element_actions)
+    active_fabs[email] = fab

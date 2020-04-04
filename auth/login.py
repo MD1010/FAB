@@ -14,7 +14,7 @@ from fab import Fab
 from utils import db
 from utils.driver import initialize_driver
 from utils.globals import element_actions
-from utils.helper_functions import get_user_login_attempt
+from utils.helper_functions import get_user_login_attempt, create_new_fab
 
 
 def check_auth_status(func):
@@ -42,12 +42,15 @@ def start_login(email, password):
         else:
             driver = initialize_driver(email)
         selenium_login = SeleniumLogin(driver, element_actions)
+
         if existing_user:
+
             # if check_if_user_has_saved_cookies(email, password):
+
 
             if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-
+            create_new_fab(driver, element_actions, email)
             # todo 1.get id of current loged in user from db.
             # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
 
@@ -59,8 +62,10 @@ def start_login(email, password):
             # todo if login was successfuly save to db
             # todo 1.get id of current loged in user from db.
             # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
+            create_new_fab(driver, element_actions, email)
             while not get_user_login_attempt(email).is_authenticated:
                 if not get_user_login_attempt(email).tries_with_status_code:
+                    del active_fabs[email]
                     return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
                 # todo check if driver opened more than specific time.
 
@@ -69,8 +74,7 @@ def start_login(email, password):
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
         # active_login_sessions.get(email).is_authenticated = True
 
-        fab = Fab(driver=driver, element_actions=element_actions)
-        active_fabs[existing_user["_id"]] = fab
+
         get_user_login_attempt(email).login_thread.kill()
         del users_attempted_login[email]
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
