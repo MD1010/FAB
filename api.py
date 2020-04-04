@@ -12,13 +12,13 @@ from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
 from auth.signup import register_new_user_to_db
 from background_threads.login_timeout import check_login_timeout
-from background_threads.thread import open_thread
+from background_threads.thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
-from utils.helper_functions import get_user_login_attempt
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -38,12 +38,8 @@ def user_login():
         if email not in users_attempted_login:
             login_attempt = LoginAttempt()
             users_attempted_login[email] = login_attempt
-            print(users_attempted_login)
-            # get_user_login_attempt(email).login_thread = \
-            open_thread(check_login_timeout, email)
-
+            open_login_timeout_thread(check_login_timeout, email)
         response_obj = start_login(email, password)
-        print(f"user attempts={users_attempted_login}")
         return response_obj
 
 
@@ -108,7 +104,7 @@ def set_code(data):
     email = data['email']
     room_id = email
     user_fab = active_fabs.get(email)
-    login_attempt = get_user_login_attempt(email)
+    login_attempt = users_attempted_login[email]
     # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
     # todo get the email of the user
     if set_status_code(user_fab, email, code, socketio, room_id):

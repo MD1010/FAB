@@ -6,7 +6,7 @@ from flask import jsonify
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
-from active.data import opened_drivers, active_fabs
+from active.data import opened_drivers, active_fabs, users_attempted_login
 from auth.auth_status import set_auth_status
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
@@ -14,7 +14,7 @@ from consts import server_status_messages, app
 from elements.elements_manager import ElementActions
 from utils import db
 from utils.driver import initialize_driver
-from utils.helper_functions import get_user_login_attempt, create_new_fab
+from utils.helper_functions import create_new_fab
 
 
 def check_auth_status(func):
@@ -29,15 +29,9 @@ def check_auth_status(func):
 
 def start_login(email, password):
     # if user exists in db then he must have already logged in before and he has cookies
-
     existing_user = get_user_details_from_db(email, password)
-    # todo remove this to separate route.
-    # todo create fab object with the id from the db and append it to the running fubs object.
-    # if not user_details:
-    #     return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)  # remove this too.
+
     try:
-        # todo if a customer trying to enter to loged user, dont allow it.
-        # initialize_user_details(self, user_details)
         if email in opened_drivers:
             driver = opened_drivers.get(email)
         else:
@@ -46,37 +40,25 @@ def start_login(email, password):
         selenium_login = SeleniumLogin(driver, element_actions)
 
         if existing_user:
-
-            # if check_if_user_has_saved_cookies(email, password):
-
             if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
             create_new_fab(driver, element_actions, email)
-            # todo 1.get id of current loged in user from db.
-            # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
 
         # cookies file was not found - log in the first time
         else:
-
             if not selenium_login.login_first_time(email, password):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-            ### status code stage
-            # todo if login was successfuly save to db
-            # todo 1.get id of current loged in user from db.
-            # todo 2. data.active_fabs[id] = current_fab(that initialized till now with driver and is_authenticated turned to true.)
+
             create_new_fab(driver, element_actions, email)
 
-            while not get_user_login_attempt(email).is_authenticated:
-                if not get_user_login_attempt(email).tries_with_status_code:
+            while not users_attempted_login[email].is_authenticated:
+                if not users_attempted_login[email].tries_with_status_code:
                     del active_fabs[email]
                     return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
-                # todo check if driver opened more than specific time.
 
             existing_user = remember_logged_in_user(driver, email, password)
 
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
-
-        # active_login_sessions.get(email).is_authenticated = True
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
 
