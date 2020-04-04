@@ -31,16 +31,21 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 @app.route('/api/login', methods=['POST'])
 def user_login():
-    json_data = request.get_json()
-    email = json_data.get('email')
-    password = json_data.get('password')
-    if email not in users_attempted_login:
-        login_attempt = LoginAttempt()
-        users_attempted_login[email] = login_attempt
-        get_user_login_attempt(email).login_thread = open_thread(check_login_timeout, email)
-    response_obj = start_login(email, password)
+    with app.app_context():
+        json_data = request.get_json()
+        email = json_data.get('email')
+        password = json_data.get('password')
+        if email not in users_attempted_login:
+            login_attempt = LoginAttempt()
+            users_attempted_login[email] = login_attempt
+            print(users_attempted_login)
+            # get_user_login_attempt(email).login_thread = \
+            open_thread(check_login_timeout, email)
 
-    return response_obj
+        response_obj = start_login(email, password)
+        print(f"user attempts={users_attempted_login}")
+        return response_obj
+
 
 
 @app.route('/api/start-fab/<int:id>', methods=['POST'])

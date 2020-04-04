@@ -10,6 +10,7 @@ from active.data import opened_drivers, active_fabs, users_attempted_login
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
 from consts import server_status_messages, app
+from elements.elements_manager import ElementActions
 from fab import Fab
 from utils import db
 from utils.driver import initialize_driver
@@ -41,7 +42,8 @@ def start_login(email, password):
             driver = opened_drivers.get(email)
         else:
             driver = initialize_driver(email)
-        selenium_login = SeleniumLogin(driver, element_actions)
+
+        selenium_login = SeleniumLogin(driver, ElementActions(driver))
 
         if existing_user:
 
@@ -72,11 +74,8 @@ def start_login(email, password):
             remember_logged_in_user(driver, email, password)
 
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
+
         # active_login_sessions.get(email).is_authenticated = True
-
-
-        get_user_login_attempt(email).login_thread.kill()
-        del users_attempted_login[email]
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
 

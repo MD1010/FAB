@@ -46,9 +46,6 @@ def close_driver(driver, email):
     if driver is not None:
         driver.quit()
         del opened_drivers[email]
-        return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
-    else:
-        return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
 
 
 def evaluate_driver_operation_time(self, start_time, time_to_run_in_sec, num_of_tries):

@@ -11,7 +11,7 @@ class SeleniumLogin(Driver):
         self.element_actions = element_actions
 
     def login_with_cookies(self, password, email, cookies):
-        self.driver.delete_all_cookies()
+        # self.driver.delete_all_cookies()
 
         for cookie in cookies:
             if 'expiry' in cookie:
@@ -55,7 +55,7 @@ def set_status_code(fab, email, code, socketio, room_id):
     fab.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
     status_code_error = fab.element_actions.get_element(elements.CODE_ERROR)
     if not status_code_error:
-        set_auth_status(fab.driver, True)
+        set_auth_status(email, True)
         return True
     socketio.send("Wrong code!", room=room_id)
     users_attempted_login[email].tries_with_status_code -= 1
