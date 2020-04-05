@@ -34,7 +34,7 @@ def initialize_time_left(self,time_to_run_in_sec):
     self.time_left_to_run = time_to_run_in_sec
 
 def restart_driver_when_crashed(self,requested_players):
-    self.start_fab(self.time_left_to_run, requested_players)
+    return self.start_fab(self.time_left_to_run, requested_players)
 
 def close_driver(self):
     if self.driver is not None:

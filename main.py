@@ -90,4 +90,4 @@ class Fab:
             if self.time_left_to_run == 0:
                 initialize_time_left(self, time_to_run_in_sec)
             if self.driver_state == DriverState.ON:
-                restart_driver_when_crashed(self, requested_players)
+                return restart_driver_when_crashed(self, requested_players)
