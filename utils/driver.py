@@ -6,9 +6,10 @@ from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from active.data import opened_drivers, users_attempted_login
-from consts import app
+from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 
+from flask import jsonify
 
 class DriverState(Enum):
     ON = "on"
@@ -49,6 +50,8 @@ def close_driver(driver, email):
         driver.quit()
         del users_attempted_login[email]
         del opened_drivers[email]
+        return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
+    return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
 
 
 def evaluate_driver_operation_time(fab, start_time, time_to_run_in_sec, num_of_tries):

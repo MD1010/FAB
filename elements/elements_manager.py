@@ -1,3 +1,4 @@
+import time
 from functools import partial
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
@@ -5,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from consts.app import TIME_TO_LOGIN
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
 from elements.actions_for_execution import ElementCallback
@@ -124,3 +126,16 @@ class ElementActions(Driver):
         if getting_started or logged_on_console or login_captcha or login_popup:
             return False
         return True
+
+    def wait_for_page_to_load_first_time_after_login(self, fab):
+        start_time = time.time()
+        while time.time() - start_time < TIME_TO_LOGIN/15:
+            try:
+                for i in range(3):
+                    fab.element_actions.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK, timeout=0)
+                    time.sleep(1)
+                break
+
+            except WebDriverException:
+                print("loading page.. ")
+                time.sleep(1)

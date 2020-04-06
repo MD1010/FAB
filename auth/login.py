@@ -1,15 +1,18 @@
 import datetime
+import time
 from functools import wraps
 
 from flask import jsonify
 from flask_jwt_extended import create_access_token
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from active.data import active_fabs, users_attempted_login
 from auth.auth_status import set_auth_status
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
-from consts import server_status_messages, app
+from consts import server_status_messages, app, elements
+from consts.elements import END_PLAYER_PRICE_ON_PAGE
+from elements.actions_for_execution import ElementCallback
 from elements.elements_manager import ElementActions
 from players.players_actions import PlayerActions
 from user_info.user import update_db_user_platform, update_db_username, User
@@ -60,19 +63,20 @@ def start_login(email, password):
 
         # in the web app now get the logged in user details
 
-        active_fab.element_actions.wait_for_page_to_load()
+        active_fab.element_actions.wait_for_page_to_load_first_time_after_login(active_fab)
 
         if not active_fab.element_actions.check_if_web_app_is_available():
             return jsonify(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
-        else:
-            active_fab.element_actions.remove_unexpected_popups()
-            # if not first_time_login:
+        # active_fab.element_actions.wait_for_page_to_load()
+
+        active_fab.element_actions.remove_unexpected_popups()
+        if first_time_login:
             update_db_user_platform(active_fab)
             update_db_username(active_fab)
-            existing_user = get_user_from_db_if_exists(email, password)
-            print(existing_user)
-            access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
-            return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
+        existing_user = get_user_from_db_if_exists(email, password)
+        print(existing_user)
+        access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
+        return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
     except TimeoutException:
         print(f"Oops :( Something went wrong..")

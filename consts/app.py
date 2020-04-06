@@ -25,3 +25,4 @@ users_rooms = {}
 CURRENT_WORKING_DIR = os.path.abspath(os.getcwd())
 STATUS_CODE_TRIES = 5
 TIME_TO_LOGIN = 180
+
