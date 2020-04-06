@@ -13,8 +13,9 @@ from consts import server_status_messages, app
 from elements.elements_manager import ElementActions
 from players.players_actions import PlayerActions
 from user_info.user import update_user_platform, update_user_name, User
+from utils.db import get_user_from_db_if_exists
 from utils.driver import initialize_driver, check_if_web_app_is_available
-from utils.helper_functions import create_new_fab, get_user_from_db_if_exists
+from utils.helper_functions import create_new_fab
 
 
 def check_auth_status(func):
@@ -36,10 +37,12 @@ def start_login(email, password):
             driver = opened_drivers.get(email)
         else:
             driver = initialize_driver(email)
+
         element_actions = ElementActions(driver)
         player_actions = PlayerActions(element_actions)
         selenium_login = SeleniumLogin(driver, element_actions)
         new_user = User(email)
+
         if existing_user:
             if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
@@ -60,6 +63,8 @@ def start_login(email, password):
 
             existing_user = remember_logged_in_user(driver, email, password)
 
+        # in the web app now get the logged in user details
+
         active_fab.element_actions.wait_for_page_to_load()
 
         if not check_if_web_app_is_available(active_fab):
@@ -71,20 +76,12 @@ def start_login(email, password):
             access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
             return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
-
     except TimeoutException:
         print(f"Oops :( Something went wrong..")
         return jsonify(msg=server_status_messages.FAB_LOOP_FAILED, code=401)
     except Exception as e:
         print(e)
         return jsonify(msg=server_status_messages.DRIVER_ERROR, code=503)
-
-
-# def check_if_user_has_saved_cookies(email, password):
-#     user_details = get_user_details_if_exists(email, password)
-#     if user_details is None:
-#         return False
-#     return True if len(user_details["cookies"]) > 0 else False
 
 
 def remember_logged_in_user(driver, email, password):
@@ -102,8 +99,6 @@ def remember_logged_in_user(driver, email, password):
     register_new_user_to_db(email, password, eaCookies)
     new_user = get_user_from_db_if_exists(email, password)
 
-    # user_id = self.connected_user_details["_id"]
-    # db.users_collection.update({"_id": user_id}, {"$set": {"cookies": eaCookies}})
     set_auth_status(email, True)
     driver.back()
     return new_user

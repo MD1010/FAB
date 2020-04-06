@@ -9,8 +9,7 @@ from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH, MAX_CARD_ON_PAGE,
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE, MAX_PRICE, SANE_PRICE_RATIO
 from elements.actions_for_execution import ElementCallback
-from user_info import user
-from utils.helper_functions import get_user_platform
+from utils.db import get_db_user_platform
 
 
 def _check_player_RT_price(fab, player_obj):
@@ -101,7 +100,7 @@ def get_approximate_min_price(fab, player_obj):
         if prices_of_specific_player[player_id] is None:
             player_prices.append(0)
         else:
-            user_platform = get_user_platform(fab.user.email)
+            user_platform = get_db_user_platform(fab.user.email)
             player_prices.append(prices_of_specific_player[player_id]['prices'][user_platform][LCPrice])
 
     for price_index in range(len(player_prices)):
