@@ -1,6 +1,6 @@
 from multiprocessing.pool import ThreadPool
 
-from user_info.user import get_coin_balance
+from user_info.user import update_coin_balance
 from utils import db
 from players.player import Player
 from user_info import user
@@ -22,20 +22,20 @@ def _get_player_full_futhead_data(contain_searched_term_players):
     return result
 
 
-def update_search_player_if_coin_balance_changed(self, player_to_search, requested_players, real_prices):
-    coin_balance_before_attempt_to_buy = get_coin_balance(self)
-    if user.coin_balance != coin_balance_before_attempt_to_buy:
-        user.coin_balance = coin_balance_before_attempt_to_buy
+def update_search_player_if_coin_balance_changed(fab, player_to_search, requested_players, real_prices):
+    coin_balance_before_attempt_to_buy = update_coin_balance(fab)
+    if fab.user_coin_balance != coin_balance_before_attempt_to_buy:
+        fab.user_coin_balance = coin_balance_before_attempt_to_buy
         player_to_search = get_player_to_search(requested_players, real_prices)
         if player_to_search is not None:
-            init_new_search(self, player_to_search)
+            init_new_search(fab, player_to_search)
     return player_to_search
 
 
-def init_new_search(self, player_to_search):
+def init_new_search(fab, player_to_search):
     search_max_price = str(player_to_search.get_max_buy_price())
     search_player_name = player_to_search.name
-    self.player_actions.init_search_player_info(search_player_name, search_max_price)
+    fab.player_actions.init_search_player_info(search_player_name, search_max_price)
 
 
 def get_player_to_search(requested_players, real_prices):

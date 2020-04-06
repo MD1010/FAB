@@ -29,6 +29,7 @@ class SeleniumLogin(Driver):
         return True
 
     def login_first_time(self, email, password):
+
         self.driver.get(app.SIGN_IN_URL)
         self.element_actions.execute_element_action(elements.EMAIL_FIELD, ElementCallback.SEND_KEYS, email)
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)

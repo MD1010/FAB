@@ -6,7 +6,7 @@ from consts import elements
 from utils.driver import Driver
 from elements.elements_manager import ElementCallback, ElementActions
 from user_info import user
-from user_info.user import get_coin_balance
+from user_info.user import update_coin_balance
 
 
 class PlayerActions:

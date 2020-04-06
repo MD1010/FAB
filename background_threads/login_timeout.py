@@ -16,7 +16,7 @@ def check_login_timeout(email):
 
     # time has passed
     if not users_attempted_login[email].is_authenticated:
-        del users_attempted_login[email]
+
         driver_to_close = opened_drivers.get(email)
         close_driver(driver_to_close, email)
 
