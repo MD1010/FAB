@@ -20,6 +20,6 @@ def get_db_user_platform(email):
     user_in_db = users_collection.find_one({"email": email})
     return user_in_db["platform"]
 
-def get_db_user_name(email):
+def get_db_username(email):
     user_in_db = users_collection.find_one({"email": email})
-    return user_in_db["user_name"]
+    return user_in_db["username"]

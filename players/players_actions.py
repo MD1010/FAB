@@ -3,10 +3,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 
 from consts import elements
-from utils.driver import Driver
 from elements.elements_manager import ElementCallback, ElementActions
-from user_info import user
-from user_info.user import update_coin_balance
 
 
 class PlayerActions:

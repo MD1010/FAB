@@ -12,7 +12,6 @@ from elements.path_by import ElementPathBy
 from utils.driver import Driver
 
 from consts import elements
-from utils import globals
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     if web_element is None:
@@ -116,3 +115,12 @@ class ElementActions(Driver):
                 if self.get_element(
                         "{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1, END_PLAYER_PRICE_ON_PAGE)):
                     return False
+
+    def check_if_web_app_is_available(self):
+        getting_started = self.get_element(elements.GETTING_STARTED)
+        logged_on_console = self.get_element(elements.LOGGED_ON_CONSOLE)
+        login_captcha = self.get_element(elements.LOGIN_CAPTHA)
+        login_popup = self.get_element(elements.LOGIN_POPUP)
+        if getting_started or logged_on_console or login_captcha or login_popup:
+            return False
+        return True

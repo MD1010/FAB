@@ -174,13 +174,13 @@ def check_player_price_binary_search(fab, player_price):
     return True, up_limit
 
 
-def check_if_get_results_in_current_price(self, player_price):
-    self.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
-    no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
+def check_if_get_results_in_current_price(fab, player_price):
+    fab.element_actions.execute_element_action(elements.SEARCH_PLAYER_BTN, ElementCallback.CLICK)
+    no_results_banner = fab.element_actions.get_element(elements.NO_RESULTS_FOUND)
     while no_results_banner:
         player_price = player_price * 2
-        player_price = _change_max_bin_price(self, player_price)
-        no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
+        player_price = _change_max_bin_price(fab, player_price)
+        no_results_banner = fab.element_actions.get_element(elements.NO_RESULTS_FOUND)
         if no_results_banner and player_price >= MAX_PRICE:
             return False, MAX_PRICE
     return True, player_price

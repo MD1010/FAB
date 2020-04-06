@@ -1,26 +1,21 @@
 import json
 
-from bson import ObjectId
 from flask import Flask, request, Response
 from flask import jsonify
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from active.data import users_attempted_login, active_fabs
+from active.data import users_attempted_login, active_fabs, opened_drivers
 from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
-from auth.signup import register_new_user_to_db, signup
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
-from consts import server_status_messages
 from consts.app import *
 from players.player_search import get_all_players_cards
-from utils import db
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
-from utils.helper_functions import loadCookiesFile
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -45,14 +40,14 @@ def user_login():
         return response_obj
 
 
-
 @app.route('/api/start-fab/<string:email>', methods=['POST'])
 @jwt_required
 def start_fab_loop(email):
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    return start_fab(email, time_to_run, requested_players)
+    current_fab = active_fabs[email]
+    return start_fab(current_fab, time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
@@ -62,34 +57,36 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
-@app.route("/api/close-driver/")
+@app.route("/api/close-driver/<string:email>")
 # @jwt_required
-def close_running_driver():
-    return close_driver(fab_driver)
+def close_running_driver(email):
+    current_fab = active_fabs[email]
+    return close_driver(current_fab.driver, current_fab.user.email)
 
 
-@app.route("/api/driver-state")
+@app.route("/api/driver-state/<string:email>")
 @jwt_required
-def check_driver_state():
-    return jsonify(state=fab_driver.driver_state.value)
+def check_driver_state(email):
+    if opened_drivers[email]:
+        return jsonify(state=True)
+    else:
+        return jsonify(state=False)
 
 
-@app.route("/api/signup", methods=['POST'])
-def sign_up_user():
-    jsonData = request.get_json()
-    email = jsonData.get('email')
-    password = jsonData.get('password')
-    if email is None or password is None:
-        return server_status_messages.BAD_REQUEST, 400
-    return signup(email, password)
+# @app.route("/api/signup", methods=['POST'])
+# def sign_up_user():
+#     jsonData = request.get_json()
+#     email = jsonData.get('email')
+#     password = jsonData.get('password')
+#     if email is None or password is None:
+#         return server_status_messages.BAD_REQUEST, 400
+#     return signup(email, password)
 
 
 @socketio.on('join')
 def on_join(data):
     room_id = data["email"]
     join_room(room_id)
-    # users_rooms[user_id] = user_id
-    # emit('joined', "You successfully enter the room", room=user_id)
     socketio.send("joined successfully!", room=room_id)
 
 
@@ -107,10 +104,8 @@ def set_code(data):
     room_id = email
     user_fab = active_fabs.get(email)
     login_attempt = users_attempted_login[email]
-    # send("Status code error, you have {} attempts left".format(fab_driver.tries_with_status_code), room=1)
-    # todo get the email of the user
+
     if set_status_code(user_fab, email, code, socketio, room_id):
-        # room=fab_driver.connected_user_details.get("_id")
         send("You successfully loged in", room=room_id)
     elif login_attempt.tries_with_status_code:
         send("Status code error, you have {} attempts left".format(login_attempt.tries_with_status_code), room=room_id)
@@ -120,7 +115,6 @@ def set_code(data):
 
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
-    #cookies = loadCookiesFile("cookies.txt")
-    #db.users_collection.update({"_id": ObjectId("5e8916620f5bf4728e39531f")}, {"$set": {"cookies": cookies}})
+    # cookies = loadCookiesFile("cookies.txt")
+    # db.users_collection.update({"_id": ObjectId("5e8916620f5bf4728e39531f")}, {"$set": {"cookies": cookies}})
     socketio.run(app, debug=True)
-

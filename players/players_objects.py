@@ -6,7 +6,7 @@ from consts.app import FUTHEAD_PLAYER
 from players.player import Player
 
 
-def build_player_objects(requested_players, real_prices):
+def build_player_objects(fab,requested_players, real_prices):
     result = []
     for player in requested_players:
         player_name = player["name"]
@@ -27,7 +27,7 @@ def build_player_objects(requested_players, real_prices):
         player_obj = Player(specific_card_id, player_name, rating, revision, nation, position, club)
         player_obj.set_market_price(player_market_price)
         #todo send the user_coin balance
-        # player_obj.calculate_profit()
+        player_obj.calculate_profit(fab.user.coin_balance)
         result.append(player_obj)
     return result
 
