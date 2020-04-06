@@ -1,5 +1,5 @@
 SUCCESS_AUTH = "Redirected to main page successfuly"
-FAILED_AUTH = "Authentication failed"
+FAILED_AUTH = "Unauthorized"
 FAB_LOOP_FINISHED = "Autobuyer has successfully finished his job"
 FAB_LOOP_FAILED = "Elements were not found - server error"
 STATUS_CODE_SET_CORRECTLY = "Status code was set successfully"

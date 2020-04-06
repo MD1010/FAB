@@ -17,6 +17,7 @@ from consts.app import *
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
+from utils.helper_functions import check_auth_status
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -42,35 +43,30 @@ def user_login():
 
 
 @app.route('/api/start-fab/<string:email>', methods=['POST'])
+@check_auth_status
 @jwt_required
 def start_fab_loop(email):
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    current_fab = active_fabs.get(email)
-    if current_fab is None:
-        return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+    current_fab = active_fabs[email]
     return start_fab(current_fab, time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-# @jwt_required
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
 @app.route("/api/close-driver/<string:email>")
-# @jwt_required
+@check_auth_status
 def close_running_driver(email):
-    current_fab = active_fabs.get(email)
-    if current_fab is None:
-        return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+    current_fab = active_fabs[email]
     return close_driver(current_fab.driver, current_fab.user.email)
 
 
 @app.route("/api/driver-state/<string:email>")
-# @jwt_required
 def check_driver_state(email):
     if opened_drivers.get(email):
         return jsonify(state=True)
