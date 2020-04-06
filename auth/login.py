@@ -14,7 +14,7 @@ from elements.elements_manager import ElementActions
 from players.players_actions import PlayerActions
 from user_info.user import update_user_platform, update_user_name, User
 from utils.db import get_user_from_db_if_exists
-from utils.driver import initialize_driver, check_if_web_app_is_available
+from utils.driver import initialize_driver, check_if_web_app_is_available, get_or_create_driver_instance
 from utils.helper_functions import create_new_fab
 
 
@@ -33,11 +33,7 @@ def start_login(email, password):
     existing_user = get_user_from_db_if_exists(email, password)
 
     try:
-        if email in opened_drivers:
-            driver = opened_drivers.get(email)
-        else:
-            driver = initialize_driver(email)
-
+        driver = get_or_create_driver_instance(email)
         element_actions = ElementActions(driver)
         player_actions = PlayerActions(element_actions)
         selenium_login = SeleniumLogin(driver, element_actions)
@@ -56,10 +52,9 @@ def start_login(email, password):
 
             active_fab = create_new_fab(driver, element_actions, player_actions, new_user)
 
-            while not users_attempted_login[email].is_authenticated:
-                if not users_attempted_login[email].tries_with_status_code:
-                    del active_fabs[email]
-                    return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
+            status_code_result = wait_for_status_code_loop()
+            if not status_code_result:
+                return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
 
             existing_user = remember_logged_in_user(driver, email, password)
 
@@ -102,3 +97,11 @@ def remember_logged_in_user(driver, email, password):
     set_auth_status(email, True)
     driver.back()
     return new_user
+
+
+def wait_for_status_code_loop(email):
+    while not users_attempted_login[email].is_authenticated:
+        if not users_attempted_login[email].tries_with_status_code:
+            del active_fabs[email]
+            return False
+    return True

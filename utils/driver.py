@@ -13,6 +13,7 @@ from utils.fab_loop import start_fab
 
 from pyvirtualdisplay import Display
 
+
 class DriverState(Enum):
     ON = "on"
     OFF = "off"
@@ -22,6 +23,12 @@ class Driver:
     def __init__(self, driver):
         self.driver = driver
 
+
+def get_or_create_driver_instance(email):
+    if email in opened_drivers:
+        return opened_drivers.get(email)
+    else:
+        return initialize_driver(email)
 
 
 def initialize_driver(email):
