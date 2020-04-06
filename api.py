@@ -12,6 +12,7 @@ from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
+from consts import server_status_messages
 from consts.app import *
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
@@ -36,6 +37,8 @@ def user_login():
         if email not in user_login_attempts:
             user_login_attempts[email] = LoginAttempt()
             open_login_timeout_thread(check_login_timeout, email)
+        else:
+            return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
         response_obj = start_login(email, password)
         return response_obj
 

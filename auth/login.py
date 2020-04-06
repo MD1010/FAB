@@ -76,7 +76,7 @@ def start_login(email, password):
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
     except TimeoutException:
-        print(f"Oops :( Something went wrong..")
+        print("Oops :( Something went wrong..")
         return jsonify(msg=server_status_messages.FAB_LOOP_FAILED, code=401)
     except Exception as e:
         print(e)

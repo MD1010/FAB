@@ -3,7 +3,7 @@ from functools import wraps
 import bcrypt
 from flask import jsonify
 
-from active.data import active_fabs
+from active.data import active_fabs, opened_drivers
 from consts import server_status_messages
 from fab import Fab
 
