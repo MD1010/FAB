@@ -10,7 +10,7 @@ from elements.actions_for_execution import ElementCallback
 from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
 from user_info.user import update_coin_balance
-from utils.driver import evaluate_driver_operation_time, DriverState, close_driver, initialize_time_left
+from utils.driver import evaluate_driver_operation_time, close_driver, initialize_time_left
 from utils.market import enter_transfer_market, decrease_increase_min_price
 
 
@@ -24,7 +24,7 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
     # get updated prices
     enter_transfer_market(fab)
     real_prices = get_all_players_RT_prices(fab, requested_players)
-    player_to_search = get_player_to_search(fab,requested_players, real_prices)
+    player_to_search = get_player_to_search(fab, requested_players, real_prices)
     if player_to_search is None:
         return jsonify(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 

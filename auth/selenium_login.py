@@ -1,4 +1,4 @@
-from active.data import users_attempted_login
+from active.data import user_login_attempts
 from auth.auth_status import set_auth_status
 from consts import elements, app
 from elements.actions_for_execution import ElementCallback
@@ -59,5 +59,5 @@ def set_status_code(fab, email, code, socketio, room_id):
         set_auth_status(email, True)
         return True
     socketio.send("Wrong code!", room=room_id)
-    users_attempted_login[email].tries_with_status_code -= 1
+    user_login_attempts[email].tries_with_status_code -= 1
     return False

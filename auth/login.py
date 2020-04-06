@@ -1,24 +1,20 @@
 import datetime
-import time
-from functools import wraps
 
 from flask import jsonify
 from flask_jwt_extended import create_access_token
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import TimeoutException
 
-from active.data import active_fabs, users_attempted_login
+from active.data import active_fabs, user_login_attempts
 from auth.auth_status import set_auth_status
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
-from consts import server_status_messages, app, elements
-from consts.elements import END_PLAYER_PRICE_ON_PAGE
-from elements.actions_for_execution import ElementCallback
+from consts import server_status_messages, app
 from elements.elements_manager import ElementActions
 from players.players_actions import PlayerActions
 from user_info.user import update_db_user_platform, update_db_username, User
 from utils.db import get_user_from_db_if_exists
 from utils.driver import get_or_create_driver_instance
-from utils.helper_functions import create_new_fab
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success
 
 
 # def check_auth_status(func):
@@ -74,7 +70,8 @@ def start_login(email, password):
             update_db_user_platform(active_fab)
             update_db_username(active_fab)
         existing_user = get_user_from_db_if_exists(email, password)
-        print(existing_user)
+        append_new_fab_after_auth_success(active_fab, existing_user)
+
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
@@ -105,8 +102,8 @@ def remember_logged_in_user(driver, email, password):
 
 
 def wait_for_status_code_loop(email):
-    while not users_attempted_login[email].is_authenticated:
-        if not users_attempted_login[email].tries_with_status_code:
+    while not user_login_attempts[email].is_authenticated:
+        if not user_login_attempts[email].tries_with_status_code:
             del active_fabs[email]
             return False
     return True

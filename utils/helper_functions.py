@@ -1,4 +1,3 @@
-import json
 from functools import wraps
 
 import bcrypt
@@ -14,9 +13,12 @@ def hash_password(password):
 
 
 def create_new_fab(driver, element_actions, player_actions, user):
-    fab = Fab(driver=driver, element_actions=element_actions, player_actions=player_actions, user=user)
-    active_fabs[user.email] = fab
-    return fab
+    return Fab(driver=driver, element_actions=element_actions, player_actions=player_actions, user=user)
+
+
+def append_new_fab_after_auth_success(fab, user):
+    active_fabs[user["email"]] = fab
+
 
 def check_auth_status(func):
     @wraps(func)
@@ -26,4 +28,5 @@ def check_auth_status(func):
             return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
         else:
             return func(email, *args)
+
     return determine_if_func_should_run

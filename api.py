@@ -6,13 +6,12 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from active.data import users_attempted_login, active_fabs, opened_drivers
+from active.data import user_login_attempts, active_fabs, opened_drivers
 from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
-from consts import server_status_messages
 from consts.app import *
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
@@ -34,9 +33,8 @@ def user_login():
         json_data = request.get_json()
         email = json_data.get('email')
         password = json_data.get('password')
-        if email not in users_attempted_login:
-            login_attempt = LoginAttempt()
-            users_attempted_login[email] = login_attempt
+        if email not in user_login_attempts:
+            user_login_attempts[email] = LoginAttempt()
             open_login_timeout_thread(check_login_timeout, email)
         response_obj = start_login(email, password)
         return response_obj
@@ -104,7 +102,7 @@ def set_code(data):
     email = data['email']
     room_id = email
     user_fab = active_fabs.get(email)
-    login_attempt = users_attempted_login[email]
+    login_attempt = user_login_attempts[email]
 
     if set_status_code(user_fab, email, code, socketio, room_id):
         send("You successfully loged in", room=room_id)

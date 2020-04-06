@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from active.data import opened_drivers, users_attempted_login
+from active.data import opened_drivers, user_login_attempts
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 
@@ -48,7 +48,7 @@ def initialize_time_left(fab, time_to_run_in_sec):
 def close_driver(driver, email):
     if driver is not None:
         driver.quit()
-        del users_attempted_login[email]
+        del user_login_attempts[email]
         del opened_drivers[email]
         return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
     return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
