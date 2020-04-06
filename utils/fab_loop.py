@@ -64,7 +64,6 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
     return jsonify(msg=server_status_messages.FAB_LOOP_FINISHED, code=200)
 
 
-# @check_auth_status
 def start_fab(fab, time_to_run_in_sec, requested_players):
     if time_to_run_in_sec is None:
         return jsonify(msg=server_status_messages.BAD_REQUEST, code=400)

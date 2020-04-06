@@ -12,6 +12,7 @@ from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
 from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
+from consts import server_status_messages
 from consts.app import *
 from players.player_search import get_all_players_cards
 from utils.driver import close_driver
@@ -46,12 +47,14 @@ def start_fab_loop(email):
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    current_fab = active_fabs[email]
+    current_fab = active_fabs.get(email)
+    if current_fab is None:
+        return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
     return start_fab(current_fab, time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-@jwt_required
+# @jwt_required
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
@@ -60,14 +63,16 @@ def get_all_cards(searched_player):
 @app.route("/api/close-driver/<string:email>")
 # @jwt_required
 def close_running_driver(email):
-    current_fab = active_fabs[email]
+    current_fab = active_fabs.get(email)
+    if current_fab is None:
+        return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
     return close_driver(current_fab.driver, current_fab.user.email)
 
 
 @app.route("/api/driver-state/<string:email>")
-@jwt_required
+# @jwt_required
 def check_driver_state(email):
-    if opened_drivers[email]:
+    if opened_drivers.get(email):
         return jsonify(state=True)
     else:
         return jsonify(state=False)
