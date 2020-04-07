@@ -10,15 +10,13 @@ from active.data import user_login_attempts, active_fabs, opened_drivers
 from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
-from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
 from elements.elements_manager import ElementActions
 from players.player_search import get_all_players_cards
 from players.players_actions import PlayerActions
-from user_info.user import User
-from utils.db import get_user_from_db_by_email
+from user_info.user import initialize_user_from_db
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened
@@ -34,17 +32,17 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 @app.route('/api/login', methods=['POST'])
 def user_login():
-    with app.app_context():
-        json_data = request.get_json()
-        email = json_data.get('email')
-        password = json_data.get('password')
-        if email in opened_drivers and user_login_attempts[email].is_authenticated:
-            return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
-        if email not in user_login_attempts:
-            user_login_attempts[email] = LoginAttempt()
-            open_login_timeout_thread(check_login_timeout, email)
-        response_obj = start_login(email, password)
-        return response_obj
+    json_data = request.get_json()
+    email = json_data.get('email')
+    password = json_data.get('password')
+    if email in opened_drivers and user_login_attempts[email].is_authenticated:
+        return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
+    if email not in user_login_attempts:
+        user_login_attempts[email] = LoginAttempt()
+        from background_threads.login_timeout import check_login_timeout
+        open_login_timeout_thread(check_login_timeout, email)
+    response_obj = start_login(email, password)
+    return response_obj
 
 
 @app.route('/api/start-fab/<string:email>', methods=['POST'])
@@ -58,10 +56,9 @@ def start_fab_loop(email):
     user_driver = opened_drivers[email]
     user_element_actions = ElementActions(user_driver)
     user_player_actions = PlayerActions(user_element_actions)
-    user_from_db = get_user_from_db_by_email(email)
-    fab_user = User(email, user_from_db["password"], user_from_db["cookies"], user_from_db["username"], user_from_db["platform"])
+    fab_user = initialize_user_from_db(email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_player_actions, fab_user)
-    append_new_fab_after_auth_success(active_fab, user_from_db)
+    append_new_fab_after_auth_success(active_fab, fab_user)
     return start_fab(active_fab, time_to_run, requested_players)
 
 
@@ -84,16 +81,6 @@ def check_driver_state(email):
         return jsonify(state=True)
     else:
         return jsonify(state=False)
-
-
-# @app.route("/api/signup", methods=['POST'])
-# def sign_up_user():
-#     jsonData = request.get_json()
-#     email = jsonData.get('email')
-#     password = jsonData.get('password')
-#     if email is None or password is None:
-#         return server_status_messages.BAD_REQUEST, 400
-#     return signup(email, password)
 
 
 @socketio.on('join')

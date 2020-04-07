@@ -1,7 +1,10 @@
+import bcrypt
+
 from active.data import active_fabs
 from consts import elements
 from consts.platform import platforms
 from elements.actions_for_execution import ElementCallback
+from user_info.user_model import User
 from utils import db
 
 
@@ -23,17 +26,26 @@ def update_db_username(email, element_actions):
     db.users_collection.update({"email": email}, {"$set": {"username": username}})
 
 
-class User:
-    def __init__(self, email, password="", cookies=None, username="", platform=""):
-        if cookies is None:
-            cookies = []
-        self.email = email
-        self.password = password
-        self.cookies = cookies
-        self.username = username
-        self.platform = platform
-        self.total_runtime = 0
-        self.coin_balance = 0
-        self.total_coins_earned = 0
+def initialize_user_from_db(email):
+    user_from_db = db.users_collection.find_one({"email": email})
+    return User(email, user_from_db["password"], user_from_db["cookies"], user_from_db["username"], user_from_db["platform"])
 
-        # active_users = [{fab,user},{fab,user}]
+
+def get_user_from_db_if_exists(email, password):
+    user_in_db = db.users_collection.find_one({"email": email})
+    if not user_in_db:
+        return None
+    if bcrypt.hashpw(password.encode('utf-8'), user_in_db["password"]) == user_in_db["password"]:
+        return user_in_db
+    else:
+        return None
+
+
+def get_db_user_platform(email):
+    user_in_db = db.users_collection.find_one({"email": email})
+    return user_in_db["platform"]
+
+
+def get_db_username(email):
+    user_in_db = db.users_collection.find_one({"email": email})
+    return user_in_db["username"]

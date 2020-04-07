@@ -17,8 +17,9 @@ def create_new_fab(driver, element_actions, player_actions, user):
 
 
 def append_new_fab_after_auth_success(fab, user):
-    if active_fabs.get(user["email"]) is None:
-        active_fabs[user["email"]] = fab
+    if active_fabs.get(user.email) is None:
+        active_fabs[user.email] = fab
+    print(active_fabs)
 
 
 def check_if_web_app_ready(func):

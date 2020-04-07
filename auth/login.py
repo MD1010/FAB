@@ -10,9 +10,7 @@ from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
 from consts import server_status_messages, app
 from elements.elements_manager import ElementActions
-from players.players_actions import PlayerActions
-from user_info.user import update_db_user_platform, update_db_username
-from utils.db import get_user_from_db_if_exists
+from user_info.user import update_db_user_platform, update_db_username, get_user_from_db_if_exists
 from utils.driver import get_or_create_driver_instance, close_driver
 
 
@@ -33,22 +31,18 @@ def start_login(email, password):
     try:
         driver = get_or_create_driver_instance(email)
         element_actions = ElementActions(driver)
-        player_actions = PlayerActions(element_actions)
         selenium_login = SeleniumLogin(driver, element_actions)
-        # new_user = User(email)
 
         if existing_user:
             first_time_login = False
             if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-            # active_fab = create_new_fab(driver, element_actions, player_actions, new_user)
 
         # cookies file was not found - log in the first time
         else:
             first_time_login = True
             if not selenium_login.login_first_time(email, password):
                 return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
-            # active_fab = create_new_fab(driver, element_actions, player_actions, new_user)
 
             status_code_result = wait_for_status_code_loop(email)
             if not status_code_result:
@@ -61,19 +55,17 @@ def start_login(email, password):
         element_actions.wait_for_page_to_load_first_time_after_login()
 
         if not element_actions.check_if_web_app_is_available():
-            close_driver(driver,email)
+            close_driver(driver, email)
             return jsonify(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
-        # active_fab.element_actions.wait_for_page_to_load()
 
         element_actions.remove_unexpected_popups()
         if first_time_login:
             update_db_user_platform(email, element_actions)
             update_db_username(email, element_actions)
         existing_user = get_user_from_db_if_exists(email, password)
-        # append_new_fab_after_auth_success(active_fab, existing_user)
 
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
-        set_web_app_status(email,True)
+        set_web_app_status(email, True)
         return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
     except TimeoutException:
