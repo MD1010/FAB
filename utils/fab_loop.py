@@ -18,7 +18,7 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
     increase_min_price = True
     num_of_tries = 0
 
-    update_coin_balance(fab)
+    update_coin_balance(fab.user.email,fab.element_actions)
 
     fab.element_actions.wait_for_page_to_load()
     # get updated prices

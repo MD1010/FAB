@@ -8,4 +8,5 @@ class LoginAttempt:
         self.is_authenticated = False
         self.timer = time.time()
         self.tries_with_status_code = STATUS_CODE_TRIES
+        self.web_app_ready = False
 

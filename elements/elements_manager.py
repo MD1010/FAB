@@ -2,10 +2,11 @@ import time
 from functools import partial
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from consts import elements
 from consts.app import TIME_TO_LOGIN
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
@@ -13,7 +14,6 @@ from elements.actions_for_execution import ElementCallback
 from elements.path_by import ElementPathBy
 from utils.driver import Driver
 
-from consts import elements
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     if web_element is None:
@@ -30,6 +30,7 @@ def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
     }
 
     return action_switcher[callback]()
+
 
 def get_path_by(actual_path):
     if str(actual_path).startswith('/'):
@@ -75,7 +76,7 @@ class ElementActions(Driver):
         if popup:
             self.driver.execute_script(REMOVE_ELEMENT, popup)
 
-    def wait_untill_clickable(self,timeout, actual_path):
+    def wait_untill_clickable(self, timeout, actual_path):
         path_by = get_path_by(actual_path)
         try:
             # change this stupid logic
@@ -103,8 +104,8 @@ class ElementActions(Driver):
 
     def wait_for_page_to_load_without_timeout(self):
         while self.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1,
-                                                               END_PLAYER_PRICE_ON_PAGE)) is None and self.get_element(
-                elements.NO_RESULTS_FOUND) is None:
+                                               END_PLAYER_PRICE_ON_PAGE)) is None and self.get_element(
+            elements.NO_RESULTS_FOUND) is None:
             pass
 
     def check_if_last_element_exist(self):
@@ -127,12 +128,12 @@ class ElementActions(Driver):
             return False
         return True
 
-    def wait_for_page_to_load_first_time_after_login(self, fab):
+    def wait_for_page_to_load_first_time_after_login(self):
         start_time = time.time()
-        while time.time() - start_time < TIME_TO_LOGIN/15:
+        while time.time() - start_time < TIME_TO_LOGIN / 15:
             try:
                 for i in range(3):
-                    fab.element_actions.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK, timeout=0)
+                    self.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK, timeout=0)
                     time.sleep(1)
                 break
 

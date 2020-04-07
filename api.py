@@ -14,10 +14,14 @@ from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
+from elements.elements_manager import ElementActions
 from players.player_search import get_all_players_cards
+from players.players_actions import PlayerActions
+from user_info.user import User
+from utils.db import get_user_from_db_by_email
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
-from utils.helper_functions import check_auth_status
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -34,24 +38,31 @@ def user_login():
         json_data = request.get_json()
         email = json_data.get('email')
         password = json_data.get('password')
+        if email in opened_drivers and user_login_attempts[email].is_authenticated:
+            return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
         if email not in user_login_attempts:
             user_login_attempts[email] = LoginAttempt()
             open_login_timeout_thread(check_login_timeout, email)
-        else:
-            return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
         response_obj = start_login(email, password)
         return response_obj
 
 
 @app.route('/api/start-fab/<string:email>', methods=['POST'])
-@check_auth_status
+@check_if_web_app_ready
+@check_if_fab_opened
 @jwt_required
 def start_fab_loop(email):
     jsonData = request.get_json()
     time_to_run = jsonData.get('time')
     requested_players = jsonData.get('requested_players')
-    current_fab = active_fabs[email]
-    return start_fab(current_fab, time_to_run, requested_players)
+    user_driver = opened_drivers[email]
+    user_element_actions = ElementActions(user_driver)
+    user_player_actions = PlayerActions(user_element_actions)
+    user_from_db = get_user_from_db_by_email(email)
+    fab_user = User(email, user_from_db["password"], user_from_db["cookies"], user_from_db["username"], user_from_db["platform"])
+    active_fab = create_new_fab(user_driver, user_element_actions, user_player_actions, fab_user)
+    append_new_fab_after_auth_success(active_fab, user_from_db)
+    return start_fab(active_fab, time_to_run, requested_players)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
@@ -61,10 +72,10 @@ def get_all_cards(searched_player):
 
 
 @app.route("/api/close-driver/<string:email>")
-@check_auth_status
+@verify_driver_opened
 def close_running_driver(email):
-    current_fab = active_fabs[email]
-    return close_driver(current_fab.driver, current_fab.user.email)
+    driver = opened_drivers[email]
+    return close_driver(driver, email)
 
 
 @app.route("/api/driver-state/<string:email>")

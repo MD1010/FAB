@@ -1,15 +1,15 @@
 import time
 from enum import Enum
 
+from flask import jsonify
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from active.data import opened_drivers, user_login_attempts
+from active.data import opened_drivers, user_login_attempts, active_fabs
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 
-from flask import jsonify
 
 class DriverState(Enum):
     ON = "on"
@@ -48,8 +48,15 @@ def initialize_time_left(fab, time_to_run_in_sec):
 def close_driver(driver, email):
     if driver is not None:
         driver.quit()
-        del user_login_attempts[email]
-        del opened_drivers[email]
+        login_attempt = user_login_attempts.get(email)
+        current_driver = opened_drivers.get(email)
+        fab = active_fabs.get(email)
+        if login_attempt:
+            del user_login_attempts[email]
+        if current_driver:
+            del opened_drivers[email]
+        if fab:
+            del active_fabs[email]
         return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
     return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
 

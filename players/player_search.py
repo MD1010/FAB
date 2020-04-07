@@ -26,7 +26,7 @@ def _get_player_full_futhead_data(contain_searched_term_players):
 def update_search_player_if_coin_balance_changed(fab, player_to_search, requested_players, real_prices):
     new_coin_balance = int(fab.element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
     if new_coin_balance != fab.user.coin_balance:
-        update_coin_balance(fab)
+        update_coin_balance(fab.user.email,fab.element_actions)
         player_to_search = get_player_to_search(fab, requested_players, real_prices)
         if player_to_search is not None:
             init_new_search(fab, player_to_search)
