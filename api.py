@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, make_response
 from flask import jsonify
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
@@ -10,6 +10,7 @@ from active.data import user_login_attempts, active_fabs, opened_drivers
 from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
+from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
@@ -39,8 +40,7 @@ def user_login():
         return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
     if email not in user_login_attempts:
         user_login_attempts[email] = LoginAttempt()
-        from background_threads.login_timeout import check_login_timeout
-        open_login_timeout_thread(check_login_timeout, email)
+        open_login_timeout_thread(check_login_timeout, email, app)
     response_obj = start_login(email, password)
     return response_obj
 
@@ -72,7 +72,9 @@ def get_all_cards(searched_player):
 @verify_driver_opened
 def close_running_driver(email):
     driver = opened_drivers[email]
-    return close_driver(driver, email)
+    res = close_driver(driver, email)
+    print(res["code"])
+    return make_response(res,res["code"])
 
 
 @app.route("/api/driver-state/<string:email>")

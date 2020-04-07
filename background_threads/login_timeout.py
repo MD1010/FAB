@@ -1,12 +1,11 @@
 import time
 
 from active.data import user_login_attempts, opened_drivers
-from api import app
 from consts.app import TIME_TO_LOGIN
 from utils.driver import close_driver
 
 
-def check_login_timeout(email):
+def check_login_timeout(email, app):
     with app.app_context():
         print(user_login_attempts)
         while True:

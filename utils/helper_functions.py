@@ -1,7 +1,7 @@
 from functools import wraps
 
 import bcrypt
-from flask import jsonify
+from flask import jsonify, make_response
 
 from active.data import active_fabs, user_login_attempts, opened_drivers
 from consts import server_status_messages
@@ -48,8 +48,12 @@ def verify_driver_opened(func):
     @wraps(func)
     def determine_if_func_should_run(email, *args):
         if email not in opened_drivers:
-            return jsonify(msg=server_status_messages.DRIVER_OFF, code=503)
+           return server_response(server_status_messages.DRIVER_OFF, 503)
         else:
             return func(email, *args)
 
     return determine_if_func_should_run
+
+def server_response(msg, code):
+    res = jsonify(msg=msg, code=code)
+    return make_response(res,code)
