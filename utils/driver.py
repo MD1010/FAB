@@ -1,7 +1,6 @@
 import time
 from enum import Enum
 
-from flask import jsonify
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
@@ -9,6 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from active.data import opened_drivers, user_login_attempts, active_fabs
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
+from utils.helper_functions import server_response
 
 
 class DriverState(Enum):
@@ -57,8 +57,8 @@ def close_driver(driver, email):
             del opened_drivers[email]
         if fab:
             del active_fabs[email]
-        return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
-    return jsonify(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
+        return server_response(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
+    return server_response(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
 
 
 def evaluate_driver_operation_time(fab, start_time, time_to_run_in_sec, num_of_tries):

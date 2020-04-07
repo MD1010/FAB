@@ -1,7 +1,6 @@
 import json
 
-from flask import Flask, request, Response, make_response
-from flask import jsonify
+from flask import Flask, request, Response, make_response, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
@@ -20,7 +19,7 @@ from players.players_actions import PlayerActions
 from user_info.user import initialize_user_from_db
 from utils.driver import close_driver
 from utils.fab_loop import start_fab
-from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened, server_response
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -37,7 +36,7 @@ def user_login():
     email = json_data.get('email')
     password = json_data.get('password')
     if email in opened_drivers and user_login_attempts[email].is_authenticated:
-        return jsonify(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
+        return server_response(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
     if email not in user_login_attempts:
         user_login_attempts[email] = LoginAttempt()
         open_login_timeout_thread(check_login_timeout, email, app)
@@ -67,22 +66,19 @@ def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
-
 @app.route("/api/close-driver/<string:email>")
 @verify_driver_opened
 def close_running_driver(email):
     driver = opened_drivers[email]
-    res = close_driver(driver, email)
-    print(res["code"])
-    return make_response(res,res["code"])
+    return close_driver(driver, email)
 
 
 @app.route("/api/driver-state/<string:email>")
 def check_driver_state(email):
     if opened_drivers.get(email):
-        return jsonify(state=True)
+        return jsonify(status=True)
     else:
-        return jsonify(state=False)
+        return jsonify(status=False)
 
 
 @socketio.on('join')

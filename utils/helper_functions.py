@@ -26,34 +26,37 @@ def check_if_web_app_ready(func):
     @wraps(func)
     def determine_if_func_should_run(email, *args):
         if not user_login_attempts.get(email):
-            return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+            return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
         if not user_login_attempts[email].web_app_ready:
-            return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+            return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
         else:
             return func(email, *args)
 
     return determine_if_func_should_run
+
 
 def check_if_fab_opened(func):
     @wraps(func)
     def determine_if_func_should_run(email, *args):
         if email in active_fabs:
-            return jsonify(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
+            return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
         else:
             return func(email, *args)
 
     return determine_if_func_should_run
+
 
 def verify_driver_opened(func):
     @wraps(func)
     def determine_if_func_should_run(email, *args):
         if email not in opened_drivers:
-           return server_response(server_status_messages.DRIVER_OFF, 503)
+            return server_response(msg=server_status_messages.DRIVER_OFF, code=503)
         else:
             return func(email, *args)
 
     return determine_if_func_should_run
 
-def server_response(msg, code):
+
+def server_response(msg, code=200):
     res = jsonify(msg=msg, code=code)
-    return make_response(res,code)
+    return make_response(res, code)

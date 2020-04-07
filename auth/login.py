@@ -1,6 +1,5 @@
 import datetime
 
-from flask import jsonify
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
@@ -18,10 +17,11 @@ from utils.driver import get_or_create_driver_instance, close_driver
 #     @wraps(func)
 #     def determine_if_func_should_run(self, *args):
 #         if not self.is_authenticated:
-#             return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+#             return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
 #         return func(self, *args)
 #
 #     return determine_if_func_should_run
+from utils.helper_functions import server_response
 
 
 def start_login(email, password):
@@ -36,17 +36,17 @@ def start_login(email, password):
         if existing_user:
             first_time_login = False
             if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
-                return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+                return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
 
         # cookies file was not found - log in the first time
         else:
             first_time_login = True
             if not selenium_login.login_first_time(email, password):
-                return jsonify(msg=server_status_messages.FAILED_AUTH, code=401)
+                return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
 
             status_code_result = wait_for_status_code_loop(email)
             if not status_code_result:
-                return jsonify(msg=server_status_messages.LIMIT_TRIES, code=401)
+                return server_response(msg=server_status_messages.LIMIT_TRIES, code=401)
 
             remember_logged_in_user(driver, email, password)
 
@@ -56,7 +56,7 @@ def start_login(email, password):
 
         if not element_actions.check_if_web_app_is_available():
             close_driver(driver, email)
-            return jsonify(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
+            return server_response(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
 
         element_actions.remove_unexpected_popups()
         if first_time_login:
@@ -66,14 +66,14 @@ def start_login(email, password):
 
         access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
         set_web_app_status(email, True)
-        return jsonify(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
+        return server_response(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
     except TimeoutException:
         print("Oops :( Something went wrong..")
-        return jsonify(msg=server_status_messages.FAB_LOOP_FAILED, code=401)
+        return server_response(msg=server_status_messages.FAB_LOOP_FAILED, code=401)
     except Exception as e:
         print(e)
-        return jsonify(msg=server_status_messages.DRIVER_ERROR, code=503)
+        return server_response(msg=server_status_messages.DRIVER_ERROR, code=503)
 
 
 def remember_logged_in_user(driver, email, password):
