@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 
 from consts import elements
 from elements.elements_manager import ElementCallback, ElementActions
+from utils.helper_functions import get_coin_balance_from_web_app
 
 
 class PlayerActions:
@@ -25,7 +26,7 @@ class PlayerActions:
                                                     str(player_futbin_price))
 
 
-    def buy_player(self):
+    def buy_player(self, current_coin_balance):
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:
@@ -40,6 +41,10 @@ class PlayerActions:
                 self.element_actions.execute_element_action(elements.BUY_BTN, ElementCallback.CLICK)
                 self.element_actions.execute_element_action(elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
                 time.sleep(1)
+                new_coin_balance = get_coin_balance_from_web_app(self.element_actions)
+                # market was not refreshed properly - not a real buy!
+                if new_coin_balance == current_coin_balance:
+                    return False, None
                 bought_for_label = self.element_actions.get_element(elements.BOUGHT_FOR)
                 if bought_for_label:
                     bought_for = int(str(bought_for_label.text).replace(',', ''))

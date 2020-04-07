@@ -6,10 +6,11 @@ from consts.platform import platforms
 from elements.actions_for_execution import ElementCallback
 from user_info.user_model import User
 from utils import db
+from utils.helper_functions import get_coin_balance_from_web_app
 
 
 def update_coin_balance(email, element_actions):
-    current_coin_balance = int(element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
+    current_coin_balance = get_coin_balance_from_web_app(element_actions)
     active_fabs[email].user.coin_balance = current_coin_balance
     db.users_collection.update({"email": email}, {"$set": {"coin_balance": current_coin_balance}})
 

@@ -11,7 +11,7 @@ from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
 from user_info.user import update_coin_balance
 from utils.driver import evaluate_driver_operation_time, close_driver, initialize_time_left
-from utils.helper_functions import server_response
+from utils.helper_functions import server_response, get_coin_balance_from_web_app
 from utils.market import enter_transfer_market, decrease_increase_min_price
 
 
@@ -41,16 +41,15 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
         ### buy
         time.sleep(0.5)
 
-        player_bought, bought_for = fab.player_actions.buy_player()
+        current_budget = get_coin_balance_from_web_app(fab.element_actions)
+        player_bought, bought_for = fab.player_actions.buy_player(current_budget)
         if player_bought and bought_for:
-            # {CURRENT_WORKING_DIR}\\screenshots\\
             list_price = player_to_search.get_sell_price()
             fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\min price {list_price},bought for {bought_for}.png")
             print(f"bought for={bought_for}")
             # print(f"listed={list_price}")
             # self.player_actions.list_player(str(list_price))
             fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
-            print("sent to transfer list")
         fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
         player_to_search = update_search_player_if_coin_balance_changed(fab, player_to_search, requested_players, real_prices)

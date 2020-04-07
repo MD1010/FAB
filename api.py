@@ -78,9 +78,9 @@ def close_running_driver(email):
 @app.route("/api/driver-state/<string:email>")
 def check_driver_state(email):
     if opened_drivers.get(email):
-        return jsonify(status=True)
+        return jsonify(active=True)
     else:
-        return jsonify(status=False)
+        return jsonify(active=False)
 
 
 @socketio.on('join')

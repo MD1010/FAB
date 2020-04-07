@@ -4,7 +4,7 @@ import bcrypt
 from flask import jsonify, make_response
 
 from active.data import active_fabs, user_login_attempts, opened_drivers
-from consts import server_status_messages
+from consts import server_status_messages, elements
 from fab import Fab
 
 
@@ -56,6 +56,8 @@ def verify_driver_opened(func):
 
     return determine_if_func_should_run
 
+def get_coin_balance_from_web_app(element_actions):
+    return int(element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
 
 def server_response(msg, code=200, **kwargs):
     res = jsonify(msg=msg, code=code, **kwargs)
