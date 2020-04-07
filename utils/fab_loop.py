@@ -1,12 +1,11 @@
 import time
 
-
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from urllib3.exceptions import MaxRetryError
 
 from auth.auth_status import set_auth_status
 from consts import server_status_messages, elements
-from consts.app import CURRENT_WORKING_DIR
+from consts.app import CURRENT_WORKING_DIR, MAX_DRIVER_CRASHES_COUNT
 from elements.actions_for_execution import ElementCallback
 from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
@@ -20,7 +19,7 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
     increase_min_price = True
     num_of_tries = 0
 
-    update_coin_balance(fab.user.email,fab.element_actions)
+    update_coin_balance(fab.user.email, fab.element_actions)
 
     fab.element_actions.wait_for_page_to_load()
     # get updated prices
@@ -82,6 +81,10 @@ def start_fab(fab, time_to_run_in_sec, requested_players):
     except (WebDriverException, TimeoutException) as e:
         print(f"Oops :( Something went wrong.. {e.msg}")
         print("restarting FAB...")
+        fab.driver_crashes += 1
+        if fab.driver_crashes == MAX_DRIVER_CRASHES_COUNT:
+            close_driver(fab.driver, fab.user.email)
+            return server_response(msg=server_status_messages.DRIVER_CRASHED_TOO_MANY_TIMES, code=503)
         # only if it has not started yet
         if fab.time_left_to_run == 0:
             initialize_time_left(fab, time_to_run_in_sec)

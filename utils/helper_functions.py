@@ -57,6 +57,6 @@ def verify_driver_opened(func):
     return determine_if_func_should_run
 
 
-def server_response(msg, code=200):
-    res = jsonify(msg=msg, code=code)
+def server_response(msg, code=200, **kwargs):
+    res = jsonify(msg=msg, code=code, **kwargs)
     return make_response(res, code)

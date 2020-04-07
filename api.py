@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, request, Response, make_response, jsonify
+from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
@@ -13,6 +13,7 @@ from background_threads.login_timeout import check_login_timeout
 from background_threads.thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
+from consts.server_status_messages import LIMIT_TRIES
 from elements.elements_manager import ElementActions
 from players.player_search import get_all_players_cards
 from players.players_actions import PlayerActions
@@ -66,6 +67,7 @@ def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
+
 @app.route("/api/close-driver/<string:email>")
 @verify_driver_opened
 def close_running_driver(email):
@@ -108,7 +110,7 @@ def set_code(data):
     elif login_attempt.tries_with_status_code:
         send("Status code error, you have {} attempts left".format(login_attempt.tries_with_status_code), room=room_id)
     else:
-        send("You exceeded the max tries to enter the code , restart the app and try again.", room=room_id)
+        send(LIMIT_TRIES, room=room_id)
 
 
 if __name__ == '__main__':
