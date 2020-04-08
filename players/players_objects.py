@@ -6,27 +6,19 @@ from consts.app import FUTHEAD_PLAYER
 from players.player import Player
 
 
-def build_player_objects(fab,requested_players, real_prices):
+def build_player_objects(fab, requested_players, real_prices):
     result = []
     for player in requested_players:
-        player_name = player["name"]
-        rating = player["rating"]
-        specific_card_id = player["id"]
-        revision = player["revision"]
-        name = player["name"]
-        nation = player["nation"]
-        position = player["position"]
-        club = player["club"]
-
+        player_obj = Player()
+        for key, value in player.items():
+            setattr(player_obj, key, value)
         player_market_price = 0
         for price_obj in real_prices:
             for name in price_obj.keys():
-                if name == player_name:
-                    player_market_price = price_obj[player_name]
+                if name == player_obj.name:
+                    player_market_price = price_obj[name]
                     break
-        player_obj = Player(specific_card_id, player_name, rating, revision, nation, position, club)
         player_obj.set_market_price(player_market_price)
-        #todo send the user_coin balance
         player_obj.calculate_profit(fab.user.coin_balance)
         result.append(player_obj)
     return result
@@ -49,5 +41,7 @@ def get_cards_from_the_same_player(ea_player_data):
             nation = player_in_json_futhead["nation_name"]
             position = player_in_json_futhead["position"]
             club = player_in_json_futhead["club_name"]
-            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club))
+            club_img = player_in_json_futhead["club_image"]
+            nation_image = player_in_json_futhead["nation_image"]
+            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club, club_img, nation_image))
     return cards_from_the_same_id
