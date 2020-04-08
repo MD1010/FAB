@@ -3,7 +3,7 @@ import datetime
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
-from active.data import active_fabs, user_login_attempts
+from live_data import active_fabs, user_login_attempts
 from auth.auth_status import set_auth_status, set_web_app_status
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
@@ -62,7 +62,7 @@ def start_login(email, password):
             update_db_username(email, element_actions)
         existing_user = get_user_from_db_if_exists(email, password)
 
-        access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=1))
+        access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=3))
         set_web_app_status(email, True)
         return server_response(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 

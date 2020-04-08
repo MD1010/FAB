@@ -1,6 +1,6 @@
 class Fab:
     def __init__(self, driver, element_actions, player_actions, user=None):
-        # self.is_authenticated = is_authenticated  # todo remove and handle all the places that is_autheticated needed.add function that checks if the user is in the active list
+        # self.is_authenticated = is_authenticated  # todo remove and handle all the places that is_autheticated needed.add function that checks if the user is in the live_data list
         self.driver = driver
         self.element_actions = element_actions
         self.player_actions = player_actions

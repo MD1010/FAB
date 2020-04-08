@@ -1,4 +1,4 @@
-from active.data import user_login_attempts
+from live_data import user_login_attempts
 from auth.auth_status import set_auth_status
 from consts import elements, app
 from elements.actions_for_execution import ElementCallback

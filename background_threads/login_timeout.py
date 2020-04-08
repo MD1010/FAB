@@ -1,6 +1,6 @@
 import time
 
-from active.data import user_login_attempts, opened_drivers
+from live_data import user_login_attempts, opened_drivers
 from consts.app import TIME_TO_LOGIN
 from utils.driver import close_driver
 

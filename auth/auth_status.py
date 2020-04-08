@@ -1,4 +1,4 @@
-from active.data import user_login_attempts
+from live_data import user_login_attempts
 
 
 def set_auth_status(email, is_auth):

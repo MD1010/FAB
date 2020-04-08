@@ -3,7 +3,7 @@ from functools import wraps
 import bcrypt
 from flask import jsonify, make_response
 
-from active.data import active_fabs, user_login_attempts, opened_drivers
+from live_data import active_fabs, user_login_attempts, opened_drivers
 from consts import server_status_messages, elements
 from fab import Fab
 
@@ -26,7 +26,7 @@ def check_if_web_app_ready(func):
     @wraps(func)
     def determine_if_func_should_run(email, *args):
         if not user_login_attempts.get(email):
-            return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
+            return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
         if not user_login_attempts[email].web_app_ready:
             return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
         else:
