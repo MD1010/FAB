@@ -3,7 +3,7 @@ from consts.prices import DECREASE_SALE_PRICE_PERCENTAGE
 
 
 class Player:
-    def __init__(self, id='', name='', rating='', revision='', nation='', position='', club='', club_image='', nation_image=''):
+    def __init__(self, id='', name='', rating='', revision='', nation='', position='', club='', player_image='', club_image='', nation_image=''):
         self.id = id
         self.name = name
         self.rating = rating
@@ -13,6 +13,7 @@ class Player:
         self.profit = 0
         self.market_price = 0
         self.nation = nation
+        self.player_image = player_image
         self.club_image = club_image
         self.nation_image = nation_image
 
@@ -41,6 +42,7 @@ class Player:
             'nation': self.nation,
             'position': self.position,
             'club': self.club,
+            'player_image':self.player_image,
             'club_image': self.club_image,
             'nation_image': self.nation_image
         }

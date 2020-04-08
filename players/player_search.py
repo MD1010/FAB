@@ -18,7 +18,7 @@ def _get_player_full_futhead_data(contain_searched_term_players):
         if len(player_record) > 0:
             for player_data in player_record:
                 player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position,
-                                     player_data.club,player_data.club_image,player_data.nation_image)
+                                     player_data.club,player_data.player_image,player_data.club_image,player_data.nation_image)
                 result.append(player_card)
     return result
 
