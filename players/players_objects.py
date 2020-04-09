@@ -3,7 +3,7 @@ import json
 import requests
 
 from consts.app import FUTHEAD_PLAYER
-from players.player import Player
+from models.player import Player
 
 
 def build_player_objects(fab, requested_players, real_prices):

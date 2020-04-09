@@ -1,9 +1,9 @@
 from multiprocessing.pool import ThreadPool
 
 from consts import elements
-from players.player import Player
+from models.player import Player
 from players.players_objects import build_player_objects, get_cards_from_the_same_player
-from user_info.user import update_coin_balance
+from user_info.user_actions import update_coin_balance
 from utils import db
 
 

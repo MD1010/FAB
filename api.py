@@ -10,15 +10,15 @@ from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
 from background_threads.login_timeout import check_login_timeout
-from background_threads.thread import open_login_timeout_thread
+from background_threads.timeout_thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
-from elements.elements_manager import ElementActions
+from utils.elements_manager import ElementActions
 from players.player_search import get_all_players_cards
 from players.players_actions import PlayerActions
-from user_info.user import initialize_user_from_db
-from utils.driver import close_driver
+from user_info.user_actions import initialize_user_from_db
+from utils.driver_functions import close_driver
 from utils.fab_loop import start_fab
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened, server_response
 
@@ -115,6 +115,4 @@ def set_code(data):
 
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
-    # cookies = loadCookiesFile("cookies.txt")
-    # db.users_collection.update({"_id": ObjectId("5e8916620f5bf4728e39531f")}, {"$set": {"cookies": cookies}})
     socketio.run(app, debug=True)

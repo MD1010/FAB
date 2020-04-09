@@ -1,5 +1,5 @@
 from consts import server_status_messages
-from user_info.user import User
+from user_info.user_actions import User
 from utils import db
 from utils.helper_functions import hash_password
 
@@ -15,10 +15,3 @@ def register_new_user_to_db(email, password, cookies):
     hashed_password = hash_password(password)
     new_user = User(email, hashed_password, cookies).__dict__
     db.users_collection.insert(new_user)
-
-
-def signup(email, password):
-    hashed_password = hash_password(password)
-    new_user = User(email, hashed_password).__dict__
-    db.users_collection.insert(new_user)
-    return server_status_messages.BAD_REQUEST, 400

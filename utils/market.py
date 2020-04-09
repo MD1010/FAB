@@ -2,7 +2,7 @@ import time
 
 from consts import elements
 from consts.prices import MIN_PRICE
-from elements.actions_for_execution import ElementCallback
+from enums.actions_for_execution import ElementCallback
 
 
 def enter_transfer_market(fab):

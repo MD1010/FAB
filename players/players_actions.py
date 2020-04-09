@@ -3,7 +3,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 
 from consts import elements
-from elements.elements_manager import ElementCallback, ElementActions
+from utils.elements_manager import ElementCallback
 from utils.helper_functions import get_coin_balance_from_web_app
 
 

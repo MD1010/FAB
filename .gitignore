@@ -7,4 +7,4 @@ __pycache__/
 /screenshots/
 /consts/db_connection.py
 /debug.log
-
+/consts/app.py

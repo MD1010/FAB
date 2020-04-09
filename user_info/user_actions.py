@@ -3,8 +3,8 @@ import bcrypt
 from live_data import active_fabs
 from consts import elements
 from consts.platform import platforms
-from elements.actions_for_execution import ElementCallback
-from user_info.user_model import User
+from enums.actions_for_execution import ElementCallback
+from models.user import User
 from utils import db
 from utils.helper_functions import get_coin_balance_from_web_app
 

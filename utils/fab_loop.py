@@ -6,11 +6,11 @@ from urllib3.exceptions import MaxRetryError
 from auth.auth_status import set_auth_status
 from consts import server_status_messages, elements
 from consts.app import CURRENT_WORKING_DIR, MAX_DRIVER_CRASHES_COUNT
-from elements.actions_for_execution import ElementCallback
+from enums.actions_for_execution import ElementCallback
 from players.player_min_prices import get_all_players_RT_prices
 from players.player_search import get_player_to_search, init_new_search, update_search_player_if_coin_balance_changed
-from user_info.user import update_coin_balance
-from utils.driver import evaluate_driver_operation_time, close_driver, initialize_time_left
+from user_info.user_actions import update_coin_balance
+from utils.driver_functions import evaluate_driver_operation_time, close_driver, initialize_time_left
 from utils.helper_functions import server_response, get_coin_balance_from_web_app
 from utils.market import enter_transfer_market, decrease_increase_min_price
 

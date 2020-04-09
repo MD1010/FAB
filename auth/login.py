@@ -8,17 +8,9 @@ from auth.auth_status import set_auth_status, set_web_app_status
 from auth.selenium_login import SeleniumLogin
 from auth.signup import register_new_user_to_db
 from consts import server_status_messages, app
-from elements.elements_manager import ElementActions
-from user_info.user import update_db_user_platform, update_db_username, get_user_from_db_if_exists
-from utils.driver import get_or_create_driver_instance, close_driver
-# def check_auth_status(func):
-#     @wraps(func)
-#     def determine_if_func_should_run(self, *args):
-#         if not self.is_authenticated:
-#             return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
-#         return func(self, *args)
-#
-#     return determine_if_func_should_run
+from utils.elements_manager import ElementActions
+from user_info.user_actions import update_db_user_platform, update_db_username, get_user_from_db_if_exists
+from utils.driver_functions import get_or_create_driver_instance, close_driver
 from utils.helper_functions import server_response
 
 

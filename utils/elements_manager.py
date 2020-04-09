@@ -10,9 +10,9 @@ from consts import elements
 from consts.app import TIME_TO_LOGIN
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
-from elements.actions_for_execution import ElementCallback
-from elements.path_by import ElementPathBy
-from utils.driver import Driver
+from enums.actions_for_execution import ElementCallback
+from models.driver import Driver
+from enums.path_by import ElementPathBy
 
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):

@@ -1,5 +1,4 @@
 import time
-from enum import Enum
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -10,15 +9,6 @@ from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 from utils.helper_functions import server_response
 
-
-class DriverState(Enum):
-    ON = "on"
-    OFF = "off"
-
-
-class Driver:
-    def __init__(self, driver):
-        self.driver = driver
 
 
 def get_or_create_driver_instance(email):

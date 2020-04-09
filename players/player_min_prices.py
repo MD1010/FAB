@@ -8,12 +8,13 @@ from consts import elements
 from consts.app import NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH, MAX_CARD_ON_PAGE, FUTBIN_PLAYER_PRICE_URL
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
 from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE, MAX_PRICE, SANE_PRICE_RATIO
-from elements.actions_for_execution import ElementCallback
-from user_info.user import get_db_user_platform
+from enums.actions_for_execution import ElementCallback
+from user_info.user_actions import get_db_user_platform
 
 
 def _check_player_RT_price(fab, player_obj):
-    player_futbin_price = get_approximate_min_price(fab, player_obj)
+    # get_approximate_min specific to player if it is a consumable then anotherfunction has to be called
+    player_futbin_price = get_approximate_min_price_from_futbin(fab, player_obj)
     fab.player_actions.init_search_player_info(player_obj["name"], player_futbin_price)
     find_player_from_regular_search, player_price = check_player_price_regular_search(fab, player_futbin_price)
     if find_player_from_regular_search:
@@ -88,7 +89,7 @@ def get_all_players_RT_prices(fab, required_players):
     return RT_prices
 
 
-def get_approximate_min_price(fab, player_obj):
+def get_approximate_min_price_from_futbin(fab, player_obj):
     player_prices = []
     required_prices = ['LCPrice', 'LCPrice2', 'LCPrice3']
 

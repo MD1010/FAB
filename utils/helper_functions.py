@@ -5,7 +5,7 @@ from flask import jsonify, make_response
 
 from live_data import active_fabs, user_login_attempts, opened_drivers
 from consts import server_status_messages, elements
-from fab import Fab
+from models.fab import Fab
 
 
 def hash_password(password):
