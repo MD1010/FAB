@@ -1,7 +1,5 @@
 from multiprocessing.pool import ThreadPool
-
 from consts import elements
-from models.player import Player
 from players.players_objects import build_player_objects, get_cards_from_the_same_player
 from user_info.user_actions import update_coin_balance
 from utils import db
@@ -17,16 +15,14 @@ def _get_player_full_futhead_data(contain_searched_term_players):
     for _, player_record in players_imap_iterator._items:
         if len(player_record) > 0:
             for player_data in player_record:
-                player_card = Player(player_data.id, player_data.name, player_data.rating, player_data.revision, player_data.nation, player_data.position,
-                                     player_data.club,player_data.player_image,player_data.club_image,player_data.nation_image)
-                result.append(player_card)
+                result.append(player_data)
     return result
 
 
 def update_search_player_if_coin_balance_changed(fab, player_to_search, requested_players, real_prices):
     new_coin_balance = int(fab.element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
     if new_coin_balance != fab.user.coin_balance:
-        update_coin_balance(fab.user.email,fab.element_actions)
+        update_coin_balance(fab.user.email, fab.element_actions)
         player_to_search = get_player_to_search(fab, requested_players, real_prices)
         if player_to_search is not None:
             init_new_search(fab, player_to_search)
