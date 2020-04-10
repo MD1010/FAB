@@ -12,8 +12,8 @@ def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 
-def create_new_fab(driver, element_actions, player_actions, user):
-    return Fab(driver=driver, element_actions=element_actions, player_actions=player_actions, user=user)
+def create_new_fab(driver, element_actions, item_actions, user):
+    return Fab(driver=driver, element_actions=element_actions, item_actions=item_actions, user=user)
 
 
 def append_new_fab_after_auth_success(fab, user):
@@ -22,28 +22,28 @@ def append_new_fab_after_auth_success(fab, user):
     print(active_fabs)
 
 
-def check_if_web_app_ready(func):
-    @wraps(func)
-    def determine_if_func_should_run(email, *args):
-        if not user_login_attempts.get(email):
-            return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
-        if not user_login_attempts[email].web_app_ready:
-            return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
-        else:
-            return func(email, *args)
+# def check_if_web_app_ready(func):
+#     @wraps(func)
+#     def determine_if_func_should_run(email, *args):
+#         if not user_login_attempts.get(email):
+#             return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
+#         if not user_login_attempts[email].web_app_ready:
+#             return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
+#         else:
+#             return func(email, *args)
+#
+#     return determine_if_func_should_run
 
-    return determine_if_func_should_run
 
-
-def check_if_fab_opened(func):
-    @wraps(func)
-    def determine_if_func_should_run(email, *args):
-        if email in active_fabs:
-            return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
-        else:
-            return func(email, *args)
-
-    return determine_if_func_should_run
+# def check_if_fab_opened(func):
+#     @wraps(func)
+#     def determine_if_func_should_run(email, *args):
+#         if email in active_fabs:
+#             return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
+#         else:
+#             return func(email, *args)
+#
+#     return determine_if_func_should_run
 
 
 def verify_driver_opened(func):

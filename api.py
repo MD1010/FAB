@@ -12,14 +12,14 @@ from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
 from live_data import user_login_attempts, active_fabs, opened_drivers
-from utils.start_fab import start_fab
 from players.player_cards import get_all_players_cards
 from players.players_actions import ItemActions
 from user_info.user_actions import initialize_user_from_db
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
-from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened, server_response
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response
 from utils.login_timeout_thread import check_login_timeout, open_login_timeout_thread
+from utils.start_fab import start_fab
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -45,22 +45,29 @@ def user_login():
 
 
 @app.route('/api/start-fab', methods=['POST'])
-@check_if_web_app_ready
-@check_if_fab_opened
+# @check_if_web_app_ready
+# @check_if_fab_opened
 @jwt_required
 def start_fab_loop():
     jsonData = request.get_json()
-    configuration_data = jsonData.get('configuration')
+    configuration_data = jsonData.get('loopConfiguration')
+    user_email = jsonData.get('user')
+    if user_email in active_fabs:
+        return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
+    if not user_login_attempts.get(user_email):
+        return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
+    if not user_login_attempts[user_email].web_app_ready:
+        return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
+
     user_prices = jsonData.get('userPlayerPrices')
-    user_email = configuration_data["email"]
-    requested_items = jsonData.get('items')
+    requested_items = jsonData.get('itemsToSearch')
     user_driver = opened_drivers[user_email]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
     fab_user = initialize_user_from_db(user_email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
-    return start_fab(active_fab, configuration_data, requested_items,user_prices)
+    return start_fab(active_fab, configuration_data, requested_items, user_prices)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
@@ -69,6 +76,7 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
+# todo remove decorator
 @app.route("/api/close-driver", methods=['GET'])
 @verify_driver_opened
 def close_running_driver():
