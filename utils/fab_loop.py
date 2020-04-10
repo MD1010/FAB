@@ -15,25 +15,27 @@ from utils.helper_functions import server_response, get_coin_balance_from_web_ap
 from utils.market import enter_transfer_market, decrease_increase_min_price
 
 
-def run_loop(fab, time_to_run_in_sec, requested_players):
-    increase_min_price = True
-    num_of_tries = 0
+def start_unfiltered_fab_search(fab, time_to_run_in_sec, requested_items):
+
+
 
     update_coin_balance(fab.user.email, fab.element_actions)
 
     fab.element_actions.wait_for_page_to_load()
     # get updated prices
     enter_transfer_market(fab)
-    real_prices = get_all_players_RT_prices(fab, requested_players)
-    player_to_search = get_player_to_search(fab, requested_players, real_prices)
+    real_prices = get_all_players_RT_prices(fab, requested_items)
+    player_to_search = get_player_to_search(fab, requested_items, real_prices)
     if player_to_search is None:
         return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 
     # enter_transfer_market(fab)
-    init_new_search(fab, player_to_search)
+    init_new_search(fab.element_actions, player_to_search)
 
     start = time.time()
     while True:
+        increase_min_price = True
+        num_of_tries = 0
         num_of_tries = evaluate_driver_operation_time(fab, start, time_to_run_in_sec, num_of_tries)
         if num_of_tries is False: break
         ### search
@@ -52,7 +54,7 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
             fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
         fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
-        player_to_search = update_search_player_if_coin_balance_changed(fab, player_to_search, requested_players, real_prices)
+        player_to_search = update_search_player_if_coin_balance_changed(fab, player_to_search, requested_items, real_prices)
         if player_to_search is None:
             return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 
@@ -64,15 +66,15 @@ def run_loop(fab, time_to_run_in_sec, requested_players):
     return server_response(msg=server_status_messages.FAB_LOOP_FINISHED, code=200)
 
 
-def start_fab(fab, time_to_run_in_sec, requested_players):
+def start_fab(fab, time_to_run_in_sec, requested_items):
     if time_to_run_in_sec is None:
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
-        run_loop_response = run_loop(fab, time_to_run_in_sec, requested_players)
+        fab_search_response = start_unfiltered_fab_search(fab, time_to_run_in_sec, requested_items)
 
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
-        return run_loop_response
+        return fab_search_response
 
     except MaxRetryError as e:
         return server_response(msg=server_status_messages.DRIVER_OFF, code=503)
@@ -87,4 +89,4 @@ def start_fab(fab, time_to_run_in_sec, requested_players):
         # only if it has not started yet
         if fab.time_left_to_run == 0:
             initialize_time_left(fab, time_to_run_in_sec)
-        return start_fab(fab, time_to_run_in_sec, requested_players)
+        return start_fab(fab, time_to_run_in_sec, requested_items)

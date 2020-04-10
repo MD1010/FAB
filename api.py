@@ -5,7 +5,6 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from live_data import user_login_attempts, active_fabs, opened_drivers
 from auth.login import start_login
 from auth.login_attempt import LoginAttempt
 from auth.selenium_login import set_status_code
@@ -14,13 +13,15 @@ from background_threads.timeout_thread import open_login_timeout_thread
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
-from utils.elements_manager import ElementActions
-from players.player_search import get_all_players_cards
-from players.players_actions import PlayerActions
+from live_data import user_login_attempts, active_fabs, opened_drivers
+from players.player_cards import get_all_players_cards
+from players.players_actions import ItemActions
 from user_info.user_actions import initialize_user_from_db
 from utils.driver_functions import close_driver
+from utils.elements_manager import ElementActions
 from utils.fab_loop import start_fab
-from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened, server_response
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, check_if_web_app_ready, check_if_fab_opened, verify_driver_opened, server_response, \
+    get_configuration_data
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -45,21 +46,22 @@ def user_login():
     return response_obj
 
 
-@app.route('/api/start-fab/<string:email>', methods=['POST'])
+@app.route('/api/start-fab', methods=['POST'])
 @check_if_web_app_ready
 @check_if_fab_opened
 @jwt_required
-def start_fab_loop(email):
+def start_fab_loop():
     jsonData = request.get_json()
-    time_to_run = jsonData.get('time')
-    requested_players = jsonData.get('requested_players')
+    configuration_data = jsonData.get('configuration')
+    email, time_to_run, list_bought_players, user_decides_buy_prices = get_configuration_data(configuration_data)
+    requested_items = jsonData.get('items')
     user_driver = opened_drivers[email]
     user_element_actions = ElementActions(user_driver)
-    user_player_actions = PlayerActions(user_element_actions)
+    user_player_actions = ItemActions(user_element_actions)
     fab_user = initialize_user_from_db(email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_player_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
-    return start_fab(active_fab, time_to_run, requested_players)
+    return start_fab(active_fab, time_to_run, requested_items)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
@@ -68,15 +70,19 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
-@app.route("/api/close-driver/<string:email>")
+@app.route("/api/close-driver", methods=['GET'])
 @verify_driver_opened
-def close_running_driver(email):
+def close_running_driver():
+    jsonData = request.get_json()
+    email = jsonData.get('email')
     driver = opened_drivers[email]
     return close_driver(driver, email)
 
 
-@app.route("/api/driver-state/<string:email>")
-def check_driver_state(email):
+@app.route("/api/driver-state")
+def check_driver_state():
+    jsonData = request.get_json()
+    email = jsonData.get('email')
     if opened_drivers.get(email):
         return jsonify(active=True)
     else:

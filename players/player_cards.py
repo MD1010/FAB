@@ -1,27 +1,33 @@
 import json
+from multiprocessing.pool import ThreadPool
 
 import requests
 
 from consts.app import FUTHEAD_PLAYER
 from models.player import Player
+from utils import db
 
 
-def build_player_objects(fab, requested_players, real_prices):
+def _get_player_full_futhead_data(contain_searched_term_players):
+    if len(contain_searched_term_players) == 0: return []
+    player_thread_pool = ThreadPool(len(contain_searched_term_players))
+    players_imap_iterator = player_thread_pool.imap(get_cards_from_the_same_player, contain_searched_term_players)
+    player_thread_pool.close()
+    player_thread_pool.join()
     result = []
-    for player in requested_players:
-        player_obj = Player()
-        for key, value in player.items():
-            setattr(player_obj, key, value)
-        player_market_price = 0
-        for price_obj in real_prices:
-            for name in price_obj.keys():
-                if name == player_obj.name:
-                    player_market_price = price_obj[name]
-                    break
-        player_obj.set_market_price(player_market_price)
-        player_obj.calculate_profit(fab.user.coin_balance)
-        result.append(player_obj)
+    for _, player_record in players_imap_iterator._items:
+        if len(player_record) > 0:
+            for player_data in player_record:
+                result.append(player_data)
     return result
+
+
+def get_all_players_cards(searched_player_name_string):
+    contain_searched_term_players = list(
+        db.players_collection.find({"name": {'$regex': f".*{searched_player_name_string}.*", '$options': 'i'}}).limit(20).sort('rating', -1))
+    unsorted_result = _get_player_full_futhead_data(contain_searched_term_players)
+    sorted_by_rating_result = sorted(unsorted_result, key=lambda player: player.rating, reverse=True)
+    return sorted_by_rating_result
 
 
 def get_cards_from_the_same_player(ea_player_data):
@@ -44,5 +50,5 @@ def get_cards_from_the_same_player(ea_player_data):
             club_img = player_in_json_futhead["club_image"]
             nation_image = player_in_json_futhead["nation_image"]
             player_image = player_in_json_futhead["image"]
-            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club, player_image,club_img, nation_image))
+            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club, player_image, club_img, nation_image))
     return cards_from_the_same_id

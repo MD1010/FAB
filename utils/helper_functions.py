@@ -3,8 +3,8 @@ from functools import wraps
 import bcrypt
 from flask import jsonify, make_response
 
-from live_data import active_fabs, user_login_attempts, opened_drivers
 from consts import server_status_messages, elements
+from live_data import active_fabs, user_login_attempts, opened_drivers
 from models.fab import Fab
 
 
@@ -56,9 +56,19 @@ def verify_driver_opened(func):
 
     return determine_if_func_should_run
 
+
 def get_coin_balance_from_web_app(element_actions):
     return int(element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
+
 
 def server_response(msg, code=200, **kwargs):
     res = jsonify(msg=msg, code=code, **kwargs)
     return make_response(res, code)
+
+
+def get_configuration_data(configuration_data):
+    email = configuration_data["email"]
+    time = configuration_data["time"]
+    list_bought_players = configuration_data["listBoughtPlayers"]
+    user_decides_buy_prices = configuration_data["userDecidesBuyProces"]
+    return email, time, list_bought_players, user_decides_buy_prices

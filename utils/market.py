@@ -25,3 +25,4 @@ def decrease_increase_min_price(fab, increase_price):
         fab.element_actions.execute_element_action(elements.INCREASE_MIN_PRICE_BTN, ElementCallback.CLICK)
     if not increase_price and can_be_decreased:
         fab.element_actions.execute_element_action(elements.DECREASE_MIN_PRICE_BTN, ElementCallback.CLICK)
+
