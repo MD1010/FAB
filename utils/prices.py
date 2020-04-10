@@ -1,4 +1,4 @@
-from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_PLAYER_PRICE, MAX_PRICE, SANE_PRICE_RATIO
+from consts.prices import MIN_PRICE, MAP_INC_DEC_PRICES, MIN_ITEM_PRICE, MAX_PRICE, SANE_PRICE_RATIO
 
 def calc_new_max_price(down_limit, up_limit, is_inc):
     if is_inc:

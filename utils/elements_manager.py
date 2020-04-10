@@ -8,7 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from consts import elements
 from consts.app import TIME_TO_LOGIN
-from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
+from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
 from enums.actions_for_execution import ElementCallback
 from models.driver import Driver
@@ -103,8 +103,8 @@ class ElementActions(Driver):
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
     def wait_for_page_to_load_without_timeout(self):
-        while self.get_element("{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1,
-                                               END_PLAYER_PRICE_ON_PAGE)) is None and self.get_element(
+        while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,
+                                               END_ITEM_PRICE_ON_PAGE)) is None and self.get_element(
             elements.NO_RESULTS_FOUND) is None:
             pass
 
@@ -116,7 +116,7 @@ class ElementActions(Driver):
 
             except WebDriverException:
                 if self.get_element(
-                        "{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1, END_PLAYER_PRICE_ON_PAGE)):
+                        "{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1, END_ITEM_PRICE_ON_PAGE)):
                     return False
 
     def check_if_web_app_is_available(self):

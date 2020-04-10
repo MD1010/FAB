@@ -11,7 +11,7 @@ class ItemActions:
     def __init__(self, element_actions):
         self.element_actions = element_actions
 
-    def buy_player(self, current_coin_balance):
+    def buy_item(self, current_coin_balance):
         no_results_banner = self.element_actions.get_element(elements.NO_RESULTS_FOUND)
         # not enough money left
         if no_results_banner:
@@ -37,7 +37,7 @@ class ItemActions:
                 else:
                     return False, None
 
-    def list_player(self, price):
+    def list_item(self, price):
         # check if elemenet is listable - maybe if the time has expired..
         list_element = self.element_actions.get_element(elements.LIST_ON_TRANSFER_BTN)
         if not list_element:

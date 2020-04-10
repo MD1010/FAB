@@ -1,3 +1,4 @@
+import threading
 import time
 
 from live_data import user_login_attempts, opened_drivers
@@ -22,3 +23,9 @@ def check_login_timeout(email, app):
             if not login_attempt.is_authenticated:
                 driver_to_close = opened_drivers.get(email)
                 close_driver(driver_to_close, email)
+
+
+def open_login_timeout_thread(func, email,app):
+    new_thread = threading.Thread(target=func, args=(email,app))
+    new_thread.start()
+
