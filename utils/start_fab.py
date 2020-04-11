@@ -18,7 +18,8 @@ def start_fab(fab, configuration_data, requested_items, user_prices):
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
         fab_loop_factory = FabLoopFactory(loop_type)
-        fab_search_response = fab_loop_factory.get_fab_loop().start_loop(fab, configuration_data, requested_items, user_prices)
+        loop = fab_loop_factory.get_fab_loop()
+        fab_search_response = loop.start_loop(fab, configuration_data, requested_items, user_prices)
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response

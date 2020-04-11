@@ -17,7 +17,7 @@ from players.players_actions import ItemActions
 from user_info.user_actions import initialize_user_from_db
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
-from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
 from utils.login_timeout_thread import check_login_timeout, open_login_timeout_thread
 from utils.start_fab import start_fab
 
@@ -45,20 +45,13 @@ def user_login():
 
 
 @app.route('/api/start-fab', methods=['POST'])
-# @check_if_web_app_ready
-# @check_if_fab_opened
+@check_if_web_app_ready
+@check_if_fab_opened
 @jwt_required
 def start_fab_loop():
     jsonData = request.get_json()
     configuration_data = jsonData.get('loopConfiguration')
     user_email = jsonData.get('user')
-    if user_email in active_fabs:
-        return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
-    if not user_login_attempts.get(user_email):
-        return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
-    if not user_login_attempts[user_email].web_app_ready:
-        return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
-
     user_prices = jsonData.get('userPlayerPrices')
     requested_items = jsonData.get('itemsToSearch')
     user_driver = opened_drivers[user_email]
@@ -76,12 +69,11 @@ def get_all_cards(searched_player):
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
 
 
-# todo remove decorator
 @app.route("/api/close-driver", methods=['GET'])
 @verify_driver_opened
 def close_running_driver():
     jsonData = request.get_json()
-    email = jsonData.get('email')
+    email = jsonData.get('user')
     driver = opened_drivers[email]
     return close_driver(driver, email)
 
@@ -89,7 +81,7 @@ def close_running_driver():
 @app.route("/api/driver-state")
 def check_driver_state():
     jsonData = request.get_json()
-    email = jsonData.get('email')
+    email = jsonData.get('user')
     if opened_drivers.get(email):
         return jsonify(active=True)
     else:
