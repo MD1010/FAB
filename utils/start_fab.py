@@ -1,12 +1,10 @@
-from abc import ABC, abstractmethod
-
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from urllib3.exceptions import MaxRetryError
 
 from auth.auth_status import set_auth_status
 from consts import server_status_messages
 from consts.app import MAX_DRIVER_CRASHES_COUNT
-from models.fab_loop_factory import FabLoopFactory
+from factories.fab_loop import FabLoopFactory
 from utils.driver_functions import close_driver, initialize_time_left
 from utils.helper_functions import server_response
 
@@ -18,8 +16,7 @@ def start_fab(fab, configuration_data, requested_items, user_prices):
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
         fab_loop_factory = FabLoopFactory(loop_type)
-        loop = fab_loop_factory.get_fab_loop()
-        fab_search_response = loop.start_loop(fab, configuration_data, requested_items, user_prices)
+        fab_search_response = fab_loop_factory.get_fab_loop().start_loop(fab, configuration_data, requested_items, user_prices)
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response

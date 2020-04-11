@@ -9,8 +9,8 @@ class FabLoopFactory:
 
     def get_fab_loop(self):
         fab_loops = {
-            "specific": SpecificPlayerLoop,
-            "filtered": FilteredPlayerLoop,
-            "consumables": ConsumablesLoop
+            "specific": SpecificPlayerLoop(),
+            "filtered": FilteredPlayerLoop(),
+            "consumables": ConsumablesLoop()
         }
         return fab_loops[self.loop_type]

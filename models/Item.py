@@ -1,9 +1,10 @@
 from consts.app import EA_TAX, PROFIT_MULTIPLIER
-from consts.prices import DECREASE_SALE_PRICE_PERCENTAGE
+from consts.prices.prices_consts import DECREASE_SALE_PRICE_PERCENTAGE
 
 
 class Item:
-    def __init__(self, id='', name=''):
+    def __init__(self, id='', name='',type=''):
+        self.type = type
         self.id = id
         self.name = name
         self.profit = 0

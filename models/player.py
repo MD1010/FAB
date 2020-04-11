@@ -3,7 +3,7 @@ from models.Item import Item
 
 class Player(Item):
     def __init__(self, id='', name='', rating='', revision='', nation='', position='', club='', player_image='', club_image='', nation_image=''):
-        super().__init__(id, name)
+        super().__init__(id, name, type="player")
         self.rating = rating
         self.revision = revision
         self.position = position

@@ -14,13 +14,12 @@ def update_search_player_if_coin_balance_changed(fab, player_to_search, requeste
     return player_to_search
 
 
-def init_new_player_search(element_actions, player_to_search, price_to_search=None,filters=None):
+def init_new_player_search(element_actions, item_to_search, price_to_search=None, filters=None):
     player_market_search = PlayerMarketSearch(element_actions)
     if not filters:
         if not price_to_search:
-            price_to_search = str(player_to_search.get_max_buy_price())
-        search_player_name = player_to_search.name
-        player_market_search.init_market_search(search_player_name, price_to_search)
+            price_to_search = str(item_to_search.get_max_buy_price())
+        player_market_search.init_market_search(item_to_search.name, price_to_search)
     else:
         print("implement her the filtered selection")
         pass

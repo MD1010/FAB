@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class FabLoop(ABC):
+class FutbinPriceFinder(ABC):
     @abstractmethod
-    def start_loop(self, fab, configuration_data, requested_players, user_prices):
+    def get_futbin_price(self, item, user_email):
         raise NotImplementedError("Method init_market_search must be implemented")
-

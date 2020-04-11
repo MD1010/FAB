@@ -5,30 +5,30 @@ from selenium.webdriver.common.keys import Keys
 from consts import elements
 from consts.app import MAX_CARD_ON_PAGE, NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
-from consts.prices import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
+from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
+from factories.real_time_prices import FutbinPriceFactory
 from items.item_data import build_item_objects_from_dict
-from players.player_min_prices import get_approximate_min_price_from_futbin
 from players.player_search import init_new_player_search
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
 # TODO refactor this function to be generic to consumables also
-def get_all_players_RT_prices(fab, required_players):
-    RT_prices = []
-    required_players = build_item_objects_from_dict(required_players)
-    for player_obj in required_players:
-        player_futbin_price = get_approximate_min_price_from_futbin(fab.user.email, player_obj)
-        init_new_player_search(fab, player_obj, player_futbin_price)
-        real_price = check_item_RT_price(fab, player_futbin_price)
-        RT_prices.append({player_obj["name"]: real_price})
-    return RT_prices
+def get_all_items_RT_prices(fab, required_items):
+    required_items = build_item_objects_from_dict(required_items)
+    for item_obj in required_items:
+        futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
+        # player_futbin_price = get_approximate_min_price_from_futbin(fab.user.email, item_obj)
+        init_new_player_search(fab.element_actions, item_obj, futbin_price)
+        real_price = check_item_RT_price(fab.element_actions, futbin_price)
+        item_obj.set_market_price(real_price)
+    return required_items
 
 
 # todo refactor inner function to support consumables
 def get_or_find_item_prices(fab, is_user_decides_prices, requested_players, user_prices):
     if not is_user_decides_prices:
-        real_prices = get_all_players_RT_prices(fab, requested_players)
+        real_prices = get_all_items_RT_prices(fab, requested_players)
     elif user_prices is None:
         return None
     else:
