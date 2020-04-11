@@ -1,6 +1,6 @@
 from loops.consumables_loop import ConsumablesLoop
 from loops.filtered_player_loop import FilteredPlayerLoop
-from loops.specific_player_loop import NameFilteredPlayerLoop
+from loops.player_loop_by_name import NameFilteredPlayerLoop
 
 
 class FabLoopFactory:

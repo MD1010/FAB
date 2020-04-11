@@ -13,24 +13,17 @@ from items.item_data import build_item_objects_from_dict
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
-def _get_all_items_RT_prices(fab, required_items):
+
+def get_all_items_RT_prices(fab, required_items):
     required_items = build_item_objects_from_dict(required_items)
     for item_obj in required_items:
         futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
         FilterSearchFactory(item_obj).get_filter_search_class().set_search_filteres(fab.element_actions, item_obj, futbin_price)
         real_price = check_item_RT_price(fab.element_actions, futbin_price)
         item_obj.set_market_price(real_price)
-        item_obj.set_max_buy_now_price()
+        if item_obj.max_buy_price is None:
+            item_obj.set_max_buy_now_price()
     return required_items
-
-
-def get_or_find_item_prices(fab, is_user_decides_prices, requested_players, items_with_user_prices):
-    if not is_user_decides_prices:
-        required_items_with_prices = _get_all_items_RT_prices(fab, requested_players)
-        return required_items_with_prices
-    elif items_with_user_prices is None:
-        return None
-    return items_with_user_prices
 
 
 def _check_item_price_regular_search(element_actions, item_price):

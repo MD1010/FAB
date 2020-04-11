@@ -52,7 +52,7 @@ def start_fab_loop():
     jsonData = request.get_json()
     configuration_data = jsonData.get('loopConfiguration')
     user_email = jsonData.get('user')
-    user_items_with_prices = jsonData.get('userPlayerPrices')
+    # user_items_with_prices = jsonData.get('userPlayerPrices')
     requested_items = jsonData.get('itemsToSearch')
     user_driver = opened_drivers[user_email]
     user_element_actions = ElementActions(user_driver)
@@ -60,7 +60,7 @@ def start_fab_loop():
     fab_user = initialize_user_from_db(user_email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
-    return start_fab(active_fab, configuration_data, requested_items, user_items_with_prices)
+    return start_fab(active_fab, configuration_data, requested_items)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
