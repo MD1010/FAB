@@ -3,13 +3,13 @@ import time
 from consts import elements, server_status_messages
 from consts.app import CURRENT_WORKING_DIR
 from enums.actions_for_execution import ElementCallback
-from players.player_search import update_search_player_if_coin_balance_changed
+from items.next_item_to_search import update_search_item_if_coin_balance_changed
 from utils.driver_functions import evaluate_driver_operation_time
 from utils.helper_functions import get_coin_balance_from_web_app, server_response
 from utils.market import decrease_increase_min_price
 
 
-def start_search_loop(fab, loop_configuration, item_to_search, requested_items, item_prices):
+def run_search_loop(fab, loop_configuration, item_to_search, requested_items, search_filters=None):
     increase_min_price = True
     time_to_run_in_sec = loop_configuration["time"]
     is_player_listed_after_buy = loop_configuration["autoList"]
@@ -37,7 +37,7 @@ def start_search_loop(fab, loop_configuration, item_to_search, requested_items, 
             fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
         fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
-        item_to_search = update_search_player_if_coin_balance_changed(fab, item_to_search, requested_items, item_prices)
+        item_to_search = update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items, search_filters)
         if item_to_search is None:
             return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 

@@ -1,6 +1,6 @@
 from loops.consumables_loop import ConsumablesLoop
 from loops.filtered_player_loop import FilteredPlayerLoop
-from loops.specific_player_loop import SpecificPlayerLoop
+from loops.specific_player_loop import WithoutCustomFilteresPlayerLoop
 
 
 class FabLoopFactory:
@@ -9,7 +9,7 @@ class FabLoopFactory:
 
     def get_fab_loop(self):
         fab_loops = {
-            "specific": SpecificPlayerLoop(),
+            "specific": WithoutCustomFilteresPlayerLoop(),
             "filtered": FilteredPlayerLoop(),
             "consumables": ConsumablesLoop()
         }

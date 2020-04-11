@@ -9,23 +9,20 @@ from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
 from factories.real_time_prices import FutbinPriceFactory
 from items.item_data import build_item_objects_from_dict
-from players.player_search import init_new_player_search
+from search_filters.without_custom_filters import SearchWithoutCustomFilters
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
-# TODO refactor this function to be generic to consumables also
 def get_all_items_RT_prices(fab, required_items):
     required_items = build_item_objects_from_dict(required_items)
     for item_obj in required_items:
         futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
-        # player_futbin_price = get_approximate_min_price_from_futbin(fab.user.email, item_obj)
-        init_new_player_search(fab.element_actions, item_obj, futbin_price)
+        SearchWithoutCustomFilters().set_search_filteres(fab.element_actions, item_obj)
         real_price = check_item_RT_price(fab.element_actions, futbin_price)
         item_obj.set_market_price(real_price)
     return required_items
 
 
-# todo refactor inner function to support consumables
 def get_or_find_item_prices(fab, is_user_decides_prices, requested_players, user_prices):
     if not is_user_decides_prices:
         real_prices = get_all_items_RT_prices(fab, requested_players)

@@ -1,7 +1,7 @@
 import time
 
 from consts import elements
-from consts.prices import MIN_PRICE
+from consts.prices.prices_consts import MIN_PRICE
 from enums.actions_for_execution import ElementCallback
 
 
