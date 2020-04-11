@@ -9,13 +9,10 @@ from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
 from factories.filter_search import FilterSearchFactory
 from factories.real_time_prices import FutbinPriceFactory
-from items.item_data import build_item_objects_from_dict
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
-
 def get_all_items_RT_prices(fab, required_items):
-    required_items = build_item_objects_from_dict(required_items)
     for item_obj in required_items:
         futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
         FilterSearchFactory(item_obj).get_filter_search_class().set_search_filteres(fab.element_actions, item_obj, futbin_price)
@@ -44,7 +41,6 @@ def _check_item_price_regular_search(element_actions, item_price):
             element_actions.execute_element_action(elements.INCREASE_MAX_PRICE_BTN, ElementCallback.CLICK)
             item_price = element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
         if not no_results_banner:
-
             is_last_element_exist = element_actions.check_if_last_element_exist()
             if not is_last_element_exist:
                 return get_item_min_price_on_page(element_actions)

@@ -3,7 +3,9 @@ from consts.prices.prices_consts import DECREASE_SALE_PRICE_PERCENTAGE
 
 
 class Item:
-    def __init__(self, id='', name='', type='', user_max_bin=0):
+    def __init__(self, id='', name='', type='', user_max_bin=None):
+        if user_max_bin is None:
+            self.max_buy_price = 0
         self.type = type
         self.id = id
         self.name = name
