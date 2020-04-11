@@ -6,7 +6,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from live_data import opened_drivers, user_login_attempts, active_fabs
 from consts import app, server_status_messages
-from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
+from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, MAX_DRIVER_CRASHES_COUNT
 from utils.helper_functions import server_response
 
 
@@ -63,3 +63,9 @@ def evaluate_driver_operation_time(fab, start_time, time_to_run_in_sec, num_of_t
         time.sleep(SLEEP_MID_OPERATION_DURATION)
     time.sleep(1)
     return num_of_tries
+
+def check_if_restart_is_possible(fab):
+    fab.driver_crashes += 1
+    if fab.driver_crashes == MAX_DRIVER_CRASHES_COUNT:
+        return False
+    return True

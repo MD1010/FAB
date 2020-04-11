@@ -71,6 +71,3 @@ def server_response(msg, code=200, **kwargs):
     return make_response(res, code)
 
 
-# def get_configuration_data(configuration_data):
-#     return dict(email=configuration_data["email"], time=configuration_data["time"], list_bought_players=configuration_data["listBoughtPlayers"],
-#                 user_decides_buy_prices=configuration_data["userDecidesBuyProces"])

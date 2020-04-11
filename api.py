@@ -44,11 +44,11 @@ def user_login():
     return response_obj
 
 
-@app.route('/api/start-fab/<string:loop_type>', methods=['POST'])
+@app.route('/api/start-fab', methods=['POST'])
 @check_if_web_app_ready
 @check_if_fab_opened
 @jwt_required
-def start_fab_loop(loop_type):
+def start_fab_loop():
     jsonData = request.get_json()
     configuration_data = jsonData.get('loopConfiguration')
     user_email = jsonData.get('user')
@@ -60,7 +60,7 @@ def start_fab_loop(loop_type):
     fab_user = initialize_user_from_db(user_email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
-    return start_fab(active_fab, loop_type, configuration_data, requested_items, user_prices)
+    return start_fab(active_fab, configuration_data, requested_items, user_prices)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])

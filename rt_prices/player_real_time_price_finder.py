@@ -37,7 +37,7 @@ class PlayerFutbinPriceFinder(FutbinPriceFinder):
                 player_prices.append(0)
             else:
                 user_platform = get_db_user_platform(user_email)
-                player_prices.append(prices_of_specific_player[player_id]['rt_prices'][user_platform][LCPrice])
+                player_prices.append(prices_of_specific_player[player_id]['prices'][user_platform][LCPrice])
 
         for price_index in range(len(player_prices)):
             if ',' in str(player_prices[price_index]):

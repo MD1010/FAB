@@ -1,4 +1,4 @@
-from consts.item_types import ItemTypes
+from enums.item_types import ItemTypes
 from consts.prices.chemistry_futbin_prices import FUTBIN_CHEMISTRY_STYLE_PRICES
 
 
@@ -11,4 +11,4 @@ class ConsumableFutbinPriceFactory:
             ItemTypes.CHEMISTRY_STYLE: FUTBIN_CHEMISTRY_STYLE_PRICES.get(self.item.name),
             # todo fill the rest array
         }
-        return futbin_prices[self.item.type]
+        return futbin_prices[ItemTypes(self.item.type)]

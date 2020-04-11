@@ -14,12 +14,12 @@ class SearchFilterSetter(MarketSearch):
         self.custom_filters = custom_filters
         self.element_actions = element_actions
 
-    def set_name_and_price_filters(self, player_name, player_price):
+    def set_name_and_price_filters(self, item_name, player_price):
         self.element_actions.execute_element_action(elements.SEARCHED_PLAYER_FIELD, ElementCallback.SEND_KEYS,
                                                     Keys.CONTROL, "a")
         time.sleep(1)
         self.element_actions.execute_element_action(elements.SEARCHED_PLAYER_FIELD, ElementCallback.SEND_KEYS,
-                                                    player_name)
+                                                    item_name)
         self.element_actions.execute_element_action(elements.FIRST_RESULT_INPUT_SEARCH, ElementCallback.CLICK)
         self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS,
                                                     Keys.CONTROL, "a")

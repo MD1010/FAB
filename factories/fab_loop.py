@@ -9,7 +9,7 @@ class FabLoopFactory:
 
     def get_fab_loop(self):
         fab_loops = {
-            "nameFiltered": NameFilteredPlayerLoop(),
+            "playerNames": NameFilteredPlayerLoop(),
             "customFilters": FilteredPlayerLoop(),
             "consumables": ConsumablesLoop()
         }
