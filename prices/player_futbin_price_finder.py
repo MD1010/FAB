@@ -4,7 +4,7 @@ import requests
 
 from consts.app import FUTBIN_PLAYER_PRICE_URL
 from consts.prices.prices_consts import MAX_PRICE, SANE_PRICE_RATIO
-from rt_prices.rt_price_finder import FutbinPriceFinder
+from prices.price_finder import FutbinPriceFinder
 from user_info.user_actions import get_db_user_platform
 
 

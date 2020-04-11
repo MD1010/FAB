@@ -1,6 +1,6 @@
 from enums.item_types import ItemTypes
-from rt_prices.consumable_styles_price_finder import ConsumablePriceFinder
-from rt_prices.player_real_time_price_finder import PlayerFutbinPriceFinder
+from prices.consumables_price_finder import ConsumablePriceFinder
+from prices.player_futbin_price_finder import PlayerFutbinPriceFinder
 
 
 class FutbinPriceFactory:

@@ -8,7 +8,7 @@ from utils.market import enter_transfer_market
 def execute_pre_run_actions(fab):
     update_coin_balance(fab.user.email, fab.element_actions)
     fab.element_actions.wait_for_page_to_load()
-    # get updated rt_prices
+    # get updated prices
     enter_transfer_market(fab.element_actions)
 
 

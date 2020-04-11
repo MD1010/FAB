@@ -16,7 +16,7 @@ def get_all_items_RT_prices(fab, required_items):
     for item_obj in required_items:
         futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
         FilterSearchFactory(item_obj).get_filter_search_class().set_search_filteres(fab.element_actions, item_obj, futbin_price)
-        real_price = check_item_RT_price(fab.element_actions, futbin_price)
+        real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
         item_obj.set_market_price(real_price)
         if item_obj.max_buy_price is None:
             item_obj.set_max_buy_now_price()
@@ -66,7 +66,7 @@ def _change_max_bin_price(element_actions, new_price):
     return int(element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value").replace(',', ''))
 
 
-def check_item_RT_price(element_actions, item_futbin_price):
+def search_item_RT_price_on_market(element_actions, item_futbin_price):
     # get_approximate_min specific to item if it is a consumable then anotherfunction has to be called
     found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_futbin_price)
     if found_item_from_regular_search:
