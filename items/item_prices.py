@@ -9,7 +9,7 @@ from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
 from factories.real_time_prices import FutbinPriceFactory
 from items.item_data import build_item_objects_from_dict
-from search_filters.without_custom_filters import SearchWithoutCustomFilters
+from search_filters.without_custom_filters import NameFilteredSearch
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
@@ -17,7 +17,7 @@ def get_all_items_RT_prices(fab, required_items):
     required_items = build_item_objects_from_dict(required_items)
     for item_obj in required_items:
         futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
-        SearchWithoutCustomFilters().set_search_filteres(fab.element_actions, item_obj)
+        NameFilteredSearch().set_search_filteres(fab.element_actions, item_obj)
         real_price = check_item_RT_price(fab.element_actions, futbin_price)
         item_obj.set_market_price(real_price)
     return required_items

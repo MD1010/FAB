@@ -5,18 +5,18 @@ from auth.auth_status import set_auth_status
 from consts import server_status_messages
 from consts.app import MAX_DRIVER_CRASHES_COUNT
 from factories.fab_loop import FabLoopFactory
+from search_filters.get_user_filters import get_custom_filters_from_web_app
 from utils.driver_functions import close_driver, initialize_time_left
 from utils.helper_functions import server_response
 
 
-def start_fab(fab, configuration_data, requested_items, user_prices):
+def start_fab(fab, loop_type, configuration_data, requested_items, user_prices):
     time_to_run_in_sec = configuration_data["time"]
-    loop_type = configuration_data["loopType"]
     if time_to_run_in_sec is None:
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
-        fab_loop_factory = FabLoopFactory(loop_type)
-        fab_search_response = fab_loop_factory.get_fab_loop().start_loop(fab, configuration_data, requested_items, user_prices)
+        user_filters = get_custom_filters_from_web_app()
+        fab_search_response = FabLoopFactory(loop_type).get_fab_loop().start_loop(fab, configuration_data, requested_items, user_prices, user_filters)
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response
@@ -34,6 +34,4 @@ def start_fab(fab, configuration_data, requested_items, user_prices):
         # only if it has not started yet
         if fab.time_left_to_run == 0:
             initialize_time_left(fab, time_to_run_in_sec)
-        return start_fab(fab, time_to_run_in_sec, requested_items, user_prices)
-
-
+        return start_fab(fab, loop_type, configuration_data, requested_items, user_prices)
