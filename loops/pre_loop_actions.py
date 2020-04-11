@@ -11,8 +11,8 @@ def execute_pre_run_actions(fab):
     enter_transfer_market(fab.element_actions)
 
 
-def get_item_to_search_according_to_prices(fab, requested_items):
-    item_to_search = get_next_item_to_search(fab, requested_items)
+def get_item_to_search_according_to_prices(user_coin_balance, requested_items):
+    item_to_search = get_next_item_to_search(user_coin_balance, requested_items)
     if item_to_search is None:
         return None
     return item_to_search

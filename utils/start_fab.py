@@ -9,7 +9,7 @@ from utils.driver_functions import close_driver, check_if_restart_is_possible, i
 from utils.helper_functions import server_response
 
 
-def start_fab(fab, configuration_data, requested_items, user_prices):
+def start_fab(fab, configuration_data, requested_items, user_items_with_prices):
     time_to_run_in_sec = configuration_data["time"]
     loop_type = configuration_data["loopType"]
 
@@ -17,7 +17,7 @@ def start_fab(fab, configuration_data, requested_items, user_prices):
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
         user_filters = get_custom_search_filters_from_user()
-        fab_search_response = FabLoopFactory(loop_type).get_fab_loop().start_loop(fab, configuration_data, requested_items, user_prices, user_filters)
+        fab_search_response = FabLoopFactory(loop_type).get_fab_loop().start_loop(fab, configuration_data, requested_items, user_items_with_prices, user_filters)
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response
@@ -35,4 +35,4 @@ def start_fab(fab, configuration_data, requested_items, user_prices):
             # only if it has not started yet
             if fab.time_left_to_run == 0:
                 initialize_time_left(fab, time_to_run_in_sec)
-            return start_fab(fab, configuration_data, requested_items, user_prices)
+            return start_fab(fab, configuration_data, requested_items, user_items_with_prices)

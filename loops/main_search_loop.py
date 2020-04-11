@@ -11,12 +11,12 @@ from utils.market import decrease_increase_min_price
 
 def run_search_loop(fab, loop_configuration, item_to_search, requested_items, search_filters=None):
     increase_min_price = True
+    num_of_tries = 0
     time_to_run_in_sec = loop_configuration["time"]
-    is_player_listed_after_buy = loop_configuration["autoList"]
+    is_item_listed_after_buy = loop_configuration["autoList"]
 
     start = time.time()
     while True:
-        num_of_tries = 0
         num_of_tries = evaluate_driver_operation_time(fab, start, time_to_run_in_sec, num_of_tries)
         if num_of_tries is False: break
         ### search
@@ -30,7 +30,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items, se
             list_price = item_to_search.get_sell_price()
             fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\min price {list_price},bought for {bought_for}.png")
             print(f"bought for={bought_for}")
-            if is_player_listed_after_buy:
+            if is_item_listed_after_buy:
                 pass
                 # print(f"listed={list_price}")
                 # self.item_actions.list_player(str(list_price))
@@ -41,7 +41,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items, se
         if item_to_search is None:
             return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 
-        decrease_increase_min_price(fab, increase_min_price)
+        decrease_increase_min_price(fab.element_actions, increase_min_price)
         increase_min_price = not increase_min_price
         ### time check
         print(num_of_tries)
