@@ -1,5 +1,5 @@
 from factories.consumable_futbin_prices import ConsumableFutbinPriceFactory
-from prices.price_finder import FutbinPriceFinder
+from models.price_finder import FutbinPriceFinder
 
 
 class ConsumablePriceFinder(FutbinPriceFinder):

@@ -1,6 +1,6 @@
-from loops.fab_loop import FabLoop
+from models.fab_loop import FabLoop
 
 
 class FilteredPlayerLoop(FabLoop):
-    def start_loop(self, fab, configuration_data, requested_players, filters=None):
+    def start_loop(self, fab, configuration_data, items_with_filteres):
         print("FilteredPlayerLoop not implemented!")

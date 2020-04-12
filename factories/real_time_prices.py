@@ -7,7 +7,7 @@ class FutbinPriceFactory:
     def __init__(self, item):
         self.item = item
 
-    def get_futbin_prices_class(self):
+    def get_futbin_prices_object(self):
         rt_prices_instances = {
             ItemTypes.PLAYER: PlayerFutbinPriceFinder()
         }

@@ -1,7 +1,6 @@
 from consts import elements
 from factories.filter_search import FilterSearchFactory
 from items.item_data import calculate_items_profit
-from search_filters.filtered_search import FilteredSearch
 from user_info.user_actions import update_coin_balance
 
 
@@ -16,11 +15,11 @@ def get_next_item_to_search(user_coin_balance, requested_items):
         return sorted_by_profit[0]
 
 
-def update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items, custom_filters):
+def update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items):
     new_coin_balance = int(fab.element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
     if new_coin_balance != fab.user.coin_balance:
         update_coin_balance(fab.user.email, fab.element_actions)
         item_to_search = get_next_item_to_search(fab.user.coin_balance, requested_items)
         if item_to_search is not None:
-            FilterSearchFactory(item_to_search,custom_filters).get_filter_search_class().set_search_filteres(fab.element_actions, item_to_search, custom_filters)
+            FilterSearchFactory(item_to_search,requested_items).get_filter_search_object().set_custom_search_filteres(fab.element_actions, item_to_search)
     return item_to_search

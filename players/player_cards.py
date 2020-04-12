@@ -44,11 +44,9 @@ def get_cards_from_the_same_player(ea_player_data):
             specific_card_id = player_in_json_futhead["def_id"]
             revision = player_in_json_futhead["revision_type"]
             name = player_in_json_futhead["full_name"]
-            nation = player_in_json_futhead["nation_name"]
             position = player_in_json_futhead["position"]
-            club = player_in_json_futhead["club_name"]
             club_img = player_in_json_futhead["club_image"]
             nation_image = player_in_json_futhead["nation_image"]
             player_image = player_in_json_futhead["image"]
-            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, nation, position, club, player_image, club_img, nation_image))
+            cards_from_the_same_id.append(Player(specific_card_id, name, rating, revision, position, player_image, club_img, nation_image))
     return cards_from_the_same_id

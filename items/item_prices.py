@@ -7,20 +7,23 @@ from consts.app import MAX_CARD_ON_PAGE, NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
-from factories.filter_search import FilterSearchFactory
+# from factories.filter_search import FilterSearchFactory
 from factories.real_time_prices import FutbinPriceFactory
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
-def get_all_items_RT_prices(fab, required_items):
-    for item_obj in required_items:
-        futbin_price = FutbinPriceFactory(item_obj).get_futbin_prices_class().get_futbin_price(item_obj, fab.user.email)
-        FilterSearchFactory(item_obj).get_filter_search_class().set_search_filteres(fab.element_actions, item_obj, futbin_price)
+def get_all_items_RT_prices(fab, requested_items_with_filters):
+    for item_with_filters in requested_items_with_filters:
+        futbin_price = FutbinPriceFactory(item_with_filters.item).get_futbin_prices_object().get_futbin_price(item_with_filters.item, fab.user.email)
+        # todo refactor this line
+        FilterSearchFactory(item_with_filters.item).get_filter_search_object().set_custom_search_filteres(fab.element_actions, item_with_filters.item, futbin_price)
         real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
-        item_obj.set_market_price(real_price)
-        if item_obj.max_buy_price is None:
-            item_obj.set_max_buy_now_price()
-    return required_items
+        item_with_filters.item.set_market_price(real_price)
+        item_with_filters.item.set_sell_price()
+        # if the user didn't provide max buy price then calculate for him
+        if item_with_filters.filters.get('max_bin') is None:
+            item_with_filters.filters['max_bin'] = item_with_filters.item.get_max_buy_now_price()
+    return requested_items_with_filters
 
 
 def _check_item_price_regular_search(element_actions, item_price):

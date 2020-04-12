@@ -9,7 +9,7 @@ from utils.helper_functions import get_coin_balance_from_web_app, server_respons
 from utils.market import decrease_increase_min_price
 
 
-def run_search_loop(fab, loop_configuration, item_to_search, requested_items, search_filters=None):
+def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
     increase_min_price = True
     num_of_tries = 0
     time_to_run_in_sec = loop_configuration["time"]
@@ -27,8 +27,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items, se
         current_budget = get_coin_balance_from_web_app(fab.element_actions)
         item_bought, bought_for = fab.item_actions.buy_item(current_budget)
         if item_bought and bought_for:
-            list_price = item_to_search.get_sell_price()
-            fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\min price {list_price},bought for {bought_for}.png")
+            fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\min price {item_to_search.market_price},bought for {bought_for}.png")
             print(f"bought for={bought_for}")
             if is_item_listed_after_buy:
                 pass
@@ -37,7 +36,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items, se
             fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
         fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
-        item_to_search = update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items, search_filters)
+        item_to_search = update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items)
         if item_to_search is None:
             return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
 
