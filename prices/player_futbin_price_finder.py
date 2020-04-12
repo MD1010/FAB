@@ -23,12 +23,15 @@ def _min_player_prices_after_sanity_check(player_prices):
 
 
 class PlayerFutbinPriceFinder(FutbinPriceFinder):
+    def __init__(self, item, user_email):
+        self.item = item
+        self.user_email = user_email
 
-    def get_futbin_price(self, item, user_email):
+    def get_futbin_price(self):
         player_prices = []
         required_prices = ['LCPrice', 'LCPrice2', 'LCPrice3']
 
-        player_id = str(item.id)
+        player_id = str(self.item.id)
         url_of_specific_player_prices = f'{FUTBIN_PLAYER_PRICE_URL}{player_id}'
         prices_of_specific_player = json.loads(requests.get(url_of_specific_player_prices).content)
 
@@ -36,7 +39,7 @@ class PlayerFutbinPriceFinder(FutbinPriceFinder):
             if prices_of_specific_player[player_id] is None:
                 player_prices.append(0)
             else:
-                user_platform = get_db_user_platform(user_email)
+                user_platform = get_db_user_platform(self.user_email)
                 player_prices.append(prices_of_specific_player[player_id]['prices'][user_platform][LCPrice])
 
         for price_index in range(len(player_prices)):

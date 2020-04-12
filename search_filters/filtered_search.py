@@ -1,5 +1,6 @@
-from enums.filters import PlayerFilters
-from factories.filters_setter import FiltersSetterFactory
+from enums.filters import PlayerFilters, ConsumableFilters
+from enums.item_types import ItemTypes
+from search_filters.set_consumables_search_filters import ConsumablesSearchFilterSetter
 from search_filters.set_player_search_filteres import PlayerSearchFilterSetter
 
 
@@ -14,36 +15,50 @@ class FilteredSearch:
         search_filter_setter.set_item_price_filter(self.item_with_filters.filters.get('max_bin'))
 
     def set_custom_search_filteres(self):
-        # if item_price_limit is None:
-        #     item_price_limit = item.max_buy_price
-        filter_setter = FiltersSetterFactory(self.item_with_filters.item, self.element_actions).get_filters_setter_object()
+        if ItemTypes(self.item_with_filters.item.type) == ItemTypes.PLAYER:
+            self._set_player_filters()
+        else:
+            self._set_consumable_filters()
 
-        # get existing filters from user
+    def _set_player_filters(self):
+        player_filter_setter = PlayerSearchFilterSetter(self.element_actions)
+        # set existing player filters from user
         for filter_name, filter_value in self.item_with_filters.filters:
 
             if PlayerFilters(filter_name) == PlayerFilters.NAME:
-                filter_setter.set_player_name_filter(filter_value)
+                player_filter_setter.set_specific_item_name_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.QUALITY:
-                filter_setter.set_player_quality_filter(filter_value)
+                player_filter_setter.set_item_quality_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.POSITON:
-                filter_setter.set_player_position_filter(filter_value)
+                player_filter_setter.set_player_position_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.CHEM:
-                filter_setter.set_player_chem_filter(filter_value)
+                player_filter_setter.set_player_chem_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.NATION:
-                filter_setter.set_player_nation_filter(filter_value)
+                player_filter_setter.set_player_nation_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.LEAGUE:
-                filter_setter.set_player_league_filter(filter_value)
+                player_filter_setter.set_player_league_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.CLUB:
-                filter_setter.set_player_club_filter(filter_value)
+                player_filter_setter.set_player_club_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.MAX_BIN:
-                filter_setter.set_player_price_filter(filter_value)
+                player_filter_setter.set_item_price_filter(filter_value)
 
-    # search_filter_setter.set_name_filter(item.name)
-    # search_filter_setter.set_price_filter(item_price_limit)
+    def _set_consumable_filters(self):
+        consumable_filter_setter = ConsumablesSearchFilterSetter(self.element_actions)
+        # set existing consumable filters from user
+        for filter_name, filter_value in self.item_with_filters.filters:
+
+            if ConsumableFilters(filter_name) == ConsumableFilters.CONSUMABLE_NAME:
+                consumable_filter_setter.set_specific_item_name_filter(filter_value)
+
+            if ConsumableFilters(filter_name) == ConsumableFilters.QUALITY:
+                consumable_filter_setter.set_item_quality_filter(filter_value)
+
+            if ConsumableFilters(filter_name) == ConsumableFilters.MAX_BIN:
+                consumable_filter_setter.set_item_price_filter(filter_value)

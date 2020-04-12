@@ -14,8 +14,6 @@ def execute_pre_run_actions(fab):
 
 def get_item_to_search_according_to_prices(user_coin_balance, requested_items):
     item_to_search = get_next_item_to_search(user_coin_balance, requested_items)
-    if item_to_search is None:
-        return None
     return item_to_search
 
 

@@ -4,7 +4,6 @@ from urllib3.exceptions import MaxRetryError
 from auth.auth_status import set_auth_status
 from consts import server_status_messages
 from factories.fab_loop import FabLoopFactory
-from search_filters.get_user_filters import get_custom_search_filters_from_user
 from utils.driver_functions import close_driver, check_if_restart_is_possible, initialize_time_left
 from utils.helper_functions import server_response
 
@@ -16,8 +15,7 @@ def start_fab(fab, configuration_data, items_with_filters):
     if time_to_run_in_sec is None:
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
-        user_filters = get_custom_search_filters_from_user()
-        fab_search_response = FabLoopFactory(loop_type).get_fab_loop().start_loop(fab, configuration_data, items_with_filters)
+        fab_search_response = FabLoopFactory(loop_type,fab, configuration_data, items_with_filters).get_fab_loop().start_loop()
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response

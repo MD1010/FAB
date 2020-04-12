@@ -19,10 +19,3 @@ def build_item_with_filters_objects_from_dict(requested_items_with_filters):
         item_with_filters_result.append(item_with_filters)
         requested_items_with_filters = item_with_filters_result
     return requested_items_with_filters
-
-# # get the item part from the
-# def get_item_objects(requested_items_with_filters):
-#     requested_items = []
-#     for item_with_filters in requested_items_with_filters:
-#         requested_items.append(item_with_filters.item)
-#     return requested_items
