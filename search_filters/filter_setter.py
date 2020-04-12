@@ -5,20 +5,20 @@ from search_filters.players_filter_setter import PlayerFilterSetter
 
 
 class FilterSetter:
-    def __init__(self, element_actions, item_with_filters):
+    def __init__(self, element_actions, search_option):
         self.element_actions = element_actions
-        self.item_with_filters = item_with_filters
+        self.search_option = search_option
 
     def set_basic_filters_to_get_player_price(self, futbin_price):
         search_filter_setter = PlayerFilterSetter(self.element_actions)
-        search_filter_setter.set_specific_item_name_filter(self.item_with_filters.item.name)
+        search_filter_setter.set_specific_item_name_filter(self.search_option.item.name)
         # if the user didn't give the desired price take the futbin price as an indeicator
-        # search_price = self.item_with_filters.filters.get('maxBIN')
+        # search_price = self.search_option.filters.get('maxBIN')
         # if search_price is None: search_price = futbin_price
         search_filter_setter.set_item_price_filter(futbin_price)
 
     def set_custom_search_filteres(self):
-        if ItemTypes(self.item_with_filters.item.type) == ItemTypes.PLAYER:
+        if ItemTypes(self.search_option.item.type) == ItemTypes.PLAYER:
             self._set_player_filters()
         else:
             self._set_consumable_filters()
@@ -26,7 +26,7 @@ class FilterSetter:
     def _set_player_filters(self):
         player_filter_setter = PlayerFilterSetter(self.element_actions)
         # set existing player filters from user
-        for filter_name, filter_value in self.item_with_filters.filters.items():
+        for filter_name, filter_value in self.search_option.filters.items():
 
             if PlayerFilters(filter_name) == PlayerFilters.NAME:
                 player_filter_setter.set_specific_item_name_filter(filter_value)
@@ -55,7 +55,7 @@ class FilterSetter:
     def _set_consumable_filters(self):
         consumable_filter_setter = ConsumableFilterSetter(self.element_actions)
         # set existing consumable filters from user
-        for filter_name, filter_value in self.item_with_filters.filters:
+        for filter_name, filter_value in self.search_option.filters:
 
             if ConsumableFilters(filter_name) == ConsumableFilters.CONSUMABLE_NAME:
                 consumable_filter_setter.set_specific_item_name_filter(filter_value)

@@ -12,20 +12,20 @@ from search_filters.filter_setter import FilterSetter
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
-def get_all_items_RT_prices(fab, requested_items_with_filters):
-    for item_with_filters in requested_items_with_filters:
+def get_all_items_RT_prices(fab, search_options):
+    for search_option in search_options:
         #check if item was sent - maybe the user doesnt want to search specific player
         # make sure to send the maxBIN,type in request if the user havent specified a specific item
-        if item_with_filters.item.id is not None:
-            futbin_price = FutbinPriceFactory(item_with_filters.item, fab.user.email).get_futbin_prices_object().get_futbin_price()
-            FilterSetter(fab.element_actions, item_with_filters).set_basic_filters_to_get_player_price(futbin_price)
+        if search_option.item.id is not None:
+            futbin_price = FutbinPriceFactory(search_option.item, fab.user.email).get_futbin_prices_object().get_futbin_price()
+            FilterSetter(fab.element_actions, search_option).set_basic_filters_to_get_player_price(futbin_price)
             real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
-            item_with_filters.item.set_market_price(real_price)
-            item_with_filters.item.set_sell_price()
+            search_option.item.set_market_price(real_price)
+            search_option.item.set_sell_price()
         # if the user didn't provide max buy price then calculate for him
-        if item_with_filters.filters.get('maxBIN') is None:
-            item_with_filters.filters['maxBIN'] = item_with_filters.item.get_max_buy_now_price()
-    return requested_items_with_filters
+        if search_option.filters.get('maxBIN') is None:
+            search_option.filters['maxBIN'] = search_option.item.get_max_buy_now_price()
+    return search_options
 
 
 def _check_item_price_regular_search(element_actions, item_price):
