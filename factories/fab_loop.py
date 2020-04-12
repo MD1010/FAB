@@ -1,5 +1,5 @@
 from loops.consumables_loop import ConsumablesLoop
-from loops.player_loop import PlayerLoop
+from loops.players_loop import PlayerLoop
 
 
 class FabLoopFactory:

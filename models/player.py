@@ -1,4 +1,4 @@
-from models.Item import Item
+from models.item import Item
 
 
 class Player(Item):

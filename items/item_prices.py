@@ -7,22 +7,24 @@ from consts.app import MAX_CARD_ON_PAGE, NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
-# from factories.filter_search import FilterSearchFactory
 from factories.real_time_prices import FutbinPriceFactory
-from search_filters.filtered_search import FilteredSearch
+from search_filters.filter_setter import FilterSetter
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
 
 def get_all_items_RT_prices(fab, requested_items_with_filters):
     for item_with_filters in requested_items_with_filters:
-        futbin_price = FutbinPriceFactory(item_with_filters.item, fab.user.email).get_futbin_prices_object().get_futbin_price()
-        FilteredSearch(fab.element_actions, item_with_filters).set_basic_filters_to_get_player_price()
-        real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
-        item_with_filters.item.set_market_price(real_price)
-        item_with_filters.item.set_sell_price()
+        #check if item was sent - maybe the user doesnt want to search specific player
+        # make sure to send the maxBIN,type in request if the user havent specified a specific item
+        if item_with_filters.item.id is not None:
+            futbin_price = FutbinPriceFactory(item_with_filters.item, fab.user.email).get_futbin_prices_object().get_futbin_price()
+            FilterSetter(fab.element_actions, item_with_filters).set_basic_filters_to_get_player_price(futbin_price)
+            real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
+            item_with_filters.item.set_market_price(real_price)
+            item_with_filters.item.set_sell_price()
         # if the user didn't provide max buy price then calculate for him
-        if item_with_filters.filters.get('max_bin') is None:
-            item_with_filters.filters['max_bin'] = item_with_filters.item.get_max_buy_now_price()
+        if item_with_filters.filters.get('maxBIN') is None:
+            item_with_filters.filters['maxBIN'] = item_with_filters.item.get_max_buy_now_price()
     return requested_items_with_filters
 
 
@@ -49,8 +51,6 @@ def _check_item_price_regular_search(element_actions, item_price):
                 return get_item_min_price_on_page(element_actions)
 
             element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
-            # found finally a result save the price and update the flag
-            # time.sleep(1)
             element_actions.wait_until_visible(elements.MAX_BIN_PRICE_INPUT)
             item_price = element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value")
             found_correct_price = True

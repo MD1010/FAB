@@ -7,7 +7,7 @@ from enums.actions_for_execution import ElementCallback
 from models.search_filter_setter import SearchFilterSetter
 
 
-class PlayerSearchFilterSetter(SearchFilterSetter):
+class PlayerFilterSetter(SearchFilterSetter):
     def __init__(self, element_actions):
         self.element_actions = element_actions
 

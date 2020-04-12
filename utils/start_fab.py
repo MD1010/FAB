@@ -15,7 +15,7 @@ def start_fab(fab, configuration_data, items_with_filters):
     if time_to_run_in_sec is None:
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
-        fab_search_response = FabLoopFactory(loop_type,fab, configuration_data, items_with_filters).get_fab_loop().start_loop()
+        fab_search_response = FabLoopFactory(loop_type, fab, configuration_data, items_with_filters).get_fab_loop().start_loop()
         set_auth_status(fab.user.email, False)
         close_driver(fab.driver, fab.user.email)
         return fab_search_response

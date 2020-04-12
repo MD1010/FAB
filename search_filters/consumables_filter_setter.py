@@ -1,7 +1,7 @@
 from models.search_filter_setter import SearchFilterSetter
 
 
-class ConsumablesSearchFilterSetter(SearchFilterSetter):
+class ConsumableFilterSetter(SearchFilterSetter):
     def __init__(self, element_actions):
         self.element_actions = element_actions
 

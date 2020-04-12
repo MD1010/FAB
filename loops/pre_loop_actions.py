@@ -12,8 +12,8 @@ def execute_pre_run_actions(fab):
     enter_transfer_market(fab.element_actions)
 
 
-def get_item_to_search_according_to_prices(user_coin_balance, requested_items):
-    item_to_search = get_next_item_to_search(user_coin_balance, requested_items)
+def get_item_to_search_according_to_prices(user_coin_balance, requested_items_with_filters):
+    item_to_search = get_next_item_to_search(user_coin_balance, requested_items_with_filters)
     return item_to_search
 
 
