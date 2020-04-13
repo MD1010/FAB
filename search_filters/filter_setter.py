@@ -40,13 +40,13 @@ class FilterSetter:
             if PlayerFilters(filter_name) == PlayerFilters.CHEM:
                 player_filter_setter.set_player_chem_filter(filter_value)
 
-            if PlayerFilters(filter_name) == PlayerFilters.NATION:
+            if PlayerFilters(filter_name) == PlayerFilters.NATION and not self.search_option.filters.get('name'):
                 player_filter_setter.set_player_nation_filter(filter_value)
 
-            if PlayerFilters(filter_name) == PlayerFilters.LEAGUE:
+            if PlayerFilters(filter_name) == PlayerFilters.LEAGUE and not self.search_option.filters.get('name'):
                 player_filter_setter.set_player_league_filter(filter_value)
 
-            if PlayerFilters(filter_name) == PlayerFilters.CLUB:
+            if PlayerFilters(filter_name) == PlayerFilters.CLUB and not self.search_option.filters.get('name'):
                 player_filter_setter.set_player_club_filter(filter_value)
 
             if PlayerFilters(filter_name) == PlayerFilters.MAX_BIN:

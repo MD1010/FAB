@@ -55,6 +55,15 @@ class ElementActions(Driver):
             return None
         return found_element[0]
 
+    def select_matching_li_by_text_from_dropdown_ul_list(self, open_dropdown_btn_path, ul_list_dropdown_path, desired_text):
+        self.execute_element_action(open_dropdown_btn_path, ElementCallback.CLICK)
+        dropdown_list = self.get_element(ul_list_dropdown_path)
+        dropdown_options = dropdown_list.find_elements_by_tag_name("li")
+        for option in dropdown_options:
+            if str(option.text).lower() == str(desired_text).lower():
+                option.click()
+                break
+
     def wait_for_page_to_load(self, timeout=40):
         try:
             WebDriverWait(self.driver, timeout).until_not(EC.presence_of_element_located((By.CLASS_NAME, "showing")))
@@ -83,7 +92,7 @@ class ElementActions(Driver):
                 if path_by == ElementPathBy.XPATH \
                 else WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
         except TimeoutException as e:
-                raise TimeoutException(f"{actual_path} element was not found - Timeout")
+            raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
     def wait_until_visible(self, actual_path, timeout=10):
         path_by = get_path_by(actual_path)
@@ -97,9 +106,6 @@ class ElementActions(Driver):
                 print("Unable to log into the web app")
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
-
-    def wait_untill_element_located(self, actual_path, timeout=10):
-        WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, actual_path)))
 
     def wait_for_page_to_load_without_timeout(self):
         while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,

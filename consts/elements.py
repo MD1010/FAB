@@ -57,10 +57,11 @@ PLAYER_POSITION_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/di
 PLAYER_CHEM_STYLE_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]"
 PLAYER_CHEM_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div/ul"
 
+
 PLAYER_NATIONALITY_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[5]"
 PLAYER_NATIONALITY_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[5]/div/ul"
 
-PLAYER_LEAGUE_FILTER__BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[6]"
+PLAYER_LEAGUE_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[6]"
 PLAYER_LEAGUE_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[6]/div/ul"
 
 CLUB_FILTER_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[7]"
