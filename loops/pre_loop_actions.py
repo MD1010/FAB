@@ -20,6 +20,10 @@ def get_item_to_search_according_to_prices(user_coin_balance, search_options):
 def get_loop_item_for_search(fab, search_options):
     execute_pre_run_actions(fab)
     search_options = build_search_option_objects_from_dict(search_options)
+    # always prefer the unspecified earch over specific player search
+    for option in search_options:
+        if option.filters.get('name') is None:
+            return option
     search_options = get_all_items_RT_prices(fab, search_options)
     item_to_search = get_item_to_search_according_to_prices(fab.user.coin_balance, search_options)
     return item_to_search
