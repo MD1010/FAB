@@ -8,7 +8,7 @@ class ConsumableFutbinPriceFactory:
 
     def get_consumable_futbin_price(self):
         futbin_prices = {
-            ItemTypes.CHEMISTRY_STYLE: FUTBIN_CHEMISTRY_STYLE_PRICES.get(self.item.name),
-            # todo fill the rest array
+            ItemTypes.CHEMISTRY_STYLE: FUTBIN_CHEMISTRY_STYLE_PRICES.get(self.item['name']),
+            #fill the rest array
         }
-        return futbin_prices[ItemTypes(self.item.type)]
+        return futbin_prices[ItemTypes(self.item['type'])]

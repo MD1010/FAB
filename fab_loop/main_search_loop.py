@@ -27,7 +27,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
         current_budget = get_coin_balance_from_web_app(fab.element_actions)
         item_bought, bought_for = fab.item_actions.buy_item(current_budget)
         if item_bought and bought_for:
-            fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\min price {item_to_search.market_price},bought for {bought_for}.png")
+            fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\bought for {bought_for}.png")
             print(f"bought for={bought_for}")
             if is_item_listed_after_buy:
                 pass

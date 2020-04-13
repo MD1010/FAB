@@ -13,4 +13,4 @@ class FutbinPriceFactory:
             ItemTypes.PLAYER: PlayerFutbinPriceFinder(self.item,self.user_email)
         }
         # default is consumable price finder
-        return rt_prices_instances.get(ItemTypes(self.item.type), ConsumablePriceFinder(self.item))
+        return rt_prices_instances.get(ItemTypes(self.item['type']), ConsumablePriceFinder(self.item))

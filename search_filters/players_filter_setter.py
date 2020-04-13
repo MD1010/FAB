@@ -33,7 +33,7 @@ class PlayerFilterSetter(SearchFilterSetter):
                                                                               player_position)
 
     def set_player_chem_filter(self, player_chem):
-        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.PLAYER_CHEM_STYLE_FILTER_BTN,
+        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.CHEM_STYLE_FILTER_BTN,
                                                                               elements.PLAYER_CHEM_FILTER_DROPDOWN,
                                                                               player_chem)
 

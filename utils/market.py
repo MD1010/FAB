@@ -12,6 +12,7 @@ def enter_transfer_market(element_actions):
     element_actions.execute_element_action(elements.TRANSFER_MARKET_CONTAINER_BTN, ElementCallback.CLICK)
     time.sleep(1)
 
+
 def decrease_increase_min_price(element_actions, increase_price):
     # check if price can be decreased
     decrease_btn = element_actions.get_element(elements.DECREASE_MIN_PRICE_BTN)
@@ -26,3 +27,35 @@ def decrease_increase_min_price(element_actions, increase_price):
     if not increase_price and can_be_decreased:
         element_actions.execute_element_action(elements.DECREASE_MIN_PRICE_BTN, ElementCallback.CLICK)
 
+
+def reset_player_page_filters(element_actions):
+    quality_filter_elament = element_actions.get_element(elements.PLAYER_QUALITY_FILTER_BTN)
+    if "has-selection" in quality_filter_elament.get_attribute("class"):
+        element_actions.execute_element_action(elements.RESET_QUALITY_FILTER_BTN, ElementCallback.CLICK)
+
+    chem_filter_elament = element_actions.get_element(elements.CHEM_STYLE_FILTER_BTN)
+    if "has-selection" in chem_filter_elament.get_attribute("class"):
+        element_actions.execute_element_action(elements.RESET_CHEM_STYLE_BTN, ElementCallback.CLICK)
+
+
+def reset_consumables_page_filters(element_actions):
+    quality_filter_elament = element_actions.get_element(elements.CONSUMABLE_QUALITY_FILTER_BTN)
+    if "has-selection" in quality_filter_elament.get_attribute("class"):
+        element_actions.execute_element_action(elements.RESET_CONUMABLES_QUALITY_FILTER_BTN, ElementCallback.CLICK)
+
+    chem_filter_elament = element_actions.get_element(elements.CHEM_STYLE_FILTER_BTN)
+    if chem_filter_elament:
+        if "has-selection" in chem_filter_elament.get_attribute("class"):
+            element_actions.execute_element_action(elements.RESET_CHEM_STYLE_BTN, ElementCallback.CLICK)
+
+
+def enter_players_tab(element_actions):
+    element_actions.execute_element_action(elements.PLAYERS_TAB_BUTTON, ElementCallback.CLICK)
+    # reset selected fields
+    reset_player_page_filters(element_actions)
+
+
+def enter_consumables_tab(element_actions):
+    element_actions.execute_element_action(elements.CONSUMABLES_TAB_BUTTON, ElementCallback.CLICK)
+    # reset selected fields
+    reset_consumables_page_filters(element_actions)

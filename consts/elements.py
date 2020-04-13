@@ -54,7 +54,7 @@ PLAYER_QUALITY_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div
 PLAYER_POSITION_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[3]"
 PLAYER_POSITION_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[3]/div/ul"
 
-PLAYER_CHEM_STYLE_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]"
+CHEM_STYLE_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]"
 PLAYER_CHEM_FILTER_DROPDOWN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div/ul"
 
 
@@ -80,3 +80,8 @@ CONSUMABLE_SPECIFIC_NAME_FILTER_DROPDOWN="/html/body/main/section/section/div[2]
 
 PLAYERS_TAB_BUTTON = "/html/body/main/section/section/div[2]/div/div[1]/div/a[1]"
 CONSUMABLES_TAB_BUTTON = "/html/body/main/section/section/div[2]/div/div[1]/div/a[4]"
+
+RESET_QUALITY_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[2]/div/div/button"
+RESET_CHEM_STYLE_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div/div/button"
+
+RESET_CONUMABLES_QUALITY_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[3]/div/div/button"

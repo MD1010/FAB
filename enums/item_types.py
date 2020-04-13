@@ -11,3 +11,4 @@ class ItemTypes(Enum):
     HEALING = 5
     PLAYER_TRAINING = 6
     MANAGER_LEAGUES = 7
+    GK_TRAINING = 8

@@ -4,7 +4,6 @@ from search_filters.filter_setter import FilterSetter
 from user_info.user_actions import update_coin_balance
 
 
-
 def update_search_item_if_coin_balance_changed(fab, best_item_to_search, items):
     new_coin_balance = int(fab.element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
     if new_coin_balance != fab.user.coin_balance:

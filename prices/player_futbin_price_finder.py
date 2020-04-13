@@ -31,7 +31,7 @@ class PlayerFutbinPriceFinder(FutbinPriceFinder):
         player_prices = []
         required_prices = ['LCPrice', 'LCPrice2', 'LCPrice3']
 
-        player_id = str(self.item.id)
+        player_id = str(self.item['id'])
         url_of_specific_player_prices = f'{FUTBIN_PLAYER_PRICE_URL}{player_id}'
         prices_of_specific_player = json.loads(requests.get(url_of_specific_player_prices).content)
 

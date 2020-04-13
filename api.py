@@ -17,7 +17,7 @@ from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
 from utils.login_timeout_thread import check_login_timeout, open_login_timeout_thread
-from utils.start_fab import start_fab
+from fab_loop.start_fab import start_fab
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY

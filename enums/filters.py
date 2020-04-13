@@ -15,3 +15,4 @@ class ConsumableFilters(Enum):
     QUALITY = "quality"
     CONSUMABLE_NAME = "name"
     MAX_BIN = "maxBIN"
+    TYPE = "type"

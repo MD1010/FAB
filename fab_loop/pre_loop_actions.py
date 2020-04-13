@@ -11,7 +11,7 @@ def execute_pre_run_actions(fab):
     enter_transfer_market(fab.element_actions)
 
 
-def get_loop_item_for_search(fab, items):
+def get_item_for_loop_search(fab, items):
     execute_pre_run_actions(fab)
     check_items_market_prices(fab, items)
     set_items_priorities(items,fab.user.coin_balance)
