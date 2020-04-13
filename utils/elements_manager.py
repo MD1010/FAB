@@ -11,8 +11,8 @@ from consts.app import TIME_TO_LOGIN
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
 from enums.actions_for_execution import ElementCallback
-from models.driver import Driver
 from enums.path_by import ElementPathBy
+from models.driver import Driver
 
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
@@ -65,7 +65,7 @@ class ElementActions(Driver):
 
     def execute_element_action(self, actual_path, callback, *callback_params, timeout=10):
         try:
-            self.wait_untill_clickable(timeout, actual_path)
+            self.wait_untill_clickable(actual_path, timeout)
             web_element = self.get_element(actual_path)
             run_callback(web_element, callback, callback_params)
         except TimeoutException as e:
@@ -76,17 +76,13 @@ class ElementActions(Driver):
         if popup:
             self.driver.execute_script(REMOVE_ELEMENT, popup)
 
-    def wait_untill_clickable(self, timeout, actual_path):
+    def wait_untill_clickable(self, actual_path, timeout=10):
         path_by = get_path_by(actual_path)
         try:
-            # change this stupid logic
             WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.XPATH, actual_path))) \
                 if path_by == ElementPathBy.XPATH \
                 else WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((By.CLASS_NAME, actual_path)))
         except TimeoutException as e:
-            if timeout == 60:  # stuck on login
-                print("Unable to log into the web app")
-            else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
     def wait_until_visible(self, actual_path, timeout=10):
@@ -101,6 +97,9 @@ class ElementActions(Driver):
                 print("Unable to log into the web app")
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
+
+    def wait_untill_element_located(self, actual_path, timeout=10):
+        WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, actual_path)))
 
     def wait_for_page_to_load_without_timeout(self):
         while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,

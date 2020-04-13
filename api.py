@@ -11,6 +11,8 @@ from auth.selenium_login import set_status_code
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
+
+
 from live_data import user_login_attempts, active_fabs, opened_drivers
 from players.player_cards import get_all_players_cards
 from players.players_actions import ItemActions
@@ -66,6 +68,36 @@ def start_fab_loop():
 def get_all_cards(searched_player):
     result = get_all_players_cards(searched_player)
     return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
+
+
+# @app.route('/api/web-app-webapp_filters/players', methods=['GET'])
+# @check_if_web_app_ready
+# @check_if_fab_opened
+# def get_player_filters():
+#     # return {
+#     #     'qualityFilters': player_webapp_filters.QUALITY_FILTERS,
+#     #     'positions': player_webapp_filters.POSITIONS,
+#     #     'nationalities':player_webapp_filters.NATIONALITIES,
+#     #     'leagues':player_webapp_filters.LEAGUES,
+#     #     'clubs':
+#     # }
+#     # time.sleep(1)
+#     # active_fab.element_actions.execute_element_action(elements.CONSUMABLES_NAV_MENU_BTN, ElementCallback.CLICK)
+#     # chem_types = []
+#     # active_fab.element_actions.execute_element_action(elements.CONSUMABLE_TYPE_FILTER_BTN, ElementCallback.CLICK)
+#     # quality_dropdown = active_fab.element_actions.get_element(elements.CONSUMABLE_TYPE_FILTER_DROPDOWN)
+#     # options = quality_dropdown.find_elements_by_tag_name("li")
+#     # for option in options:
+#     #     if option != '':
+#     #         text = option.text
+#     #         chem_types.append(text)
+#     #
+#     return "good", 200
+#
+#
+# @app.route('/api/web-app-webapp_filters/consumables', methods=['GET'])
+# def get_consumable_filters():
+#     return {}
 
 
 @app.route("/api/close-driver", methods=['GET'])

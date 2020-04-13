@@ -1,11 +1,13 @@
 import time
 
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
 
 from consts import elements
 from enums.actions_for_execution import ElementCallback
 from models.search_filter_setter import SearchFilterSetter
 
+from selenium.webdriver.support.ui import Select
 
 class PlayerFilterSetter(SearchFilterSetter):
     def __init__(self, element_actions):
@@ -18,7 +20,15 @@ class PlayerFilterSetter(SearchFilterSetter):
         self.element_actions.execute_element_action(elements.FIRST_RESULT_INPUT_SEARCH, ElementCallback.CLICK)
 
     def set_item_quality_filter(self, player_quality):
-        pass
+
+        self.element_actions.execute_element_action(elements.PLAYER_QUALITY_FILTER_BTN,ElementCallback.CLICK)
+        quality_dropdown = self.element_actions.get_element(elements.PLAYER_QUALITY_FILTER_DROPDOWN)
+        dropdown_options = quality_dropdown.find_elements_by_tag_name("li")
+        for option in dropdown_options:
+            if option.text == player_quality:
+                option.click()
+                break
+
 
     def set_item_price_filter(self, player_price):
         self.element_actions.execute_element_action(elements.MAX_BIN_PRICE_INPUT, ElementCallback.SEND_KEYS, Keys.CONTROL, "a")

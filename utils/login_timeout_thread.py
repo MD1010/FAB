@@ -8,7 +8,6 @@ from utils.driver_functions import close_driver
 
 def check_login_timeout(email, app):
     with app.app_context():
-        print(user_login_attempts)
         while True:
             if user_login_attempts.get(email) is None: return
             if time.time() - user_login_attempts[email].timer >= TIME_TO_LOGIN or user_login_attempts[email].is_authenticated:

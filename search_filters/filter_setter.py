@@ -13,7 +13,7 @@ class FilterSetter:
         search_filter_setter = PlayerFilterSetter(self.element_actions)
         search_filter_setter.set_specific_item_name_filter(self.search_option.item.name)
         # if the user didn't give the desired price take the futbin price as an indeicator
-        # search_price = self.search_option.filters.get('maxBIN')
+        # search_price = self.search_option.webapp_filters.get('maxBIN')
         # if search_price is None: search_price = futbin_price
         search_filter_setter.set_item_price_filter(futbin_price)
 
@@ -25,7 +25,7 @@ class FilterSetter:
 
     def _set_player_filters(self):
         player_filter_setter = PlayerFilterSetter(self.element_actions)
-        # set existing player filters from user
+        # set existing player webapp_filters from user
         for filter_name, filter_value in self.search_option.filters.items():
 
             if PlayerFilters(filter_name) == PlayerFilters.NAME:
@@ -54,7 +54,7 @@ class FilterSetter:
 
     def _set_consumable_filters(self):
         consumable_filter_setter = ConsumableFilterSetter(self.element_actions)
-        # set existing consumable filters from user
+        # set existing consumable webapp_filters from user
         for filter_name, filter_value in self.search_option.filters:
 
             if ConsumableFilters(filter_name) == ConsumableFilters.CONSUMABLE_NAME:
