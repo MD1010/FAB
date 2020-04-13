@@ -77,3 +77,6 @@ CONSUMABLE_QUALITY_FILTER_DROPDOWN="/html/body/main/section/section/div[2]/div/d
 
 CONSUMABLE_SPECIFIC_NAME_FILTER_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]"
 CONSUMABLE_SPECIFIC_NAME_FILTER_DROPDOWN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div/ul"
+
+PLAYERS_TAB_BUTTON = "/html/body/main/section/section/div[2]/div/div[1]/div/a[1]"
+CONSUMABLES_TAB_BUTTON = "/html/body/main/section/section/div[2]/div/div[1]/div/a[4]"

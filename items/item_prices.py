@@ -11,21 +11,17 @@ from factories.real_time_prices import FutbinPriceFactory
 from search_filters.filter_setter import FilterSetter
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
-
-def get_all_items_RT_prices(fab, search_options):
-    for search_option in search_options:
-        #check if item was sent - maybe the user doesnt want to search specific player
-        # make sure to send the maxBIN,type in request if the user havent specified a specific item
-        if search_option.item.id is not None:
-            futbin_price = FutbinPriceFactory(search_option.item, fab.user.email).get_futbin_prices_object().get_futbin_price()
-            FilterSetter(fab.element_actions, search_option).set_basic_filters_to_get_player_price(futbin_price)
-            real_price = search_item_RT_price_on_market(fab.element_actions, futbin_price)
-            search_option.item.set_market_price(real_price)
-            search_option.item.set_sell_price()
-        # if the user didn't provide max buy price then calculate for him
-        if search_option.filters.get('maxBIN') is None:
-            search_option.filters['maxBIN'] = search_option.item.get_max_buy_now_price()
-    return search_options
+def search_item_RT_price_on_market(element_actions, item_futbin_price):
+    # get_approximate_min specific to item if it is a consumable then anotherfunction has to be called
+    found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_futbin_price)
+    if found_item_from_regular_search:
+        return item_price
+    is_found_price, item_price = _check_if_got_results_in_current_price_webapp(element_actions, item_price)
+    if is_found_price:
+        find_item_from_binary_search, min_price = check_item_price_binary_search(element_actions, item_price)
+        return min_price
+    else:
+        return MAX_PRICE
 
 
 def _check_item_price_regular_search(element_actions, item_price):
@@ -48,7 +44,7 @@ def _check_item_price_regular_search(element_actions, item_price):
         if not no_results_banner:
             is_last_element_exist = element_actions.check_if_last_element_exist()
             if not is_last_element_exist:
-                return get_item_min_price_on_page(element_actions)
+                return get_item_min_price_on_webapp_page(element_actions)
 
             element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             element_actions.wait_until_visible(elements.MAX_BIN_PRICE_INPUT)
@@ -69,20 +65,7 @@ def _change_max_bin_price(element_actions, new_price):
     return int(element_actions.get_element(elements.MAX_BIN_PRICE_INPUT).get_attribute("value").replace(',', ''))
 
 
-def search_item_RT_price_on_market(element_actions, item_futbin_price):
-    # get_approximate_min specific to item if it is a consumable then anotherfunction has to be called
-    found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_futbin_price)
-    if found_item_from_regular_search:
-        return item_price
-    is_found_price, item_price = check_if_got_results_in_current_price(element_actions, item_price)
-    if is_found_price:
-        find_item_from_binary_search, min_price = check_item_price_binary_search(element_actions, item_price)
-        return min_price
-    else:
-        return MAX_PRICE
-
-
-def check_if_got_results_in_current_price(element_actions, item_price):
+def _check_if_got_results_in_current_price_webapp(element_actions, item_price):
     element_actions.execute_element_action(elements.SEARCH_ITEM_BTN, ElementCallback.CLICK)
     no_results_banner = element_actions.get_element(elements.NO_RESULTS_FOUND)
     while no_results_banner:
@@ -94,7 +77,7 @@ def check_if_got_results_in_current_price(element_actions, item_price):
     return True, item_price
 
 
-def get_item_min_price_on_page(element_actions):
+def get_item_min_price_on_webapp_page(element_actions):
     min_prices_on_page = []
     for i in range(1, MAX_CARD_ON_PAGE + 1):
         if element_actions.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, i, END_ITEM_PRICE_ON_PAGE)) is not None:
@@ -125,7 +108,7 @@ def check_item_price_binary_search(element_actions, item_price):
         else:
             is_last_element_exist = element_actions.check_if_last_element_exist()
             if not is_last_element_exist:
-                return get_item_min_price_on_page(element_actions)
+                return get_item_min_price_on_webapp_page(element_actions)
             up_limit = item_price_after_webapp_transfer
             item_new_max_price = calc_new_max_price(down_limit, up_limit, 0)
             item_price_after_webapp_transfer = _change_max_bin_price(element_actions, item_new_max_price)

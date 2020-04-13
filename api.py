@@ -1,6 +1,4 @@
-import json
-
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
@@ -11,11 +9,9 @@ from auth.selenium_login import set_status_code
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
-
-
+from items.item_actions import ItemActions
 from live_data import user_login_attempts, active_fabs, opened_drivers
 from players.player_cards import get_all_players_cards
-from players.players_actions import ItemActions
 from user_info.user_actions import initialize_user_from_db
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
@@ -29,6 +25,7 @@ jwt = JWTManager(app)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['transports'] = 'websocket'
+app.config['JSON_SORT_KEYS'] = False
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 
@@ -52,52 +49,21 @@ def user_login():
 @jwt_required
 def start_fab_loop():
     jsonData = request.get_json()
-    configuration_data = jsonData.get('loopConfiguration')
+    configuration = jsonData.get('configuration')
     user_email = jsonData.get('user')
-    search_options = jsonData.get('searchOptions')
+    items = jsonData.get('items')
     user_driver = opened_drivers[user_email]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
     fab_user = initialize_user_from_db(user_email)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
-    return start_fab(active_fab, configuration_data, search_options)
+    return start_fab(active_fab, configuration, items)
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
 def get_all_cards(searched_player):
-    result = get_all_players_cards(searched_player)
-    return Response(json.dumps(list(map(lambda p: p.player_json(), result))), mimetype="application/json")
-
-
-# @app.route('/api/web-app-webapp_filters/players', methods=['GET'])
-# @check_if_web_app_ready
-# @check_if_fab_opened
-# def get_player_filters():
-#     # return {
-#     #     'qualityFilters': player_webapp_filters.QUALITY_FILTERS,
-#     #     'positions': player_webapp_filters.POSITIONS,
-#     #     'nationalities':player_webapp_filters.NATIONALITIES,
-#     #     'leagues':player_webapp_filters.LEAGUES,
-#     #     'clubs':
-#     # }
-#     # time.sleep(1)
-#     # active_fab.element_actions.execute_element_action(elements.CONSUMABLES_NAV_MENU_BTN, ElementCallback.CLICK)
-#     # chem_types = []
-#     # active_fab.element_actions.execute_element_action(elements.CONSUMABLE_TYPE_FILTER_BTN, ElementCallback.CLICK)
-#     # quality_dropdown = active_fab.element_actions.get_element(elements.CONSUMABLE_TYPE_FILTER_DROPDOWN)
-#     # options = quality_dropdown.find_elements_by_tag_name("li")
-#     # for option in options:
-#     #     if option != '':
-#     #         text = option.text
-#     #         chem_types.append(text)
-#     #
-#     return "good", 200
-#
-#
-# @app.route('/api/web-app-webapp_filters/consumables', methods=['GET'])
-# def get_consumable_filters():
-#     return {}
+    return jsonify(get_all_players_cards(searched_player))
 
 
 @app.route("/api/close-driver", methods=['GET'])
