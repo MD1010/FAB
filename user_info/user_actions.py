@@ -11,8 +11,9 @@ from utils.helper_functions import get_coin_balance_from_web_app
 
 def update_coin_balance(email, element_actions):
     current_coin_balance = get_coin_balance_from_web_app(element_actions)
-    active_fabs[email].user.coin_balance = current_coin_balance
-    db.users_collection.update({"email": email}, {"$set": {"coin_balance": current_coin_balance}})
+    if current_coin_balance:
+        active_fabs[email].user.coin_balance = current_coin_balance
+        db.users_collection.update({"email": email}, {"$set": {"coin_balance": current_coin_balance}})
 
 
 def update_db_user_platform(email, element_actions):

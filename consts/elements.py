@@ -85,3 +85,5 @@ RESET_QUALITY_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/di
 RESET_CHEM_STYLE_BTN="/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div/div/button"
 
 RESET_CONUMABLES_QUALITY_FILTER_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[3]/div/div/button"
+RESET_PLAYER_NAME_BTN = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/div/button"
+PLAYER_NAME_PLACEHOLDER = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]"

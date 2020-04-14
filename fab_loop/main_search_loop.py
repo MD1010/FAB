@@ -4,7 +4,7 @@ from consts import elements, server_status_messages
 from consts.app import CURRENT_WORKING_DIR
 from enums.actions_for_execution import ElementCallback
 from items.next_item_to_search import update_search_item_if_coin_balance_changed
-from utils.driver_functions import evaluate_driver_operation_time
+from utils.driver_functions import evaluate_driver_operation_time, close_driver
 from utils.helper_functions import get_coin_balance_from_web_app, server_response
 from utils.market import decrease_increase_min_price
 
@@ -25,6 +25,10 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
         time.sleep(0.5)
 
         current_budget = get_coin_balance_from_web_app(fab.element_actions)
+        if current_budget is None:
+            close_driver(fab.driver, fab.user.email)
+            return server_response(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
+
         item_bought, bought_for = fab.item_actions.buy_item(current_budget)
         if item_bought and bought_for:
             fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\bought for {bought_for}.png")

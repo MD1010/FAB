@@ -39,8 +39,8 @@ def reset_player_page_filters(element_actions):
 
 
 def reset_consumables_page_filters(element_actions):
-    quality_filter_elament = element_actions.get_element(elements.CONSUMABLE_QUALITY_FILTER_BTN)
-    if "has-selection" in quality_filter_elament.get_attribute("class"):
+    quality_filter_element = element_actions.get_element(elements.CONSUMABLE_QUALITY_FILTER_BTN)
+    if "has-selection" in quality_filter_element.get_attribute("class"):
         element_actions.execute_element_action(elements.RESET_CONUMABLES_QUALITY_FILTER_BTN, ElementCallback.CLICK)
 
     chem_filter_elament = element_actions.get_element(elements.CHEM_STYLE_FILTER_BTN)
@@ -49,9 +49,17 @@ def reset_consumables_page_filters(element_actions):
             element_actions.execute_element_action(elements.RESET_CHEM_STYLE_BTN, ElementCallback.CLICK)
 
 
+def reset_player_name_filter(element_actions):
+    player_name_placeholder_element = element_actions.get_element(elements.PLAYER_NAME_PLACEHOLDER)
+    if "has-selection" in player_name_placeholder_element.get_attribute("class"):
+        element_actions.execute_element_action(elements.RESET_PLAYER_NAME_BTN, ElementCallback.CLICK)
+
+
+
 def enter_players_tab(element_actions):
     element_actions.execute_element_action(elements.PLAYERS_TAB_BUTTON, ElementCallback.CLICK)
     # reset selected fields
+    reset_player_name_filter(element_actions)
     reset_player_page_filters(element_actions)
 
 

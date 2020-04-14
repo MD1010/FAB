@@ -27,15 +27,16 @@ class ItemActions:
                 self.element_actions.execute_element_action(elements.CONFIRM_BUY_BTN, ElementCallback.CLICK)
                 time.sleep(1)
                 new_coin_balance = get_coin_balance_from_web_app(self.element_actions)
-                # market was not refreshed properly - not a real buy! - budget may be changed due to a sold player
-                if new_coin_balance >= current_coin_balance:
-                    return False, None
-                bought_for_label = self.element_actions.get_element(elements.BOUGHT_FOR)
-                if bought_for_label:
-                    bought_for = int(str(bought_for_label.text).replace(',', ''))
-                    return True, bought_for
-                else:
-                    return False, None
+                if new_coin_balance:
+                    # market was not refreshed properly - not a real buy! - budget may be changed due to a sold player
+                    if new_coin_balance >= current_coin_balance:
+                        return False, None
+                    bought_for_label = self.element_actions.get_element(elements.BOUGHT_FOR)
+                    if bought_for_label:
+                        bought_for = int(str(bought_for_label.text).replace(',', ''))
+                        return True, bought_for
+                    else:
+                        return False, None
 
     def list_item(self, price):
         # check if elemenet is listable - maybe if the time has expired..

@@ -63,7 +63,9 @@ def verify_driver_opened(func):
 
 
 def get_coin_balance_from_web_app(element_actions):
-    return int(element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
+    if element_actions.get_element(elements.COIN_BALANCE):
+        return int(element_actions.get_element(elements.COIN_BALANCE).text.replace(',', ''))
+    return None
 
 
 def server_response(msg, code=200, **kwargs):
