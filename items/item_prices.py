@@ -7,9 +7,8 @@ from consts.app import MAX_CARD_ON_PAGE, NUMBER_OF_SEARCHS_BEFORE_BINARY_SEARCH
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.prices.prices_consts import MIN_ITEM_PRICE, MAX_PRICE, MIN_PRICE
 from enums.actions_for_execution import ElementCallback
-from factories.real_time_prices import FutbinPriceFactory
-from search_filters.filter_setter import FilterSetter
 from utils.prices import calc_new_max_price, get_scale_from_dict
+
 
 def search_item_RT_price_on_market(element_actions, item_price_limit):
     found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_price_limit)
@@ -65,11 +64,15 @@ def _change_max_bin_price(element_actions, new_price):
 
 
 def _check_if_got_results_in_current_price_webapp(element_actions, item_price):
+    item_price = int(item_price.replace(",", ""))
     element_actions.execute_element_action(elements.SEARCH_ITEM_BTN, ElementCallback.CLICK)
+    element_actions.wait_for_page_to_load_without_timeout()
     no_results_banner = element_actions.get_element(elements.NO_RESULTS_FOUND)
     while no_results_banner:
         item_price = item_price * 2
         item_price = _change_max_bin_price(element_actions, item_price)
+        element_actions.execute_element_action(elements.SEARCH_ITEM_BTN, ElementCallback.CLICK)
+        element_actions.wait_for_page_to_load_without_timeout()
         no_results_banner = element_actions.get_element(elements.NO_RESULTS_FOUND)
         if no_results_banner and item_price >= MAX_PRICE:
             return False, MAX_PRICE
@@ -90,7 +93,7 @@ def get_item_min_price_on_webapp_page(element_actions):
 
 def check_item_price_binary_search(element_actions, item_price):
     down_limit = MIN_ITEM_PRICE
-    up_limit = int(item_price.replace(',', ''))
+    up_limit = item_price
     item_new_max_price = calc_new_max_price(down_limit, up_limit, 0)
     search_scales = get_scale_from_dict(up_limit, down_limit)
     item_price_after_webapp_transfer = _change_max_bin_price(element_actions, item_new_max_price)
