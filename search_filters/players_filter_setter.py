@@ -48,6 +48,6 @@ class PlayerFilterSetter(SearchFilterSetter):
                                                                               player_league)
 
     def set_player_club_filter(self, player_club):
-        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.CLUB_FILTER_BTN,
-                                                                              elements.CLUB_FILTER_DROPDOWN,
+        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.PLAYER_CLUB_FILTER_BTN,
+                                                                              elements.PLAYER_CLUB_FILTER_DROPDOWN,
                                                                               player_club)

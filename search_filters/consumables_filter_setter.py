@@ -19,8 +19,8 @@ class ConsumableFilterSetter(SearchFilterSetter):
                                                                               consumable_webapp_type_names.get(ItemTypes(consumable_type)))
 
     def set_item_quality_filter(self, consumable_quality):
-        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.CONSUMABLE_QUALITY_FILTER_BTN,
-                                                                              elements.CONSUMABLE_QUALITY_FILTER_DROPDOWN,
+        self.element_actions.select_matching_li_by_text_from_dropdown_ul_list(elements.CONSUMABLES_QUALITY_FILTER_BTN,
+                                                                              elements.CONSUMABLES_QUALITY_FILTER_DROPDOWN,
                                                                               consumable_quality)
 
     def set_specific_item_name_filter(self, consumable_name):

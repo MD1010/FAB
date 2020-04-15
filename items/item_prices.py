@@ -11,9 +11,8 @@ from factories.real_time_prices import FutbinPriceFactory
 from search_filters.filter_setter import FilterSetter
 from utils.prices import calc_new_max_price, get_scale_from_dict
 
-def search_item_RT_price_on_market(element_actions, item_futbin_price):
-    # get_approximate_min specific to item if it is a consumable then anotherfunction has to be called
-    found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_futbin_price)
+def search_item_RT_price_on_market(element_actions, item_price_limit):
+    found_item_from_regular_search, item_price = _check_item_price_regular_search(element_actions, item_price_limit)
     if found_item_from_regular_search:
         return item_price
     is_found_price, item_price = _check_if_got_results_in_current_price_webapp(element_actions, item_price)

@@ -10,5 +10,5 @@ def start_loop(fab, configuration, items):
     if item_to_search is None:
         return server_response(msg=server_status_messages.NO_BUDGET_LEFT, code=503)
     # enter_transfer_market(fab)
-    FilterSetter(fab.element_actions, item_to_search).set_custom_search_filteres()
+    FilterSetter(fab.element_actions, item_to_search).set_search_filteres()
     return run_search_loop(fab, configuration, item_to_search, items)

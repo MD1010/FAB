@@ -7,11 +7,8 @@ def set_items_priorities(items, user_coin_balance):
         if item['maxBIN'] > user_coin_balance:
             item['priority'] = 0
         else:
-            if item.get('marketPrice'):
-                item['priority'] = item['marketPrice'] - get_sell_price(item['marketPrice'])
+            item['priority'] = item['marketPrice'] - get_sell_price(item['marketPrice'])
                 # always prefer the unnamed search - to catch more players - give to an item that doesn't have name the biggest priority(profit)
-            else:
-                item['priority'] = MAX_PRICE
 
 
 def get_item_to_search_according_to_prices(items):

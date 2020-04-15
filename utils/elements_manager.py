@@ -129,7 +129,8 @@ class ElementActions(Driver):
         logged_on_console = self.get_element(elements.LOGGED_ON_CONSOLE)
         login_captcha = self.get_element(elements.LOGIN_CAPTHA)
         login_popup = self.get_element(elements.LOGIN_POPUP)
-        if getting_started or logged_on_console or login_captcha or login_popup:
+        servers_down = self.get_element(elements.SERVERS_DOWN)
+        if getting_started or logged_on_console or login_captcha or login_popup or servers_down:
             return False
         return True
 

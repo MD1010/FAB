@@ -2,7 +2,7 @@ from enums.filters import PlayerFilters, ConsumableFilters
 from enums.item_types import ItemTypes
 from search_filters.consumables_filter_setter import ConsumableFilterSetter
 from search_filters.players_filter_setter import PlayerFilterSetter
-from utils.market import enter_players_tab, enter_consumables_tab
+from utils.market import enter_players_tab, enter_consumables_tab, reset_player_page_filters, reset_consumables_page_filters
 
 
 class FilterSetter:
@@ -10,33 +10,38 @@ class FilterSetter:
         self.element_actions = element_actions
         self.item = item
 
-    def set_basic_filters_to_get_item_price(self, price_limit, specific_player_search=True):
-        if ItemTypes(self.item['type']) == ItemTypes.PLAYER:
-            # go to the players tab
-            enter_players_tab(self.element_actions)
-            search_filter_setter = PlayerFilterSetter(self.element_actions)
-            if specific_player_search:
-                search_filter_setter.set_specific_item_name_filter(self.item['name'])
-            search_filter_setter.set_item_price_filter(price_limit)
-        else:
-            # go to the consumables tab
-            enter_consumables_tab(self.element_actions)
-            self._set_consumable_filters()
-            consumable_filter_setter = ConsumableFilterSetter(self.element_actions)
-            consumable_filter_setter.set_item_price_filter(price_limit)
+    # def set_basic_filters_to_get_item_price(self, price_limit, specific_player_search=True):
+    #     if ItemTypes(self.item['type']) == ItemTypes.PLAYER:
+    #         # go to the players tab
+    #         enter_players_tab(self.element_actions)
+    #         search_filter_setter = PlayerFilterSetter(self.element_actions)
+    #         if specific_player_search:
+    #             search_filter_setter.set_specific_item_name_filter(self.item['name'])
+    #         search_filter_setter.set_item_price_filter(price_limit)
+    #     else:
+    #         # go to the consumables tab
+    #         enter_consumables_tab(self.element_actions)
+    #         self._set_consumable_filters()
+    #         consumable_filter_setter = ConsumableFilterSetter(self.element_actions)
+    #         consumable_filter_setter.set_item_price_filter(price_limit)
 
-    def set_custom_search_filteres(self):
+    def set_search_filteres(self):
         if ItemTypes(self.item['type']) == ItemTypes.PLAYER:
             # go to the players tab
             enter_players_tab(self.element_actions)
+            # reset selected fields
+            reset_player_page_filters(self.element_actions)
             self._set_player_filters()
         else:
             # go to the consumables tab
             enter_consumables_tab(self.element_actions)
+            # reset selected fields
+            reset_consumables_page_filters(self.element_actions)
             self._set_consumable_filters()
 
     def _set_player_filters(self):
         player_filter_setter = PlayerFilterSetter(self.element_actions)
+
         # set existing player webapp_filters from user
         for filter_name, filter_value in self.item.items():
             # check if the item key is a filter or it is part of the item data

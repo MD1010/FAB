@@ -10,5 +10,5 @@ def update_search_item_if_coin_balance_changed(fab, best_item_to_search, items):
         update_coin_balance(fab.user.email, fab.element_actions)
         best_item_to_search = get_item_to_search_according_to_prices(items)
         if best_item_to_search is not None:
-            FilterSetter(fab.element_actions, best_item_to_search).set_custom_search_filteres()
+            FilterSetter(fab.element_actions, best_item_to_search).set_search_filteres()
     return best_item_to_search
