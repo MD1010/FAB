@@ -58,6 +58,7 @@ def evaluate_driver_operation_time(fab, start_time, time_to_run_in_sec, num_of_t
         fab.time_left_to_run = 0
         return False
     fab.time_left_to_run = time_to_run_in_sec - elapsed_time
+    fab.user.total_runtime = elapsed_time
     num_of_tries += 1
     if num_of_tries % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
         time.sleep(SLEEP_MID_OPERATION_DURATION)

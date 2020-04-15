@@ -12,7 +12,11 @@ from utils.market import decrease_increase_min_price
 def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
     increase_min_price = True
     num_of_tries = 0
-    time_to_run_in_sec = loop_configuration["time"]
+    if not fab.time_left_to_run:
+        time_to_run_in_sec = loop_configuration["time"]
+    else:
+        time_to_run_in_sec = fab.time_left_to_run
+
     is_item_listed_after_buy = loop_configuration["autoList"]
 
     start = time.time()
