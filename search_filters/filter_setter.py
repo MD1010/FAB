@@ -10,21 +10,6 @@ class FilterSetter:
         self.element_actions = element_actions
         self.item = item
 
-    # def set_basic_filters_to_get_item_price(self, price_limit, specific_player_search=True):
-    #     if ItemTypes(self.item['type']) == ItemTypes.PLAYER:
-    #         # go to the players tab
-    #         enter_players_tab(self.element_actions)
-    #         search_filter_setter = PlayerFilterSetter(self.element_actions)
-    #         if specific_player_search:
-    #             search_filter_setter.set_specific_item_name_filter(self.item['name'])
-    #         search_filter_setter.set_item_price_filter(price_limit)
-    #     else:
-    #         # go to the consumables tab
-    #         enter_consumables_tab(self.element_actions)
-    #         self._set_consumable_filters()
-    #         consumable_filter_setter = ConsumableFilterSetter(self.element_actions)
-    #         consumable_filter_setter.set_item_price_filter(price_limit)
-
     def set_search_filteres(self):
         if ItemTypes(self.item['type']) == ItemTypes.PLAYER:
             # go to the players tab
