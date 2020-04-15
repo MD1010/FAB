@@ -12,7 +12,7 @@ from consts.server_status_messages import LIMIT_TRIES
 from items.item_actions import ItemActions
 from live_data import user_login_attempts, active_fabs, opened_drivers
 from players.player_cards import get_all_players_cards
-from user_info.user_actions import initialize_user_from_db
+from user_info.user_actions import initialize_user_from_db, update_db_coins_earned, update_db_total_runtime
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
@@ -72,6 +72,10 @@ def close_running_driver():
     jsonData = request.get_json()
     email = jsonData.get('user')
     driver = opened_drivers[email]
+    active_fab = active_fabs.get(email)
+    if active_fab:
+        update_db_coins_earned(active_fab)
+        update_db_total_runtime(active_fab)
     return close_driver(driver, email)
 
 

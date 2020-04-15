@@ -1,9 +1,13 @@
+import datetime
+import math
+
 import bcrypt
 
-from live_data import active_fabs
 from consts import elements
 from consts.platform import platforms
+from consts.prices.prices_consts import MAP_INC_DEC_PRICES
 from enums.actions_for_execution import ElementCallback
+from live_data import active_fabs
 from models.user import User
 from utils import db
 from utils.helper_functions import get_coin_balance_from_web_app
@@ -51,3 +55,17 @@ def get_db_user_platform(email):
 def get_db_username(email):
     user_in_db = db.users_collection.find_one({"email": email})
     return user_in_db["username"]
+
+
+def update_db_coins_earned(fab):
+    today = str(datetime.datetime.today().strftime('%d-%m-%Y'))
+    db.users_collection.update({"email": fab.user.email}, {"$inc": {"coins_earned.{}".format(today): int(fab.user.coins_earned)}}, upsert=True)
+
+
+def update_db_total_runtime(fab):
+    today = str(datetime.datetime.today().strftime('%d-%m-%Y'))
+    db.users_collection.update({"email": fab.user.email}, {"$inc": {"total_runtime.{}".format(today): fab.user.total_runtime}}, upsert=True)
+
+
+def update_earned_coins_in_fab(fab, listed_price, bought_price):
+    fab.user.coins_earned += (math.ceil(listed_price * 0.95) - bought_price)

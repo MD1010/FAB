@@ -4,6 +4,8 @@ from consts import elements, server_status_messages
 from consts.app import CURRENT_WORKING_DIR
 from enums.actions_for_execution import ElementCallback
 from items.next_item_to_search import update_search_item_if_coin_balance_changed
+from models.price_evaluator import get_sell_price
+from user_info.user_actions import update_earned_coins_in_fab, update_db_total_runtime, update_db_coins_earned
 from utils.driver_functions import evaluate_driver_operation_time, close_driver
 from utils.helper_functions import get_coin_balance_from_web_app, server_response
 from utils.market import decrease_increase_min_price
@@ -35,8 +37,10 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
 
         item_bought, bought_for = fab.item_actions.buy_item(current_budget)
         if item_bought and bought_for:
+            list_price = get_sell_price(item_to_search['marketPrice'])
             fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\bought for {bought_for}.png")
             print(f"bought for={bought_for}")
+            update_earned_coins_in_fab(fab, list_price, bought_for)
             if is_item_listed_after_buy:
                 pass
                 # print(f"listed={list_price}")
@@ -52,4 +56,6 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
         increase_min_price = not increase_min_price
         ### time check
         print(num_of_tries)
+        update_db_coins_earned(fab)
+        update_db_total_runtime(fab)
     return server_response(msg=server_status_messages.FAB_LOOP_FINISHED, code=200)

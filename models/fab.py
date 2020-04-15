@@ -5,6 +5,5 @@ class Fab:
         self.item_actions = item_actions
         self.user = user
         self.time_left_to_run = 0
-        self.coins_earned = 0
         self.runtime = 0
         self.driver_crashes = 0

@@ -9,4 +9,4 @@ class User:
         self.platform = platform
         self.total_runtime = 0
         self.coin_balance = 0
-        self.total_coins_earned = 0
+        self.coins_earned = 0

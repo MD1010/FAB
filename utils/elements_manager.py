@@ -7,12 +7,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from consts import elements
-from consts.app import TIME_TO_LOGIN
+from consts.app import TIME_TO_LOGIN, MAX_TIME_WAIT_FOR_PAGE
 from consts.elements import START_ITEM_PRICE_ON_PAGE, END_ITEM_PRICE_ON_PAGE
 from consts.selenium_scripts import REMOVE_ELEMENT
 from enums.actions_for_execution import ElementCallback
 from enums.path_by import ElementPathBy
 from models.driver import Driver
+from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
+from utils.driver_functions import close_driver
 
 
 def run_callback(web_element, callback, *callback_params: 'price if sendKeys'):
@@ -107,11 +109,16 @@ class ElementActions(Driver):
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
-    def wait_for_page_to_load_without_timeout(self):
+    def wait_for_page_to_load_without_element_timeout(self, fab):
+        start_time = time.time()
         while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,
                                                END_ITEM_PRICE_ON_PAGE)) is None and self.get_element(
-            elements.NO_RESULTS_FOUND) is None:
+            elements.NO_RESULTS_FOUND) is None and time.time() - start_time < MAX_TIME_WAIT_FOR_PAGE:
             pass
+        if time.time() - start_time > MAX_TIME_WAIT_FOR_PAGE:
+            update_db_coins_earned(fab)
+            update_db_total_runtime(fab)
+            close_driver(self.driver, fab.user.email)
 
     def check_if_last_element_exist(self):
         while True:
