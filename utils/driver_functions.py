@@ -7,6 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from live_data import opened_drivers, user_login_attempts, active_fabs
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, MAX_DRIVER_CRASHES_COUNT
+from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
 from utils.helper_functions import server_response
 
 
@@ -41,12 +42,16 @@ def close_driver(driver, email):
         login_attempt = user_login_attempts.get(email)
         current_driver = opened_drivers.get(email)
         fab = active_fabs.get(email)
+        update_db_coins_earned(fab)
+        update_db_total_runtime(fab)
+
         if login_attempt:
             del user_login_attempts[email]
         if current_driver:
             del opened_drivers[email]
         if fab:
             del active_fabs[email]
+
         return server_response(msg=server_status_messages.FAB_DRIVER_CLOSE_SUCCESS, code=200)
     return server_response(msg=server_status_messages.FAB_DRIVER_CLOSE_FAIL, code=503)
 

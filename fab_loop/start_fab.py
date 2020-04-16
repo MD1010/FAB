@@ -4,6 +4,7 @@ from urllib3.exceptions import MaxRetryError
 from auth.auth_status import set_auth_status
 from consts import server_status_messages
 from fab_loop.start_loop import start_loop
+from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
 from utils.driver_functions import close_driver, check_if_restart_is_possible, initialize_time_left
 from utils.helper_functions import server_response
 

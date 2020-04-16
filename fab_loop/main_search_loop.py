@@ -56,6 +56,7 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
         increase_min_price = not increase_min_price
         ### time check
         print(num_of_tries)
-        update_db_coins_earned(fab)
-        update_db_total_runtime(fab)
+
+    update_db_coins_earned(fab)
+    update_db_total_runtime(fab)
     return server_response(msg=server_status_messages.FAB_LOOP_FINISHED, code=200)

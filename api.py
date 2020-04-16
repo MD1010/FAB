@@ -72,10 +72,6 @@ def close_running_driver():
     jsonData = request.get_json()
     email = jsonData.get('user')
     driver = opened_drivers[email]
-    active_fab = active_fabs.get(email)
-    if active_fab:
-        update_db_coins_earned(active_fab)
-        update_db_total_runtime(active_fab)
     return close_driver(driver, email)
 
 

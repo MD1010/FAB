@@ -114,10 +114,9 @@ class ElementActions(Driver):
         while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,
                                                END_ITEM_PRICE_ON_PAGE)) is None and self.get_element(
             elements.NO_RESULTS_FOUND) is None and time.time() - start_time < MAX_TIME_WAIT_FOR_PAGE:
+            print("waiting for element for:{}".format(time.time() - start_time))
             pass
         if time.time() - start_time > MAX_TIME_WAIT_FOR_PAGE:
-            update_db_coins_earned(fab)
-            update_db_total_runtime(fab)
             close_driver(self.driver, fab.user.email)
 
     def check_if_last_element_exist(self):
