@@ -13,7 +13,6 @@ from consts.selenium_scripts import REMOVE_ELEMENT
 from enums.actions_for_execution import ElementCallback
 from enums.path_by import ElementPathBy
 from models.driver import Driver
-from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
 from utils.driver_functions import close_driver
 
 
@@ -111,7 +110,6 @@ class ElementActions(Driver):
         while self.get_element("{}{}{}".format(START_ITEM_PRICE_ON_PAGE, 1,
                                                END_ITEM_PRICE_ON_PAGE)) is None and self.get_element(
             elements.NO_RESULTS_FOUND) is None and time.time() - start_time < MAX_TIME_WAIT_FOR_PAGE:
-            print("waiting for element for:{}".format(time.time() - start_time))
             pass
         if time.time() - start_time > MAX_TIME_WAIT_FOR_PAGE:
             close_driver(self.driver, fab.user.email)
