@@ -1,3 +1,6 @@
+import time
+
+
 class User:
     def __init__(self, email, password="", cookies=None, username="", platform=""):
         if cookies is None:
