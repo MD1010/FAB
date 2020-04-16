@@ -5,6 +5,5 @@ __pycache__/
 /*.png
 /cookies.txt
 /screenshots/
-/consts/db_connection.py
 /debug.log
-/consts/app.py
+/consts/db_connection.py
