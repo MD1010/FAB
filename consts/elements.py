@@ -91,5 +91,6 @@ RESET_PLAYER_NATION_X = "/html/body/main/section/section/div[2]/div/div[2]/div/d
 RESET_PLAYER_LEAGUE_X = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[6]/div/div/button"
 RESET_PLAYER_CLUB_X = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[7]/div/div/button"
 PLAYER_NAME_PLACEHOLDER = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]"
+LOGIN_MESSAGE = "tfa-login-panel-container-style"
 
 

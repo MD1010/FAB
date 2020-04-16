@@ -9,15 +9,15 @@ from auth.selenium_login import set_status_code
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
+from fab_loop.start_fab import start_fab
 from items.item_actions import ItemActions
-from live_data import user_login_attempts, active_fabs, opened_drivers
+from live_data import user_login_attempts, opened_drivers
 from players.player_cards import get_all_players_cards
-from user_info.user_actions import initialize_user_from_db, update_db_coins_earned, update_db_total_runtime
+from user_info.user_actions import initialize_user_from_db
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
 from utils.login_timeout_thread import check_login_timeout, open_login_timeout_thread
-from fab_loop.start_fab import start_fab
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -104,15 +104,16 @@ def set_code(data):
     code = data['code']
     email = data['email']
     room_id = email
-    user_fab = active_fabs.get(email)
+    driver = opened_drivers.get(email)
     login_attempt = user_login_attempts[email]
 
-    if set_status_code(user_fab, email, code, socketio, room_id):
+    if set_status_code(driver, email, code, socketio, room_id):
         send("You successfully loged in", room=room_id)
     elif login_attempt.tries_with_status_code:
         send("Status code error, you have {} attempts left".format(login_attempt.tries_with_status_code), room=room_id)
     else:
         send(LIMIT_TRIES, room=room_id)
+        close_driver(driver, email)
 
 
 if __name__ == '__main__':

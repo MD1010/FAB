@@ -104,10 +104,7 @@ class ElementActions(Driver):
                 if path_by == ElementPathBy.XPATH \
                 else WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, actual_path)))
         except TimeoutException as e:
-            if timeout == 60:  # stuck on login
-                print("Unable to log into the web app")
-            else:
-                raise TimeoutException(f"{actual_path} element was not found - Timeout")
+            raise TimeoutException(f"{actual_path} element was not found - Timeout")
 
     def wait_for_page_to_load_without_element_timeout(self, fab):
         start_time = time.time()

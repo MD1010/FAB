@@ -1,8 +1,12 @@
+from selenium.webdriver.common.keys import Keys
+
+from consts.app import LOGIN_SIGN_BEFORE_STATUS_CODE_CHECK_OPTION
 from live_data import user_login_attempts
 from auth.auth_status import set_auth_status
 from consts import elements, app
 from enums.actions_for_execution import ElementCallback
 from models.driver import Driver
+from utils.elements_manager import ElementActions
 
 
 class SeleniumLogin(Driver):
@@ -35,10 +39,19 @@ class SeleniumLogin(Driver):
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         if not self._is_login_error_exists(email):
-            # check the SMS option
-            self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
-            # send the sms verfication
-            self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+            login_message_before_status_code = self.element_actions.get_element(elements.LOGIN_MESSAGE).text
+            if LOGIN_SIGN_BEFORE_STATUS_CODE_CHECK_OPTION in login_message_before_status_code:
+                # check the SMS option
+                self.element_actions.execute_element_action(elements.CODE_BTN, ElementCallback.CLICK)
+                # send the sms verfication
+                self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+                # emit that code send to phone.
+            else:
+                self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+                # emit that code send to mail/phone/call to phone.
+
+                # emit that code send to phone.
+
             # todo: return this lines after checking first time login.
             return True
         return False
@@ -50,11 +63,16 @@ class SeleniumLogin(Driver):
             return True
         return False
 
-def set_status_code(fab, email, code, socketio, room_id):
-    fab.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                code)
-    fab.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-    status_code_error = fab.element_actions.get_element(elements.CODE_ERROR)
+def set_status_code(driver, email, code, socketio, room_id):
+    element_actions = ElementActions(driver)
+    element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                               Keys.CONTROL, "a")
+    element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                               code)
+
+
+    element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+    status_code_error = element_actions.get_element(elements.CODE_ERROR)
     if not status_code_error:
         set_auth_status(email, True)
         return True

@@ -38,14 +38,14 @@ def initialize_time_left(fab, time_to_run_in_sec):
 
 def close_driver(driver, email):
     if driver is not None:
-
         driver.quit()
         login_attempt = user_login_attempts.get(email)
         current_driver = opened_drivers.get(email)
         fab = active_fabs.get(email)
-        fab.user.total_runtime = time.time() - fab.start_runtime
-        update_db_coins_earned(fab)
-        update_db_total_runtime(fab)
+        if fab:
+            fab.user.total_runtime = time.time() - fab.start_runtime
+            update_db_coins_earned(fab)
+            update_db_total_runtime(fab)
 
         if login_attempt:
             del user_login_attempts[email]

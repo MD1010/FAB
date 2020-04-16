@@ -68,4 +68,16 @@ def update_db_total_runtime(fab):
 
 
 def update_earned_coins_in_fab(fab, listed_price, bought_price):
-    fab.user.coins_earned += (math.ceil(listed_price * 0.95) - bought_price)
+    for element in MAP_INC_DEC_PRICES.items():
+        values = element[0].split("-")
+        if listed_price > float(values[0]) and listed_price < float(values[1]):
+            scale = float(element[1])
+            break
+    deviation = listed_price % scale
+    if deviation == scale/2:
+        listed_price = listed_price + deviation
+    elif deviation > scale/2:
+        listed_price = listed_price - deviation + scale
+    else:
+        listed_price = listed_price - deviation
+    fab.user.coins_earned += (math.ceil(listed_price*0.95) - bought_price)
