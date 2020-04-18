@@ -2,7 +2,7 @@ from enums.filters import PlayerFilters, ConsumableFilters
 from enums.item_types import ItemTypes
 from search_filters.consumables_filter_setter import ConsumableFilterSetter
 from search_filters.players_filter_setter import PlayerFilterSetter
-from utils.market import enter_players_tab, enter_consumables_tab, reset_player_page_filters, reset_consumables_page_filters
+from utils.market import enter_players_tab, enter_consumables_tab, reset_tab_filters
 
 
 class FilterSetter:
@@ -15,13 +15,13 @@ class FilterSetter:
             # go to the players tab
             enter_players_tab(self.element_actions)
             # reset selected fields
-            reset_player_page_filters(self.element_actions)
+            reset_tab_filters(self.element_actions)
             self._set_player_filters()
         else:
             # go to the consumables tab
             enter_consumables_tab(self.element_actions)
             # reset selected fields
-            reset_consumables_page_filters(self.element_actions)
+            reset_tab_filters(self.element_actions)
             self._set_consumable_filters()
 
     def _set_player_filters(self):

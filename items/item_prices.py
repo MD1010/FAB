@@ -20,6 +20,7 @@ def search_item_RT_price_on_market(fab, item_price_limit):
         return min_price
     else:
         return MAX_PRICE
+    # todo: emit if the card was not found, maybe emit the found price..
 
 
 def _check_item_price_regular_search(fab, item_price):
@@ -75,6 +76,7 @@ def _check_if_got_results_in_current_price_webapp(fab, item_price):
         fab.element_actions.wait_for_page_to_load_without_element_timeout(fab)
         no_results_banner = fab.element_actions.get_element(elements.NO_RESULTS_FOUND)
         if no_results_banner and item_price >= MAX_PRICE:
+            fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
             return False, MAX_PRICE
     return True, item_price
 

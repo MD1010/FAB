@@ -93,4 +93,6 @@ RESET_PLAYER_CLUB_X = "/html/body/main/section/section/div[2]/div/div[2]/div/div
 PLAYER_NAME_PLACEHOLDER = "/html/body/main/section/section/div[2]/div/div[2]/div/div[1]/div[1]/div[1]"
 LOGIN_MESSAGE = "tfa-login-panel-container-style"
 
+RESET_FILTERS_BUTTON="/html/body/main/section/section/div[2]/div/div[2]/div/div[2]/button[1]"
+
 
