@@ -3,13 +3,13 @@ import datetime
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
+from auth.web_app.auth_status import set_web_app_status
+from auth.web_app.selenium_login import SeleniumLogin
 from live_data import active_fabs, ea_account_login_attempts
-from auth.auth_status import set_auth_status, set_web_app_status
-from auth.selenium_login import SeleniumLogin
-from auth.signup import register_new_ea_account_db
+
 from consts import server_status_messages, app
 from utils.elements_manager import ElementActions
-from ea_account_info.ea_account_actions import update_ea_account_platform_db, update_ea_account_username_db, get_ea_account_from_db_if_exists
+from ea_account_info.ea_account_actions import update_ea_account_platform_db, update_ea_account_username_db, get_ea_account_from_db_if_exists, register_new_ea_account_db
 from utils.driver_functions import get_or_create_driver_instance, close_driver
 from utils.helper_functions import server_response
 

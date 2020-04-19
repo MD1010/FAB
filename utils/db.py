@@ -6,4 +6,4 @@ cluster = MongoClient(f'mongodb+srv://{DB_USER}:{DB_PASSWORD}@cluster0-qs7gn.mon
 fab_db = cluster[DB_NAME]
 players_collection = fab_db[PLAYERS_COLLECTION]
 ea_accounts_collection = fab_db[EA_ACCOUNTS_COLLECTION]
-users_coolection = fab_db[USERS_COLLECTION]
+users_collection = fab_db[USERS_COLLECTION]

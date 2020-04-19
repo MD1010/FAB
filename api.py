@@ -3,17 +3,18 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, JWTManager
 from flask_socketio import SocketIO, join_room, leave_room, send
 
-from auth.login import start_ea_account_login
-from auth.login_attempt import LoginAttempt
-from auth.selenium_login import set_status_code
+from auth.app_users.signup import create_new_user
+from auth.web_app.login import start_ea_account_login
+from auth.web_app.login_attempt import LoginAttempt
+from auth.web_app.selenium_login import set_status_code
 from consts import server_status_messages
 from consts.app import *
 from consts.server_status_messages import LIMIT_TRIES
+from ea_account_info.ea_account_actions import initialize_ea_account_from_db
 from fab_loop.start_fab import start_fab
 from items.item_actions import ItemActions
 from live_data import ea_account_login_attempts, opened_drivers
 from players.player_cards import get_all_players_cards
-from ea_account_info.ea_account_actions import initialize_ea_account_from_db
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
@@ -27,6 +28,14 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['transports'] = 'websocket'
 app.config['JSON_SORT_KEYS'] = False
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+
+@app.route('/api/signup', methods=['POST'])
+def sign_up_user():
+    json_data = request.get_json()
+    username = json_data.get('username')
+    password = json_data.get('password')
+    return create_new_user(username, password)
 
 
 @app.route('/api/ea-account-login', methods=['POST'])

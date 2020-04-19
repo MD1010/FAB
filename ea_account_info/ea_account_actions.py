@@ -10,7 +10,7 @@ from enums.actions_for_execution import ElementCallback
 from live_data import active_fabs
 from models.ea_account import EaAccount
 from utils import db
-from utils.helper_functions import get_coin_balance_from_web_app
+from utils.helper_functions import get_coin_balance_from_web_app, hash_password
 
 
 def update_ea_account_coin_balance_db(email, element_actions):
@@ -66,6 +66,17 @@ def update_ea_account_total_runtime_db(fab):
     today = str(datetime.datetime.today().strftime('%d-%m-%Y'))
     db.ea_accounts_collection.update({"email": fab.ea_account.email}, {"$inc": {"total_runtime.{}".format(today): fab.ea_account.total_runtime}}, upsert=True)
 
+
+def check_if_new_ea_account(email):
+    existing_account = db.ea_accounts_collection.find_one({'email': email})
+    if existing_account is not None:
+        return False
+    return True
+
+def register_new_ea_account_db(email, password, cookies):
+    hashed_password = hash_password(password)
+    new_account = EaAccount(email, hashed_password, cookies).__dict__
+    db.ea_accounts_collection.insert(new_account)
 
 def update_earned_coins_in_fab(fab, listed_price, bought_price):
     for element in MAP_INC_DEC_PRICES.items():

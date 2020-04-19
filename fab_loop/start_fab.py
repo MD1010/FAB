@@ -1,10 +1,9 @@
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from urllib3.exceptions import MaxRetryError
 
-from auth.auth_status import set_auth_status
+from auth.web_app.auth_status import set_auth_status
 from consts import server_status_messages
 from fab_loop.start_loop import start_loop
-from ea_account_info.ea_account_actions import update_ea_account_coins_earned_db, update_ea_account_total_runtime_db
 from utils.driver_functions import close_driver, check_if_restart_is_possible, initialize_time_left
 from utils.helper_functions import server_response
 
