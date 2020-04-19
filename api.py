@@ -15,6 +15,7 @@ from fab_loop.start_fab import start_fab
 from items.item_actions import ItemActions
 from live_data import ea_account_login_attempts, opened_drivers
 from players.player_cards import get_all_players_cards
+from users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user, update_user_subscription_plan
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
@@ -36,6 +37,30 @@ def sign_up_user():
     username = json_data.get('username')
     password = json_data.get('password')
     return create_new_user(username, password)
+
+
+@app.route('/api/add-ea-account', methods=['POST'])
+def add_user_ea_account():
+    json_data = request.get_json()
+    username = json_data.get('username')
+    ea_account = json_data.get('ea_account')
+    return add_ea_account_to_user(username, ea_account)
+
+
+@app.route('/api/delete-ea-account', methods=['POST'])
+def delete_user_ea_account():
+    json_data = request.get_json()
+    username = json_data.get('username')
+    ea_account = json_data.get('ea_account')
+    return delete_ea_account_from_user(username, ea_account)
+
+
+@app.route('/api/update-user-plan', methods=['POST'])
+def update_user_plan():
+    json_data = request.get_json()
+    username = json_data.get('username')
+    new_plan_type = json_data.get('new_plan_type')
+    return update_user_subscription_plan(username, new_plan_type)
 
 
 @app.route('/api/ea-account-login', methods=['POST'])

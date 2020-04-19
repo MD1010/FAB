@@ -3,20 +3,19 @@ import datetime
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
-from auth.web_app.auth_status import set_web_app_status
+from auth.web_app.auth_status import set_web_app_status, set_auth_status
 from auth.web_app.selenium_login import SeleniumLogin
-from live_data import active_fabs, ea_account_login_attempts
-
 from consts import server_status_messages, app
-from utils.elements_manager import ElementActions
-from ea_account_info.ea_account_actions import update_ea_account_platform_db, update_ea_account_username_db, get_ea_account_from_db_if_exists, register_new_ea_account_db
+from ea_account_info.ea_account_actions import update_ea_account_platform, update_ea_account_username, get_ea_account_if_exists, register_new_ea_account
+from live_data import active_fabs, ea_account_login_attempts
 from utils.driver_functions import get_or_create_driver_instance, close_driver
+from utils.elements_manager import ElementActions
 from utils.helper_functions import server_response
 
 
 def start_ea_account_login(email, password):
     # if user exists in db then he must have already logged in before and he has cookies
-    existing_ea_account = get_ea_account_from_db_if_exists(email, password)
+    existing_ea_account = get_ea_account_if_exists(email, password)
 
     try:
         driver = get_or_create_driver_instance(email)
@@ -50,9 +49,9 @@ def start_ea_account_login(email, password):
 
         element_actions.remove_unexpected_popups()
         if first_time_login:
-            update_ea_account_platform_db(email, element_actions)
-            update_ea_account_username_db(email, element_actions)
-        existing_ea_account = get_ea_account_from_db_if_exists(email, password)
+            update_ea_account_platform(email, element_actions)
+            update_ea_account_username(email, element_actions)
+        existing_ea_account = get_ea_account_if_exists(email, password)
 
         access_token = create_access_token({'id': str(existing_ea_account["_id"])}, expires_delta=datetime.timedelta(hours=3))
         set_web_app_status(email, True)
@@ -78,7 +77,7 @@ def remember_logged_in_ea_account(driver, email, password):
             eaCookies.append(cookie)
 
     # update the db
-    register_new_ea_account_db(email, password, eaCookies)
+    register_new_ea_account(email, password, eaCookies)
 
     set_auth_status(email, True)
     driver.back()

@@ -7,7 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from live_data import opened_drivers, ea_account_login_attempts, active_fabs
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, MAX_DRIVER_CRASHES_COUNT
-from ea_account_info.ea_account_actions import update_ea_account_coins_earned_db, update_ea_account_total_runtime_db
+from ea_account_info.ea_account_actions import update_ea_account_coins_earned, update_ea_account_total_runtime
 from utils.helper_functions import server_response
 
 
@@ -44,8 +44,8 @@ def close_driver(driver, email):
         fab = active_fabs.get(email)
         if fab:
             fab.ea_account.total_runtime = time.time() - fab.start_runtime
-            update_ea_account_coins_earned_db(fab)
-            update_ea_account_total_runtime_db(fab)
+            update_ea_account_coins_earned(fab)
+            update_ea_account_total_runtime(fab)
 
         if login_attempt:
             del ea_account_login_attempts[email]

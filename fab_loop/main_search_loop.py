@@ -5,7 +5,7 @@ from consts.app import CURRENT_WORKING_DIR
 from enums.actions_for_execution import ElementCallback
 from items.next_item_to_search import update_search_item_if_coin_balance_changed
 from models.price_evaluator import get_sell_price
-from ea_account_info.ea_account_actions import update_earned_coins_in_fab, update_ea_account_total_runtime_db, update_ea_account_coins_earned_db
+from ea_account_info.ea_account_actions import update_earned_coins_in_fab, update_ea_account_total_runtime, update_ea_account_coins_earned
 from utils.driver_functions import evaluate_driver_operation_time, close_driver
 from utils.helper_functions import get_coin_balance_from_web_app, server_response
 from utils.market import decrease_increase_min_price
@@ -57,6 +57,6 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
         ### time check
         print(num_of_tries)
 
-    update_ea_account_coins_earned_db(fab)
-    update_ea_account_total_runtime_db(fab)
+    update_ea_account_coins_earned(fab)
+    update_ea_account_total_runtime(fab)
     return server_response(msg=server_status_messages.FAB_LOOP_FINISHED, code=200)
