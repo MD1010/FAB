@@ -50,12 +50,12 @@ def user_login():
 def start_fab_loop():
     jsonData = request.get_json()
     configuration = jsonData.get('configuration')
-    user_email = jsonData.get('user')
+    ea_account = jsonData.get('ea_account')
     items = jsonData.get('items')
-    user_driver = opened_drivers[user_email]
+    user_driver = opened_drivers[ea_account]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
-    fab_user = initialize_user_from_db(user_email)
+    fab_user = initialize_user_from_db(ea_account)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
     return start_fab(active_fab, configuration, items)
@@ -70,9 +70,9 @@ def get_all_cards(searched_player):
 @verify_driver_opened
 def close_running_driver():
     jsonData = request.get_json()
-    email = jsonData.get('user')
-    driver = opened_drivers[email]
-    return close_driver(driver, email)
+    ea_account = jsonData.get('ea_account')
+    driver = opened_drivers[ea_account]
+    return close_driver(driver, ea_account)
 
 
 @app.route("/api/driver-state")
