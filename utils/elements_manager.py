@@ -112,7 +112,7 @@ class ElementActions(Driver):
             elements.NO_RESULTS_FOUND) is None and time.time() - start_time < MAX_TIME_WAIT_FOR_PAGE:
             pass
         if time.time() - start_time > MAX_TIME_WAIT_FOR_PAGE:
-            close_driver(self.driver, fab.user.email)
+            close_driver(self.driver, fab.ea_account.email)
 
     def check_if_last_element_exist(self):
         while True:

@@ -4,7 +4,7 @@ import bcrypt
 from flask import jsonify, make_response, request
 
 from consts import server_status_messages, elements
-from live_data import active_fabs, user_login_attempts, opened_drivers
+from live_data import active_fabs, ea_account_login_attempts, opened_drivers
 from models.fab import Fab
 
 
@@ -12,13 +12,13 @@ def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 
-def create_new_fab(driver, element_actions, item_actions, user):
-    return Fab(driver=driver, element_actions=element_actions, item_actions=item_actions, user=user)
+def create_new_fab(driver, element_actions, item_actions, ea_account):
+    return Fab(driver=driver, element_actions=element_actions, item_actions=item_actions, ea_account=ea_account)
 
 
-def append_new_fab_after_auth_success(fab, user):
-    if active_fabs.get(user.email) is None:
-        active_fabs[user.email] = fab
+def append_new_fab_after_auth_success(fab, ea_account):
+    if active_fabs.get(ea_account.email) is None:
+        active_fabs[ea_account.email] = fab
     print(active_fabs)
 
 
@@ -27,12 +27,13 @@ def check_if_web_app_ready(func):
     def determine_if_func_should_run(*args):
         jsonData = request.get_json()
         ea_account = jsonData.get('ea_account')
-        if not user_login_attempts.get(ea_account):
+        if not ea_account_login_attempts.get(ea_account):
             return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
-        if not user_login_attempts[ea_account].web_app_ready:
+        if not ea_account_login_attempts[ea_account].web_app_ready:
             return server_response(msg=server_status_messages.WEB_APP_IS_STARTING_UP, code=503)
         else:
             return func(*args)
+
     return determine_if_func_should_run
 
 
@@ -71,5 +72,3 @@ def get_coin_balance_from_web_app(element_actions):
 def server_response(msg, code=200, **kwargs):
     res = jsonify(msg=msg, code=code, **kwargs)
     return make_response(res, code)
-
-

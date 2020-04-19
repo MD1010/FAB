@@ -10,17 +10,17 @@ def execute_pre_run_actions(fab):
     # get updated prices
     enter_transfer_market(fab.element_actions)
     # chech if coin balance is available - if not then there is a problem with the web app, else update the coin balance before searching player prices
-    user_coin_balance = get_coin_balance_from_web_app(fab.element_actions)
-    if user_coin_balance is None:
-        close_driver(fab.driver, fab.user.email)
+    ea_account_coin_balance = get_coin_balance_from_web_app(fab.element_actions)
+    if ea_account_coin_balance is None:
+        close_driver(fab.driver, fab.ea_account.email)
         return False
     else:
-        fab.user.coin_balance = user_coin_balance
+        fab.ea_account.coin_balance = ea_account_coin_balance
     return True
 
 
 def get_item_for_loop_search(fab, items):
     check_items_market_prices(fab, items)
-    set_items_priorities(items, fab.user.coin_balance)
+    set_items_priorities(items, fab.ea_account.coin_balance)
     item_to_search = get_item_to_search_according_to_prices(items)
     return item_to_search

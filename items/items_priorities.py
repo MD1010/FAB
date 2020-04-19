@@ -2,9 +2,9 @@ from consts.prices.prices_consts import MAX_PRICE
 from models.price_evaluator import get_sell_price
 
 
-def set_items_priorities(items, user_coin_balance):
+def set_items_priorities(items, ea_account_coin_balance):
     for item in items:
-        if item['maxBIN'] > user_coin_balance:
+        if item['maxBIN'] > ea_account_coin_balance:
             item['priority'] = 0
         else:
             item['priority'] = item['marketPrice'] - get_sell_price(item['marketPrice'])

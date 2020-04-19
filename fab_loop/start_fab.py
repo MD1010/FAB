@@ -4,7 +4,7 @@ from urllib3.exceptions import MaxRetryError
 from auth.auth_status import set_auth_status
 from consts import server_status_messages
 from fab_loop.start_loop import start_loop
-from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
+from ea_account_info.ea_account_actions import update_ea_account_coins_earned_db, update_ea_account_total_runtime_db
 from utils.driver_functions import close_driver, check_if_restart_is_possible, initialize_time_left
 from utils.helper_functions import server_response
 
@@ -16,8 +16,8 @@ def start_fab(fab, configuration, items):
         return server_response(msg=server_status_messages.BAD_REQUEST, code=400)
     try:
         fab_loop_response = start_loop(fab, configuration, items)
-        set_auth_status(fab.user.email, False)
-        close_driver(fab.driver, fab.user.email)
+        set_auth_status(fab.ea_account.email, False)
+        close_driver(fab.driver, fab.ea_account.email)
         return fab_loop_response
 
     except MaxRetryError as e:
@@ -27,7 +27,7 @@ def start_fab(fab, configuration, items):
         print(f"Oops :( Something went wrong.. {e.msg}")
         print("restarting FAB...")
         if not check_if_restart_is_possible(fab):
-            close_driver(fab.driver, fab.user.email)
+            close_driver(fab.driver, fab.ea_account.email)
             return server_response(msg=server_status_messages.DRIVER_CRASHED_TOO_MANY_TIMES, code=503)
         else:
             # only if it has not started yet

@@ -4,10 +4,10 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from live_data import opened_drivers, user_login_attempts, active_fabs
+from live_data import opened_drivers, ea_account_login_attempts, active_fabs
 from consts import app, server_status_messages
 from consts.app import AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION, MAX_DRIVER_CRASHES_COUNT
-from user_info.user_actions import update_db_coins_earned, update_db_total_runtime
+from ea_account_info.ea_account_actions import update_ea_account_coins_earned_db, update_ea_account_total_runtime_db
 from utils.helper_functions import server_response
 
 
@@ -39,16 +39,16 @@ def initialize_time_left(fab, time_to_run_in_sec):
 def close_driver(driver, email):
     if driver is not None:
         driver.quit()
-        login_attempt = user_login_attempts.get(email)
+        login_attempt = ea_account_login_attempts.get(email)
         current_driver = opened_drivers.get(email)
         fab = active_fabs.get(email)
         if fab:
-            fab.user.total_runtime = time.time() - fab.start_runtime
-            update_db_coins_earned(fab)
-            update_db_total_runtime(fab)
+            fab.ea_account.total_runtime = time.time() - fab.start_runtime
+            update_ea_account_coins_earned_db(fab)
+            update_ea_account_total_runtime_db(fab)
 
         if login_attempt:
-            del user_login_attempts[email]
+            del ea_account_login_attempts[email]
         if current_driver:
             del opened_drivers[email]
         if fab:
@@ -65,7 +65,7 @@ def evaluate_driver_operation_time(fab, start_time, time_to_run_in_sec, num_of_t
         fab.time_left_to_run = 0
         return False
     fab.time_left_to_run = time_to_run_in_sec - elapsed_time
-    #fab.user.total_runtime = elapsed_time
+    #fab.ea_account.total_runtime = elapsed_time
     num_of_tries += 1
     if num_of_tries % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
         time.sleep(SLEEP_MID_OPERATION_DURATION)

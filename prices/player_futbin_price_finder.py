@@ -5,7 +5,7 @@ import requests
 from consts.app import FUTBIN_PLAYER_PRICE_URL
 from consts.prices.prices_consts import MAX_PRICE, SANE_PRICE_RATIO
 from models.price_finder import FutbinPriceFinder
-from user_info.user_actions import get_db_user_platform
+from ea_account_info.ea_account_actions import get_ea_account_platform
 
 
 def _min_player_prices_after_sanity_check(player_prices):
@@ -23,9 +23,9 @@ def _min_player_prices_after_sanity_check(player_prices):
 
 
 class PlayerFutbinPriceFinder(FutbinPriceFinder):
-    def __init__(self, item, user_email):
+    def __init__(self, item, ea_account_email):
         self.item = item
-        self.user_email = user_email
+        self.ea_account_email = ea_account_email
 
     def get_futbin_price(self):
         player_prices = []
@@ -39,8 +39,8 @@ class PlayerFutbinPriceFinder(FutbinPriceFinder):
             if prices_of_specific_player[player_id] is None:
                 player_prices.append(0)
             else:
-                user_platform = get_db_user_platform(self.user_email)
-                player_prices.append(prices_of_specific_player[player_id]['prices'][user_platform][LCPrice])
+                ea_account_platform = get_ea_account_platform(self.ea_account_email)
+                player_prices.append(prices_of_specific_player[player_id]['prices'][ea_account_platform][LCPrice])
 
         for price_index in range(len(player_prices)):
             if ',' in str(player_prices[price_index]):

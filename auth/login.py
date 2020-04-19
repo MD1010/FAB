@@ -3,29 +3,29 @@ import datetime
 from flask_jwt_extended import create_access_token
 from selenium.common.exceptions import TimeoutException
 
-from live_data import active_fabs, user_login_attempts
+from live_data import active_fabs, ea_account_login_attempts
 from auth.auth_status import set_auth_status, set_web_app_status
 from auth.selenium_login import SeleniumLogin
-from auth.signup import register_new_user_to_db
+from auth.signup import register_new_ea_account_db
 from consts import server_status_messages, app
 from utils.elements_manager import ElementActions
-from user_info.user_actions import update_db_user_platform, update_db_username, get_user_from_db_if_exists
+from ea_account_info.ea_account_actions import update_ea_account_platform_db, update_ea_account_username_db, get_ea_account_from_db_if_exists
 from utils.driver_functions import get_or_create_driver_instance, close_driver
 from utils.helper_functions import server_response
 
 
-def start_login(email, password):
+def start_ea_account_login(email, password):
     # if user exists in db then he must have already logged in before and he has cookies
-    existing_user = get_user_from_db_if_exists(email, password)
+    existing_ea_account = get_ea_account_from_db_if_exists(email, password)
 
     try:
         driver = get_or_create_driver_instance(email)
         element_actions = ElementActions(driver)
         selenium_login = SeleniumLogin(driver, element_actions)
 
-        if existing_user:
+        if existing_ea_account:
             first_time_login = False
-            if not selenium_login.login_with_cookies(password, email, existing_user["cookies"]):
+            if not selenium_login.login_with_cookies(password, email, existing_ea_account["cookies"]):
                 return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
 
         # cookies file was not found - log in the first time
@@ -38,7 +38,7 @@ def start_login(email, password):
             if not status_code_result:
                 return server_response(msg=server_status_messages.LIMIT_TRIES, code=401)
 
-            remember_logged_in_user(driver, email, password)
+            remember_logged_in_ea_account(driver, email, password)
 
         # in the web app now get the logged in user details
 
@@ -50,11 +50,11 @@ def start_login(email, password):
 
         element_actions.remove_unexpected_popups()
         if first_time_login:
-            update_db_user_platform(email, element_actions)
-            update_db_username(email, element_actions)
-        existing_user = get_user_from_db_if_exists(email, password)
+            update_ea_account_platform_db(email, element_actions)
+            update_ea_account_username_db(email, element_actions)
+        existing_ea_account = get_ea_account_from_db_if_exists(email, password)
 
-        access_token = create_access_token({'id': str(existing_user["_id"])}, expires_delta=datetime.timedelta(hours=3))
+        access_token = create_access_token({'id': str(existing_ea_account["_id"])}, expires_delta=datetime.timedelta(hours=3))
         set_web_app_status(email, True)
         return server_response(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
 
@@ -66,7 +66,7 @@ def start_login(email, password):
         return server_response(msg=server_status_messages.DRIVER_ERROR, code=503)
 
 
-def remember_logged_in_user(driver, email, password):
+def remember_logged_in_ea_account(driver, email, password):
     eaCookies = driver.get_cookies()
     driver.get(app.SIGN_IN_URL)
     signInCookies = driver.get_cookies()
@@ -78,15 +78,15 @@ def remember_logged_in_user(driver, email, password):
             eaCookies.append(cookie)
 
     # update the db
-    register_new_user_to_db(email, password, eaCookies)
+    register_new_ea_account_db(email, password, eaCookies)
 
     set_auth_status(email, True)
     driver.back()
 
 
 def wait_for_status_code_loop(email):
-    while not user_login_attempts[email].is_authenticated:
-        if not user_login_attempts[email].tries_with_status_code:
+    while not ea_account_login_attempts[email].is_authenticated:
+        if not ea_account_login_attempts[email].tries_with_status_code:
             del active_fabs[email]
             return False
     return True

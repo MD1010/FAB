@@ -1,7 +1,4 @@
-import time
-
-
-class User:
+class EaAccount:
     def __init__(self, email, password="", cookies=None, username="", platform=""):
         if cookies is None:
             cookies = []

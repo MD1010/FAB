@@ -1,7 +1,7 @@
 from selenium.webdriver.common.keys import Keys
 
 from consts.app import LOGIN_SIGN_BEFORE_STATUS_CODE_CHECK_OPTION
-from live_data import user_login_attempts
+from live_data import ea_account_login_attempts
 from auth.auth_status import set_auth_status
 from consts import elements, app
 from enums.actions_for_execution import ElementCallback
@@ -77,5 +77,5 @@ def set_status_code(driver, email, code, socketio, room_id):
         set_auth_status(email, True)
         return True
     socketio.send("Wrong code!", room=room_id)
-    user_login_attempts[email].tries_with_status_code -= 1
+    ea_account_login_attempts[email].tries_with_status_code -= 1
     return False

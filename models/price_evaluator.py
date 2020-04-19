@@ -7,7 +7,7 @@ from search_filters.filter_setter import FilterSetter
 
 def check_items_market_prices(fab, items):
     for item in items:
-        item_start_price_limit = FutbinPriceFactory(item, fab.user.email).get_futbin_prices_object().get_futbin_price() if item.get('name') else MAX_PRICE
+        item_start_price_limit = FutbinPriceFactory(item, fab.ea_account.email).get_futbin_prices_object().get_futbin_price() if item.get('name') else MAX_PRICE
         # the filter will be set according to the item maxBIN
         item['maxBIN'] = item_start_price_limit
         FilterSetter(fab.element_actions, item).set_search_filteres()
