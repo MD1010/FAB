@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required, JWTManager, get_jwt_identity
+from flask_jwt_extended import jwt_required, JWTManager, get_jwt_identity, jwt_refresh_token_required
 from flask_socketio import SocketIO, join_room, leave_room, send
 
 from auth.app_users.login import log_in_user
@@ -21,7 +21,8 @@ from users.user_details import update_user_username, update_user_password
 from users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user, check_if_user_owns_ea_account
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
-from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
+from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened, \
+    refresh_access_token
 from utils.login_timeout_thread import check_login_timeout, open_login_timeout_thread
 
 app = Flask(__name__)
@@ -32,6 +33,12 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['transports'] = 'websocket'
 app.config['JSON_SORT_KEYS'] = False
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+
+@app.route('/get-new-access-token', methods=['POST'])
+@jwt_refresh_token_required
+def refresh():
+    return refresh_access_token()
 
 
 @app.route('/api/signup', methods=['POST'])
@@ -66,7 +73,7 @@ def edit_password():
     json_data = request.get_json()
     username = get_jwt_identity()['username']
     new_password = json_data.get('new_password')
-    return update_user_password(username,new_password)
+    return update_user_password(username, new_password)
 
 
 @app.route('/api/add-ea-account', methods=['POST'])
