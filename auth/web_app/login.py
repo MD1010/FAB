@@ -13,7 +13,7 @@ from utils.elements_manager import ElementActions
 from utils.helper_functions import server_response
 
 
-def start_ea_account_login(email, password):
+def start_ea_account_login(owner, email, password):
     # if user exists in db then he must have already logged in before and he has cookies
     existing_ea_account = get_ea_account_if_exists(email, password)
 
@@ -37,7 +37,7 @@ def start_ea_account_login(email, password):
             if not status_code_result:
                 return server_response(msg=server_status_messages.LIMIT_TRIES, code=401)
 
-            remember_logged_in_ea_account(driver, email, password)
+            remember_logged_in_ea_account(owner, driver, email, password)
 
         # in the web app now get the logged in user details
 
@@ -65,7 +65,7 @@ def start_ea_account_login(email, password):
         return server_response(msg=server_status_messages.DRIVER_ERROR, code=503)
 
 
-def remember_logged_in_ea_account(driver, email, password):
+def remember_logged_in_ea_account(owner, driver, email, password):
     eaCookies = driver.get_cookies()
     driver.get(app.SIGN_IN_URL)
     signInCookies = driver.get_cookies()
@@ -77,7 +77,7 @@ def remember_logged_in_ea_account(driver, email, password):
             eaCookies.append(cookie)
 
     # update the db
-    result = register_new_ea_account(email, password, eaCookies)
+    result = register_new_ea_account(owner, email, password, eaCookies)
     if not result:
         return server_response(msg=server_status_messages.EA_ACCOUNT_ADD_FAILED, code=500)
 

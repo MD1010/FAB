@@ -32,9 +32,9 @@ def update_ea_account_username(email, element_actions):
     db.ea_accounts_collection.update({"email": email}, {"$set": {"username": username}})
 
 
-def initialize_ea_account_from_db(email):
+def initialize_ea_account_from_db(owner, email):
     ea_account_from_db = db.ea_accounts_collection.find_one({"email": email})
-    return EaAccount(email, ea_account_from_db["password"], ea_account_from_db["cookies"], ea_account_from_db["username"], ea_account_from_db["platform"])
+    return EaAccount(owner, email, ea_account_from_db["password"], ea_account_from_db["cookies"], ea_account_from_db["username"], ea_account_from_db["platform"])
 
 
 def get_ea_account_if_exists(email, password):
@@ -74,9 +74,9 @@ def check_if_new_ea_account(email):
     return True
 
 
-def register_new_ea_account(email, password, cookies):
+def register_new_ea_account(owner, email, password, cookies):
     hashed_password = hash_password(password)
-    new_account = EaAccount(email, hashed_password, cookies).__dict__
+    new_account = EaAccount(owner, email, hashed_password, cookies).__dict__
     return db.ea_accounts_collection.insert(new_account)
 
 

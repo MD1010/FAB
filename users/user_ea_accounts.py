@@ -19,7 +19,7 @@ def add_ea_account_to_user(username, email):
 
 
 def delete_ea_account_from_user(username, email):
-    # db.ea_accounts_collection.delete_one({"email": email})
+    db.ea_accounts_collection.delete_one({"email": email})
     result = db.users_collection.update({"username": username}, {"$pull": {"ea_accounts": email}})
     if result['nModified'] > 0:
         return server_response(msg=server_status_messages.EA_ACCOUNT_DELETE_SUCCESS, code=200)

@@ -68,12 +68,13 @@ def ea_account_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
+    owner = json_data.get('owner')
     if email in opened_drivers and ea_account_login_attempts[email].is_authenticated:
         return server_response(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
     if email not in ea_account_login_attempts:
         ea_account_login_attempts[email] = LoginAttempt()
         open_login_timeout_thread(check_login_timeout, email, app)
-    response_obj = start_ea_account_login(email, password)
+    response_obj = start_ea_account_login(owner, email, password)
     return response_obj
 
 
@@ -82,14 +83,18 @@ def ea_account_login():
 @check_if_fab_opened
 @jwt_required
 def start_fab_loop():
-    jsonData = request.get_json()
-    configuration = jsonData.get('configuration')
-    ea_account = jsonData.get('ea_account')
-    items = jsonData.get('items')
+    json_data = request.get_json()
+    configuration = json_data.get('configuration')
+    items = json_data.get('items')
+
+    personal_info = json_data.get('personal_info')
+    owner = personal_info["user"]
+    ea_account = personal_info['ea_account']
+
     user_driver = opened_drivers[ea_account]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
-    fab_user = initialize_ea_account_from_db(ea_account)
+    fab_user = initialize_ea_account_from_db(owner,ea_account)
     active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
     append_new_fab_after_auth_success(active_fab, fab_user)
     return start_fab(active_fab, configuration, items)
