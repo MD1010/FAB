@@ -26,8 +26,7 @@ def check_if_web_app_ready(func):
     @wraps(func)
     def determine_if_func_should_run(*args):
         json_data = request.get_json()
-        user_info = json_data.get('user_info')
-        ea_account = user_info['ea_account']
+        ea_account = json_data['ea_account']
         if not ea_account_login_attempts.get(ea_account):
             return server_response(msg=server_status_messages.WEBAPP_FAILED_AUTH, code=401)
         if not ea_account_login_attempts[ea_account].web_app_ready:
@@ -42,8 +41,7 @@ def check_if_fab_opened(func):
     @wraps(func)
     def determine_if_func_should_run(*args):
         json_data = request.get_json()
-        user_info = json_data.get('user_info')
-        ea_account = user_info['ea_account']
+        ea_account = json_data['ea_account']
         if ea_account in active_fabs:
             return server_response(msg=server_status_messages.ACTIVE_FAB_EXISTS, code=503)
         else:
@@ -56,8 +54,7 @@ def verify_driver_opened(func):
     @wraps(func)
     def determine_if_func_should_run(*args):
         json_data = request.get_json()
-        user_info = json_data.get('user_info')
-        ea_account = user_info['ea_account']
+        ea_account = json_data['ea_account']
         if ea_account not in opened_drivers:
             return server_response(msg=server_status_messages.DRIVER_OFF, code=503)
         else:

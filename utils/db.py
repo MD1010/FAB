@@ -8,6 +8,5 @@ try:
     players_collection = fab_db[PLAYERS_COLLECTION]
     ea_accounts_collection = fab_db[EA_ACCOUNTS_COLLECTION]
     users_collection = fab_db[USERS_COLLECTION]
-    print("connected")
 except ConnectionFailure:
     print("connection failed")

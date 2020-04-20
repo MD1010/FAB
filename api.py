@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required, JWTManager
+from flask_jwt_extended import jwt_required, JWTManager, get_jwt_identity
 from flask_socketio import SocketIO, join_room, leave_room, send
 
 from auth.app_users.login import log_in_user
@@ -16,8 +16,9 @@ from fab_loop.start_fab import start_fab
 from items.item_actions import ItemActions
 from live_data import ea_account_login_attempts, opened_drivers
 from players.player_cards import get_all_players_cards
-from users.subscription_plan import update_user_subscription_plan, check_if_subscription_plan_expired
-from users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user
+from users.subscription_plan import update_user_subscription_plan, check_if_valid_subscription
+from users.user_details import update_user_username, update_user_password
+from users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user, check_if_user_owns_ea_account
 from utils.driver_functions import close_driver
 from utils.elements_manager import ElementActions
 from utils.helper_functions import create_new_fab, append_new_fab_after_auth_success, verify_driver_opened, server_response, check_if_web_app_ready, check_if_fab_opened
@@ -49,42 +50,61 @@ def login():
     return log_in_user(username, password)
 
 
+@app.route('/api/edit-username', methods=['POST'])
+@jwt_required
+def edit_username():
+    json_data = request.get_json()
+    # make sure to log again to fetch an updated useraname
+    old_username = get_jwt_identity()['username']
+    new_username = json_data.get('new_username')
+    return update_user_username(old_username, new_username)
+
+
+@app.route('/api/edit-password', methods=['POST'])
+@jwt_required
+def edit_password():
+    json_data = request.get_json()
+    username = get_jwt_identity()['username']
+    new_password = json_data.get('new_password')
+    return update_user_password(username,new_password)
+
+
 @app.route('/api/add-ea-account', methods=['POST'])
-# @jwt_required
+@jwt_required
 def add_user_ea_account():
     json_data = request.get_json()
-    username = json_data.get('username')
+    username = get_jwt_identity()['username']
     ea_account = json_data.get('ea_account')
     return add_ea_account_to_user(username, ea_account)
 
 
 @app.route('/api/delete-ea-account', methods=['POST'])
-# @jwt_required
+@jwt_required
 def delete_user_ea_account():
     json_data = request.get_json()
-    username = json_data.get('username')
+    username = get_jwt_identity()['username']
     ea_account = json_data.get('ea_account')
     return delete_ea_account_from_user(username, ea_account)
 
 
 @app.route('/api/update-user-plan', methods=['POST'])
-# @jwt_required
+@jwt_required
 def update_user_plan():
     json_data = request.get_json()
-    username = json_data.get('username')
+    username = get_jwt_identity()['username']
     new_plan_type = json_data.get('new_plan_type')
     return update_user_subscription_plan(username, new_plan_type)
 
 
 @app.route('/api/ea-account-login', methods=['POST'])
-# @jwt_required
+@jwt_required
+@check_if_valid_subscription
+@check_if_user_owns_ea_account
 def ea_account_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    owner = json_data.get('owner')
-    if check_if_subscription_plan_expired(owner):
-        return server_response(server_status_messages.PLAN_EXPIRED, code=503)
+    owner = get_jwt_identity()['username']
     if email in opened_drivers and ea_account_login_attempts[email].is_authenticated:
         return server_response(msg=server_status_messages.DRIVER_ALREADY_OPENED, code=503)
     if email not in ea_account_login_attempts:
@@ -95,18 +115,16 @@ def ea_account_login():
 
 
 @app.route('/api/start-fab', methods=['POST'])
-@check_if_web_app_ready
+@jwt_required
+@check_if_valid_subscription
 @check_if_fab_opened
-# @jwt_required
+@check_if_web_app_ready
 def start_fab_loop():
     json_data = request.get_json()
     configuration = json_data.get('configuration')
     items = json_data.get('items')
-
-    user_info = json_data.get('user_info')
-    owner = user_info["user"]
-    ea_account = user_info['ea_account']
-
+    owner = get_jwt_identity()['username']
+    ea_account = json_data.get('ea_account')
     user_driver = opened_drivers[ea_account]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
@@ -117,14 +135,14 @@ def start_fab_loop():
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-# @jwt_required
+@jwt_required
 def get_all_cards(searched_player):
     return jsonify(get_all_players_cards(searched_player))
 
 
 @app.route("/api/close-driver", methods=['GET'])
 @verify_driver_opened
-# @jwt_required
+@jwt_required
 def close_running_driver():
     jsonData = request.get_json()
     ea_account = jsonData.get('ea_account')
