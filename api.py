@@ -142,7 +142,6 @@ def start_fab_loop():
 
 
 @app.route('/api/players-list/<string:searched_player>', methods=['GET'])
-@jwt_required
 def get_all_cards(searched_player):
     return jsonify(get_all_players_cards(searched_player))
 

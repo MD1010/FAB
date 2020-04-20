@@ -26,9 +26,11 @@ def add_ea_account_to_user(username, email):
 
 
 def delete_ea_account_from_user(username, email):
-    db.ea_accounts_collection.delete_one({"email": email})
-    result = db.users_collection.update_one({"username": username}, {"$pull": {"ea_accounts": email}})
-    if result.modified_count > 0:
+    ea_accounts_result = db.ea_accounts_collection.delete_one({"owner": username, "email": email})
+    if ea_accounts_result.deleted_count == 0:
+        return server_response(msg=server_status_messages.EA_ACCOUNT_DELETE_FAILED, code=500)
+    users_result = db.users_collection.update_one({"username": username}, {"$pull": {"ea_accounts": email}})
+    if users_result.modified_count > 0:
         return server_response(msg=server_status_messages.EA_ACCOUNT_DELETE_SUCCESS, code=200)
     else:
         return server_response(msg=server_status_messages.EA_ACCOUNT_DELETE_FAILED, code=500)

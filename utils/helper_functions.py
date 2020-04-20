@@ -75,6 +75,6 @@ def server_response(msg, code=200, **kwargs):
     return make_response(res, code)
 
 def refresh_access_token():
-    current_user = get_jwt_identity()['username']
+    current_user = get_jwt_identity()
     new_token = create_access_token(identity=current_user)
     return server_response(msg=server_status_messages.ACCESS_TOKEN_REFRESHED, code=201, access_token=new_token)
