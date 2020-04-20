@@ -19,7 +19,10 @@ def create_new_user(username, password):
         hashed_password = hash_password(password)
         user_basic_subscription_plan = SubscriptionPlan(TRIAL).__dict__
         new_user = User(username, hashed_password, user_basic_subscription_plan).__dict__
-        db.users_collection.insert(new_user)
-        return server_response(msg=server_status_messages.USER_CREATED, code=201)
+        result = db.users_collection.insert(new_user)
+        if result:
+            return server_response(msg=server_status_messages.USER_CREATE_SUCCESS, code=201)
+        else:
+            return server_response(msg=server_status_messages.USER_CREATE_FAILED, code=500)
     else:
         return server_response(msg=server_status_messages.USER_EXISTS, code=409)

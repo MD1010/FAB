@@ -77,7 +77,9 @@ def remember_logged_in_ea_account(driver, email, password):
             eaCookies.append(cookie)
 
     # update the db
-    register_new_ea_account(email, password, eaCookies)
+    result = register_new_ea_account(email, password, eaCookies)
+    if not result:
+        return server_response(msg=server_status_messages.EA_ACCOUNT_ADD_FAILED, code=500)
 
     set_auth_status(email, True)
     driver.back()

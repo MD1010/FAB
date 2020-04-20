@@ -9,7 +9,6 @@ from consts.prices.prices_consts import MAP_INC_DEC_PRICES
 from enums.actions_for_execution import ElementCallback
 from live_data import active_fabs
 from models.ea_account import EaAccount
-from users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user
 from utils import db
 from utils.helper_functions import get_coin_balance_from_web_app, hash_password
 
@@ -75,10 +74,10 @@ def check_if_new_ea_account(email):
     return True
 
 
-def register_new_ea_account(username, email, password, cookies):
+def register_new_ea_account(email, password, cookies):
     hashed_password = hash_password(password)
     new_account = EaAccount(email, hashed_password, cookies).__dict__
-    db.ea_accounts_collection.insert(new_account)
+    return db.ea_accounts_collection.insert(new_account)
 
 
 def update_earned_coins_in_fab(fab, listed_price, bought_price):
