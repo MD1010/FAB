@@ -25,13 +25,13 @@ def start_ea_account_login(owner, email, password):
         if existing_ea_account:
             first_time_login = False
             if not selenium_login.login_with_cookies(password, email, existing_ea_account["cookies"]):
-                return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
+                return server_response(msg=server_status_messages.WEBAPP_FAILED_AUTH, code=401)
 
         # cookies file was not found - log in the first time
         else:
             first_time_login = True
             if not selenium_login.login_first_time(email, password):
-                return server_response(msg=server_status_messages.FAILED_AUTH, code=401)
+                return server_response(msg=server_status_messages.WEBAPP_FAILED_AUTH, code=401)
 
             status_code_result = wait_for_status_code_loop(email)
             if not status_code_result:
@@ -51,11 +51,9 @@ def start_ea_account_login(owner, email, password):
         if first_time_login:
             update_ea_account_platform(email, element_actions)
             update_ea_account_username(email, element_actions)
-        existing_ea_account = get_ea_account_if_exists(email, password)
 
-        access_token = create_access_token({'id': str(existing_ea_account["_id"])}, expires_delta=datetime.timedelta(hours=3))
         set_web_app_status(email, True)
-        return server_response(msg=server_status_messages.SUCCESS_AUTH, code=200, token=access_token)
+        return server_response(msg=server_status_messages.WEBAPP_SUCCESS_AUTH, code=200)
 
     except TimeoutException:
         print("Oops :( Something went wrong..")
