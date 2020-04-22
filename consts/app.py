@@ -13,7 +13,7 @@ COOKIES_FILE_NAME = 'cookies.txt'
 FUTBIN_PLAYER_PRICE_URL = 'https://www.futbin.com/20/playerPrices?player='
 FUTHEAD_PLAYER = 'https://www.futhead.com/quicksearch/player/20/?term='
 LOGIN_SIGN_BEFORE_STATUS_CODE_CHECK_OPTION = "your preferred method below."
-PROFIT_MULTIPLIER = 0.035
+PROFIT_MULTIPLIER = 0.075
 EA_TAX = 0.95
 # IN SECS
 AMOUNT_OF_SEARCHES_BEFORE_SLEEP = 20
