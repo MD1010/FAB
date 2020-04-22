@@ -1,3 +1,4 @@
+from requests.exceptions import ConnectionError
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from urllib3.exceptions import MaxRetryError
 
@@ -21,6 +22,10 @@ def start_fab(fab, configuration, items):
 
     except MaxRetryError as e:
         return server_response(msg=server_status_messages.DRIVER_OFF, code=503)
+
+    except ConnectionError as e:
+        close_driver(fab.driver, fab.ea_account.email)
+        return server_response(msg=server_status_messages.CONNECTION_PROBLEM, code=503)
 
     except (WebDriverException, TimeoutException) as e:
         print(f"Oops :( Something went wrong.. {e.msg}")

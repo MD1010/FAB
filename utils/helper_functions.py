@@ -20,7 +20,6 @@ def create_new_fab(driver, element_actions, item_actions, ea_account):
 def append_new_fab_after_auth_success(fab, ea_account):
     if active_fabs.get(ea_account.email) is None:
         active_fabs[ea_account.email] = fab
-    print(active_fabs)
 
 
 def check_if_web_app_ready(func):

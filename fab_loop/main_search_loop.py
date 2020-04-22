@@ -35,17 +35,17 @@ def run_search_loop(fab, loop_configuration, item_to_search, requested_items):
             close_driver(fab.driver, fab.ea_account.email)
             return server_response(msg=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
 
-        # item_bought, bought_for = fab.item_actions.buy_item(current_budget)
-        # if item_bought and bought_for:
-        #     list_price = get_sell_price(item_to_search['marketPrice'])
-        #     fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\bought for {bought_for}.png")
-        #     print(f"bought for={bought_for}")
-        #     update_earned_coins_in_fab(fab, list_price, bought_for)
-        #     if is_item_listed_after_buy:
-        #         pass
-        #         # print(f"listed={list_price}")
-        #         # self.item_actions.list_player(str(list_price))
-        #     fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
+        item_bought, bought_for = fab.item_actions.buy_item(current_budget)
+        if item_bought and bought_for:
+            list_price = get_sell_price(item_to_search['marketPrice'])
+            fab.driver.save_screenshot(f"{CURRENT_WORKING_DIR}\\screenshots\\bought for {bought_for}.png")
+            print(f"bought for={bought_for}")
+            update_earned_coins_in_fab(fab, list_price, bought_for)
+            if is_item_listed_after_buy:
+                pass
+                # print(f"listed={list_price}")
+                # self.item_actions.list_player(str(list_price))
+            fab.element_actions.execute_element_action(elements.SEND_TO_TRANSFER_BTN, ElementCallback.CLICK)
         fab.element_actions.execute_element_action(elements.NAVIGATE_BACK, ElementCallback.CLICK)
 
         item_to_search = update_search_item_if_coin_balance_changed(fab, item_to_search, requested_items)

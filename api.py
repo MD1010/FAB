@@ -135,9 +135,9 @@ def start_fab_loop():
     user_driver = opened_drivers[ea_account]
     user_element_actions = ElementActions(user_driver)
     user_item_actions = ItemActions(user_element_actions)
-    fab_user = initialize_ea_account_from_db(owner, ea_account)
-    active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, fab_user)
-    append_new_fab_after_auth_success(active_fab, fab_user)
+    user_ea_account = initialize_ea_account_from_db(owner, ea_account)
+    active_fab = create_new_fab(user_driver, user_element_actions, user_item_actions, user_ea_account)
+    append_new_fab_after_auth_success(active_fab, user_ea_account)
     return start_fab(active_fab, configuration, items)
 
 
