@@ -21,10 +21,8 @@ def get_or_create_driver_instance(email):
 
 def initialize_driver(email):
     try:
-
         driver = webdriver.Chrome(ChromeDriverManager().install())
         opened_drivers[email] = driver
-        print(driver.service.process.pid)
         driver.get(app.WEB_APP_URL)
         return driver
         # new_driver.driver_state = DriverState.ON

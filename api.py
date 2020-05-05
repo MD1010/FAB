@@ -32,7 +32,7 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['transports'] = 'websocket'
 app.config['JSON_SORT_KEYS'] = False
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, async_mode='threading')
 
 
 @app.route('/get-new-access-token', methods=['POST'])
@@ -156,7 +156,7 @@ def close_running_driver():
     return close_driver(driver, ea_account)
 
 
-@app.route("/api/driver-state")
+@app.route("/api/driver-state", methods=['POST'])
 def check_driver_state():
     jsonData = request.get_json()
     email = jsonData.get('ea_account')
@@ -199,4 +199,4 @@ def set_code(data):
 
 if __name__ == '__main__':
     base_players_url = '{0}/{1}/{2}/{3}/{4}/{5}'.format(ROOT_URL, BASE_URL, GUID, YEAR, CONTENT_URL, PLAYERS_JSON)
-    socketio.run(app, debug=True)
+    socketio.run(app,debug=True)

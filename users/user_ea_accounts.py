@@ -43,7 +43,11 @@ def check_if_user_owns_ea_account(func):
         json_data = request.get_json()
         email = json_data.get('email')
         # check if owner or username fields exist
-        account_owner = db.ea_accounts_collection.find_one({"email": email})['owner']
+        user_account = db.ea_accounts_collection.find_one({"email": email})
+        #first login
+        if user_account is None:
+            return func(*args)
+        account_owner = user_account['owner']
         if account_owner != owner:
             return server_response(msg=server_status_messages.EA_ACCOUNT_BELONGS_TO_ANOTHER_USER, code=503)
         else:
