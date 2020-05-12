@@ -1,4 +1,4 @@
-from consts.prices.prices_consts import MAP_INC_DEC_PRICES
+from consts.prices_consts import MAP_INC_DEC_PRICES
 
 
 def calc_new_max_price(down_limit, up_limit, is_inc):

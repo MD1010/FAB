@@ -2,11 +2,11 @@ import datetime
 import math
 
 import bcrypt
+from consts.platform import platforms
+from enums.actions_for_execution import ElementCallback
 
 from consts import elements
-from consts.platform import platforms
-from consts.prices.prices_consts import MAP_INC_DEC_PRICES
-from enums.actions_for_execution import ElementCallback
+from consts.prices_consts import MAP_INC_DEC_PRICES
 from live_data import active_fabs
 from models.ea_account import EaAccount
 from utils import db

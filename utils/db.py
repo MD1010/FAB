@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+
 from consts.db_connection import DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, PLAYERS_COLLECTION, EA_ACCOUNTS_COLLECTION, USERS_COLLECTION
 
 try:

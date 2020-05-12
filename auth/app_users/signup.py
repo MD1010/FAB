@@ -1,7 +1,7 @@
 from consts import server_status_messages
 from consts.subscription_plans import TRIAL
-from models.user import User
 from models.subscription_plan import SubscriptionPlan
+from models.user import User
 from utils import db
 from utils.helper_functions import hash_password, server_response
 
