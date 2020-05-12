@@ -2,28 +2,10 @@ from flask import Blueprint
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from src.auth.app_users.login import log_in_user
-from src.auth.app_users.signup import create_new_user
 from src.users.subscription_plan import update_user_subscription_plan
 from src.users.user_details import update_user_username, update_user_password
 
-app_users = Blueprint("app_users", __name__)
-
-
-@app_users.route('/signup', methods=['POST'])
-def sign_up_user():
-    json_data = request.get_json()
-    username = json_data.get('username')
-    password = json_data.get('password')
-    return create_new_user(username, password)
-
-
-@app_users.route('/login', methods=['POST'])
-def login():
-    json_data = request.get_json()
-    username = json_data.get('username')
-    password = json_data.get('password')
-    return log_in_user(username, password)
+app_users = Blueprint("application", __name__)
 
 
 @app_users.route("/update-username", methods=['PUT'])

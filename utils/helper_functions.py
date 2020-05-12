@@ -7,10 +7,9 @@ def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 
-def server_response(msg, code=200, **kwargs):
-    res = jsonify(msg=msg, code=code, **kwargs)
+def server_response(code=200,**kwargs):
+    res = jsonify(**kwargs)
     return make_response(res, code)
-
 
 def refresh_access_token():
     current_user = get_jwt_identity()
