@@ -3,11 +3,12 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
 
-from api.app_users import app_users
-from api.auth import auth
-from api.ea_accounts import ea_accounts
-from api.players import players
+
 from consts.app import *
+from src.api.app_users import app_users
+from src.api.auth import auth
+from src.api.ea_accounts import ea_accounts
+from src.api.players import players
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY

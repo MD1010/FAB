@@ -4,7 +4,7 @@ from flask import request
 from flask_jwt_extended import get_jwt_identity
 
 from consts import server_status_messages
-from users.subscription_plan import check_if_account_limit_exceeded
+from src.users.subscription_plan import check_if_account_limit_exceeded
 from utils import db
 from utils.helper_functions import server_response
 

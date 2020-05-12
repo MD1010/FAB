@@ -2,34 +2,11 @@ import datetime
 import math
 
 import bcrypt
-from consts.platform import platforms
-from enums.actions_for_execution import ElementCallback
 
-from consts import elements
 from consts.prices_consts import MAP_INC_DEC_PRICES
-from live_data import active_fabs
 from models.ea_account import EaAccount
 from utils import db
-from utils.helper_functions import get_coin_balance_from_web_app, hash_password
-
-
-def update_ea_account_coin_balance(email, element_actions):
-    current_coin_balance = get_coin_balance_from_web_app(element_actions)
-    if current_coin_balance:
-        active_fabs[email].ea_account.coin_balance = current_coin_balance
-        db.ea_accounts_collection.update({"email": email}, {"$set": {"coin_balance": current_coin_balance}})
-
-
-def update_ea_account_platform(email, element_actions):
-    element_actions.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK)
-    platform_icon_class = element_actions.get_element(elements.PLATFORM_ICON).get_attribute("class")
-    db.ea_accounts_collection.update({"email": email}, {"$set": {"platform": platforms[platform_icon_class]}})
-
-
-def update_ea_account_username(email, element_actions):
-    element_actions.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK)
-    username = element_actions.get_element(elements.USER_NAME).text
-    db.ea_accounts_collection.update({"email": email}, {"$set": {"username": username}})
+from utils.helper_functions import hash_password
 
 
 def initialize_ea_account_from_db(owner, email):

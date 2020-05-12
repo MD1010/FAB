@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 
-from players.player_cards import get_all_players_cards
+from src.players.player_cards import get_all_players_cards
 
 players = Blueprint("players", __name__)
 
