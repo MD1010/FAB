@@ -3,8 +3,8 @@ import re
 import requests
 from requests.cookies import cookiejar_from_dict
 
-from consts.app import WEB_APP_CLIENT_ID, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, WEB_APP_AUTH, REQUEST_TIMEOUT
-from enums.auth_method import AuthMethod
+from consts import WEB_APP_CLIENT_ID, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, WEB_APP_AUTH, REQUEST_TIMEOUT
+from enums import AuthMethod
 from utils.db import ea_accounts_collection
 from utils.helper_functions import server_response
 

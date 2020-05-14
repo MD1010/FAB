@@ -1,4 +1,4 @@
-from consts.subscription_plans import plan_expiration_dates, plan_accounts_limit
+from consts import plan_expiration_dates, plan_accounts_limit
 
 
 class SubscriptionPlan:

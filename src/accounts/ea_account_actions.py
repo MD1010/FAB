@@ -3,8 +3,8 @@ import math
 
 import bcrypt
 
-from consts.prices_consts import MAP_INC_DEC_PRICES
-from models.ea_account import EaAccount
+from consts import MAP_INC_DEC_PRICES
+from models import EaAccount
 from utils import db
 from utils.helper_functions import hash_password
 

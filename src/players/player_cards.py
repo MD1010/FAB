@@ -3,7 +3,7 @@ from multiprocessing.pool import ThreadPool
 
 import requests
 
-from consts.app import FUTHEAD_PLAYER
+from consts import FUTHEAD_PLAYER
 from utils import db
 
 

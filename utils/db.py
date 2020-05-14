@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-from consts.db_connection import DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, PLAYERS_COLLECTION, EA_ACCOUNTS_COLLECTION, USERS_COLLECTION
+from consts import DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, PLAYERS_COLLECTION, EA_ACCOUNTS_COLLECTION, USERS_COLLECTION
 
 try:
     cluster = MongoClient(f'mongodb+srv://{DB_USER}:{DB_PASSWORD}@cluster0-qs7gn.mongodb.net/{DB_NAME}?retryWrites=true&w=majority', DB_PORT)

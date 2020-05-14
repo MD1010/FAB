@@ -2,9 +2,9 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
-from src.routes import register_routes
 
-from consts.app import APP_SECRET_KEY
+from consts import APP_SECRET_KEY
+from src.routes import register_routes
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
