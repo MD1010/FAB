@@ -29,9 +29,10 @@ class WebAppLogin:
         if user_cookies:
             self.request_session.cookies = cookiejar_from_dict(user_cookies)
         else:
-            return self.login_first_time()
+            self._login_first_time()
+        return server_response(web_app_status="successfully logged in")
 
-    def login_first_time(self):
+    def _login_first_time(self):
 
         params = {
             'prompt': 'login',
@@ -65,19 +66,18 @@ class WebAppLogin:
                     '_eventId': 'submit'}
 
             self.ea_server_response = self.request_session.post(self.ea_server_response.url, data=data, timeout=REQUEST_TIMEOUT)
-            # rc = rc.text
 
             if "'successfulLogin': false" in self.ea_server_response.text:
                 # Your credentials are incorrect or have expired. Please try again or reset your password.
                 failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+', self.ea_server_response.text).group(1)
-                return server_response(web_app_status="wrong ea credentials", code=401)
+                return server_response(web_app_status=failedReason, code=401)
 
             if 'var redirectUri' in self.ea_server_response.text:
                 self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
 
             if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
                 if AuthMethod(self.auth_method) == AuthMethod.SMS:
-                    self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'SMS'})
+                    pass
+                    # self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'SMS'})
                 else:  # email
                     self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'EMAIL'})
-            return server_response(web_app_status="waiting for code")

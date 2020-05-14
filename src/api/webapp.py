@@ -12,5 +12,7 @@ def ea_webapp_login():
     password = json_data.get('password')
     auth_method = json_data.get('auth_method')
     platform = json_data.get('platform')
-    return WebAppLogin(email, password, platform, auth_method).launch_web_app()
+    loginAttempt =  WebAppLogin(email, password, platform, auth_method)
+    loginAttempt.launch_web_app()
+    return ""
 
