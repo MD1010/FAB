@@ -1,18 +1,10 @@
-from flask import Blueprint, request
+from flask import Blueprint
 
-from src.auth.ea.web_app_login import WebAppLogin
+from utils.nested_blueprint import NestedBlueprint
 
 webapp = Blueprint("webapp", __name__)
 
+login = NestedBlueprint(webapp, 'login')
 
-@webapp.route('/login', methods=['POST'])
-def ea_webapp_login():
-    json_data = request.get_json()
-    email = json_data.get('email')
-    password = json_data.get('password')
-    auth_method = json_data.get('auth_method')
-    platform = json_data.get('platform')
-    loginAttempt =  WebAppLogin(email, password, platform, auth_method)
-    loginAttempt.launch_web_app()
-    return ""
+
 

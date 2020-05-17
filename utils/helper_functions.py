@@ -9,8 +9,8 @@ def hash_password(password):
 
 def server_response(code=200,**kwargs):
     res = jsonify(**kwargs)
-    return make_response(res, code)
+    return make_response(res,code)
 
 def refresh_access_token():
     current_user = get_jwt_identity()
-    new_token = create_access_token(identity=current_user)
+    return create_access_token(identity=current_user)
