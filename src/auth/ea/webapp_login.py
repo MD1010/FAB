@@ -24,7 +24,7 @@ class WebAppLogin:
         self.auth_method = auth_method
         self.request_session = requests.Session()
         self.ea_server_response = None
-
+        self.entered_correct_creadentials = False
         WebAppLogin.__instance = self
 
     def verify_client(self):
@@ -42,12 +42,20 @@ class WebAppLogin:
 
             if user_cookies:
                 self.request_session.cookies = cookiejar_from_dict(user_cookies)
-                return server_response(status='user identity verified')
+                self.entered_correct_creadentials = True
+                return server_response(status='user identity verified', verification_method=False)
             else:
-                return self._check_user_identity()
+                self._navigate_to_login_page()
+                self._check_if_correct_credentials()
+                self.entered_correct_creadentials = True
+                return server_response(status="verified credentials, waiting for status code", verification_method=True)
 
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
+
+    def get_verification_code(self):
+        self._send_verification_code_to_client()
+        return server_response(status=f'verification code sent via {str(self.auth_method).lower()}')
 
     def set_verification_code(self, code):
         return code
@@ -86,16 +94,11 @@ class WebAppLogin:
 
             self.ea_server_response = self.request_session.post(self.ea_server_response.url, data=data, timeout=REQUEST_TIMEOUT)
 
-    def _check_user_identity(self):
-        self._navigate_to_login_page()
-        self._check_if_correct_credentials()
-        self._send_verification_code_to_client()
-        return server_response(status=f'verification code sent via {str(self.auth_method).lower()}')
-
     def _check_if_correct_credentials(self):
         if "'successfulLogin': false" in self.ea_server_response.text:
             # Your credentials are incorrect or have expired. Please try again or reset your password.
             failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+', self.ea_server_response.text).group(1)
+            self.entered_correct_creadentials = False
             raise WebAppLoginError(reason=failedReason)
 
     def _send_verification_code_to_client(self):
@@ -108,4 +111,5 @@ class WebAppLogin:
                 # self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'SMS'})
             else:  # email
                 self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'EMAIL'})
-
+        else:
+            raise WebAppLoginError(reason='failed to send verification code')
