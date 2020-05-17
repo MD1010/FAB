@@ -11,7 +11,7 @@ def ea_webapp_login():
     password = json_data.get('password')
     platform = json_data.get('platform')
     auth_method = json_data.get('auth_method')
-    return WebAppLogin(email, password, platform, auth_method).launch_webapp()
+    return WebAppLogin(email, password, platform, auth_method).verify_client()
 
 @login.route('/set-status-code', methods=['GET'])
 def send_status_code():

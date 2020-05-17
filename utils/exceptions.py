@@ -15,6 +15,10 @@ class FutError(RuntimeError):
         self.string = string
 
 
+class WebAppLoginError(FutError):
+    """error during login to web app"""
+
+
 class UnknownError(FutError):
     """Unknown error, please report full log at
     https://github.com/oczkers/fut/issues/24"""
@@ -88,4 +92,3 @@ class MultipleSession(Unauthorized):
 # class doLoginFail(Forbidden):
 class DoLoginFail(Unauthorized):
     """[403] Forbidden (ut)."""
-
