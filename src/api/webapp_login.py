@@ -16,13 +16,13 @@ def check_login_attempt(func):
         return func(*args)
     return determine_if_func_should_run
 
-@login.route('/verify-client', methods=['POST'])
+@login.route('/launch', methods=['POST'])
 def ea_webapp_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
     platform = json_data.get('platform')
-    return WebAppLogin(email, password, platform).verify_client()
+    return WebAppLogin(email, password, platform).launch_webapp()
 
 @login.route('/get-status-code', methods=['POST'])
 @check_login_attempt
@@ -32,10 +32,10 @@ def get_status_code():
     login_attempt = WebAppLogin.get_instance()
     return login_attempt.get_verification_code(auth_method)
 
-@login.route('/set-status-code', methods=['POST'])
+@login.route('/login-with-code', methods=['POST'])
 @check_login_attempt
 def send_status_code():
     json_data = request.get_json()
     code = json_data.get('code')
     login_attempt = WebAppLogin.get_instance()
-    return login_attempt.set_verification_code(code)
+    return login_attempt.continue_login_with_status_code(code)

@@ -4,10 +4,10 @@ from http.cookiejar import Cookie, LWPCookieJar
 import requests
 
 from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, \
-    WEB_APP_CLIENT_ID, headers
-from enums import AuthMethod
+    WEB_APP_CLIENT_ID, headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT
+from enums import AuthMethod, Platform
 from utils.db import ea_accounts_collection
-from utils.exceptions import WebAppLoginError
+from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
 from utils.helper_functions import server_response
 
 
@@ -19,46 +19,56 @@ class WebAppLogin:
         return WebAppLogin.__instance
 
     def __init__(self, email, password, platform):
+        # account
         self.email = email
         self.password = password
         self.platform = platform
-        self.auth_method = None
+        self.sku = None
+        self.game_sku = None
+
+        # web app
+        self.authURL = None
+        self.pin_url = None
+        self.client_id = None
+        self.release_type = None
+        self.fun_captcha_public_key = None
+
+        # auth
         self.request_session = requests.Session()
         self.request_session.cookies = LWPCookieJar()
         self.ea_server_response = None
         self.entered_correct_creadentials = False
         self.access_token = None
         self.token_type = None
+
         WebAppLogin.__instance = self
+        self.pre_login()
 
-    def verify_client(self):
+    def pre_login(self):
         try:
-            user = ea_accounts_collection.find_one({"email": self.email})
+            self._initialize_webapp_config()
+            if self.ea_server_response["futweb_maintenance"]:
+                raise WebAppMaintenance(reason="webapp is not available due to maintenance")
+        except WebAppPinEventChanged as e:
+            return server_response(error=e.reason, code=503)
 
-            if not user:
-                raise WebAppLoginError(reason='user does not exist')
-            user_cookies = user["cookies"]
-
-            if user_cookies:
-                self.request_session.cookies._cookies = self._load_cookies(user_cookies)
-                self.entered_correct_creadentials = True
-                return server_response(status='user identity verified', verification_method=False)
-            else:
-                self._navigate_to_login_page()
-                self._check_if_correct_credentials()
-                self.entered_correct_creadentials = True
-                return server_response(status="verified credentials, waiting for status code",
-                                       verification_method=True)
+    def launch_webapp(self):
+        try:
+            self._verify_client()
+            self._get_client_session()
 
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
 
-    def get_verification_code(self, auth_method):
-        self.auth_method = auth_method
-        self._send_verification_code_to_client()
-        return server_response(status=f'verification code sent via {str(self.auth_method).lower()}')
+        except WebAppVerificationRequired:
+            return server_response(status="verified credentials, waiting for status code",
+                                   verification_method=True)
 
-    def set_verification_code(self, code):
+    def get_verification_code(self, auth_method):
+        self._send_verification_code_to_client(auth_method)
+        return server_response(status=f'verification code sent via {str(auth_method).lower()}')
+
+    def continue_login_with_status_code(self, code):
         # todo: check maybe some conditions are not necessarry
         if 'Enter your security code' in self.ea_server_response.text:
             self.request_session.headers = url = self.ea_server_response.url
@@ -72,32 +82,40 @@ class WebAppLogin:
             # if 'Set Up an App Authenticator' in self.ea_server_response.text:
             #     self.ea_server_response = self.request_session.post(url.replace('s3', 's4'), {'_eventId': 'cancel', 'appDevice': 'IPHONE'},
             #                                    timeout=REQUEST_TIMEOUT)
-            self._set_access_token()
+            self._set_access_token_first_time()
             self._save_cookies()
-            return server_response(status="verification code accepted", code=200)
+            self.launch_webapp()
 
-    def launch_webapp(self):
-        try:
-            self.request_session.headers = headers.copy()
+    # private functions in order
+    def _initialize_webapp_config(self):
+        self.ea_server_response = self.request_session.get(CONFIG_URL).json()
+        self.authURL = self.ea_server_response['authURL']
+        self.pin_url = self.ea_server_response['pinURL']
+        self.client_id = self.ea_server_response['eadpClientId']
+        self.release_type = self.ea_server_response['releaseType']
+        self.fun_captcha_public_key = self.ea_server_response['funCaptchaPublicKey']
+        self.ea_server_response = self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}").json()
+        if self.ea_server_response['pin'] != PIN_DICT:
+            raise WebAppPinEventChanged(reason="structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
 
-        except WebAppLoginError as e:
-            return server_response(error=e.reason, code=401)
+    def _verify_client(self):
+        # already verified - enters here again after successfull status code
+        if self.entered_correct_creadentials: return
 
-    def _set_access_token(self):
-        rc = re.match(
-            'https://www.easports.com/fifa/ultimate-team/web-app/auth.html#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+',
-            self.ea_server_response.url)
-        self.access_token = rc.group(1)
-        self.token_type = rc.group(2)
+        user = ea_accounts_collection.find_one({"email": self.email})
 
-    def _save_cookies(self):
-        for domain in self.request_session.cookies._cookies:
-            for path in self.request_session.cookies._cookies[domain]:
-                for cookie in self.request_session.cookies._cookies[domain][path]:
-                    self.request_session.cookies._cookies[domain][path][cookie] = \
-                        self.request_session.cookies._cookies[domain][path][cookie].__dict__
-        ea_accounts_collection.update_one({"email": self.email}, {
-            "$set": {"cookies": self.request_session.cookies._cookies}})
+        if not user:
+            raise WebAppLoginError(reason='user does not exist')
+
+        user_cookies = user["cookies"]
+        if user_cookies:
+            self.request_session.cookies._cookies = self._load_cookies(user_cookies)
+            self.entered_correct_creadentials = True
+        else:
+            self._navigate_to_login_page()
+            self._check_if_correct_credentials()
+            self.entered_correct_creadentials = True
+            raise WebAppVerificationRequired()
 
     def _navigate_to_login_page(self):
         params = {
@@ -143,12 +161,12 @@ class WebAppLogin:
             self.entered_correct_creadentials = False
             raise WebAppLoginError(reason=failedReason)
 
-    def _send_verification_code_to_client(self):
+    def _send_verification_code_to_client(self, auth_method):
         if 'var redirectUri' in self.ea_server_response.text:
             self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={
                 '_eventId': 'end'})  # initref param was missing here
         if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
-            if AuthMethod(self.auth_method) == AuthMethod.SMS:
+            if AuthMethod(auth_method) == AuthMethod.SMS:
                 self.ea_server_response = self.request_session.post(self.ea_server_response.url,
                                                                     {'_eventId': 'submit',
                                                                      'codeType': 'SMS'})
@@ -158,6 +176,22 @@ class WebAppLogin:
                                                                      'codeType': 'EMAIL'})
         else:
             raise WebAppLoginError(reason='failed to send verification code')
+
+    def _set_access_token_first_time(self):
+        rc = re.match(
+            'https://www.easports.com/fifa/ultimate-team/web-app/auth.html#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+',
+            self.ea_server_response.url)
+        self.access_token = rc.group(1)
+        self.token_type = rc.group(2)
+
+    def _save_cookies(self):
+        for domain in self.request_session.cookies._cookies:
+            for path in self.request_session.cookies._cookies[domain]:
+                for cookie in self.request_session.cookies._cookies[domain][path]:
+                    self.request_session.cookies._cookies[domain][path][cookie] = \
+                        self.request_session.cookies._cookies[domain][path][cookie].__dict__
+        ea_accounts_collection.update_one({"email": self.email}, {
+            "$set": {"cookies": self.request_session.cookies._cookies}})
 
     def _load_cookies(self, user_cookies):
         for domain in user_cookies:
@@ -187,3 +221,41 @@ class WebAppLogin:
                                                                 discard, comment, comment_url,
                                                                 rest)
         return user_cookies
+
+    def _get_client_session(self):
+        self.request_session.headers = headers.copy()
+        self._determine_game_sku()
+        # todo: check whitch PIN EVENT is sent here!
+        self._update_access_token()
+        self._get_additional_account_data()
+        raise WebAppLoginError(reason="Wrong Platform specified")
+
+    def _determine_game_sku(self):
+        if Platform(self.platform) == Platform.pc:
+            self.game_sku = '%sPCC' % PRE_GAME_SKU
+        elif Platform(self.platform) == Platform.xbox:
+            self.game_skuu = '%sXBO' % PRE_GAME_SKU
+        elif Platform(self.platform) == Platform.xbox360:
+            self.game_sku = '%sXBX' % PRE_GAME_SKU
+        elif Platform(self.platform) == Platform.ps3:
+            self.game_sku = '%sPS3' % PRE_GAME_SKU
+        elif Platform(self.platform) == Platform.ps4:
+            self.game_sku = '%sPS4' % PRE_GAME_SKU
+        self.sku = '%sWEB' % PRE_SKU
+
+    def _update_access_token(self):
+        params = {'accessToken': self.access_token,
+                  'client_id': self.client_id,
+                  'response_type': 'token',
+                  'release_type': 'prod',
+                  'display': 'web2/login',
+                  'locale': 'en_US',
+                  'redirect_uri': REDIRECT_URI_WEB_APP,
+                  'scope': 'basic.identity offline signin'}
+        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params)
+        self.ea_server_response = re.match(f'{REDIRECT_URI_WEB_APP}#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+', self.ea_server_response.url)
+        self.access_token = self.ea_server_response.group(1)
+        self.token_type = self.ea_server_response.group(2)
+
+    def _get_additional_account_data(self):
+

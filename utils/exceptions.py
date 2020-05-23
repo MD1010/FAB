@@ -18,6 +18,14 @@ class FutError(RuntimeError):
 class WebAppLoginError(FutError):
     """error during login to web app"""
 
+class WebAppVerificationRequired(FutError):
+    """ verification code is sent to the client to verify his identity"""
+
+class WebAppPinEventChanged(FutError):
+    """ structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app"""
+
+class WebAppMaintenance(FutError):
+    """ webapp is not available due to maintenance"""
 
 class UnknownError(FutError):
     """Unknown error, please report full log at
