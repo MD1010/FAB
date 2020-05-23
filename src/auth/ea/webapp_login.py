@@ -1,9 +1,10 @@
 import re
+from http.cookiejar import Cookie, LWPCookieJar
 
 import requests
-from requests.cookies import cookiejar_from_dict
 
-from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, WEB_APP_CLIENT_ID
+from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, \
+    WEB_APP_CLIENT_ID, headers
 from enums import AuthMethod
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError
@@ -23,6 +24,7 @@ class WebAppLogin:
         self.platform = platform
         self.auth_method = None
         self.request_session = requests.Session()
+        self.request_session.cookies = LWPCookieJar()
         self.ea_server_response = None
         self.entered_correct_creadentials = False
         self.access_token = None
@@ -30,11 +32,6 @@ class WebAppLogin:
         WebAppLogin.__instance = self
 
     def verify_client(self):
-        """
-                     todo: check if user has cookies in the ea_account collection already /
-                        if he has:take it
-                        if not: save the result from the get as an object not as an array
-                    """
         try:
             user = ea_accounts_collection.find_one({"email": self.email})
 
@@ -43,14 +40,15 @@ class WebAppLogin:
             user_cookies = user["cookies"]
 
             if user_cookies:
-                self.request_session.cookies = cookiejar_from_dict(user_cookies)
+                self.request_session.cookies._cookies = self._load_cookies(user_cookies)
                 self.entered_correct_creadentials = True
                 return server_response(status='user identity verified', verification_method=False)
             else:
                 self._navigate_to_login_page()
                 self._check_if_correct_credentials()
                 self.entered_correct_creadentials = True
-                return server_response(status="verified credentials, waiting for status code", verification_method=True)
+                return server_response(status="verified credentials, waiting for status code",
+                                       verification_method=True)
 
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
@@ -67,7 +65,8 @@ class WebAppLogin:
             self.ea_server_response = self.request_session.post(url.replace('s3', 's4'),
                                                                 {'oneTimeCode': code,
                                                                  '_trustThisDevice': 'on',
-                                                                 '_eventId': 'submit'}, timeout=REQUEST_TIMEOUT)
+                                                                 '_eventId': 'submit'},
+                                                                timeout=REQUEST_TIMEOUT)
             if 'Incorrect code entered' in self.ea_server_response.text or 'Please enter a valid security code' in self.ea_server_response.text:
                 return server_response(error="provided code is incorrect", code=401)
             # if 'Set Up an App Authenticator' in self.ea_server_response.text:
@@ -76,6 +75,13 @@ class WebAppLogin:
             self._set_access_token()
             self._save_cookies()
             return server_response(status="verification code accepted", code=200)
+
+    def launch_webapp(self):
+        try:
+            self.request_session.headers = headers.copy()
+
+        except WebAppLoginError as e:
+            return server_response(error=e.reason, code=401)
 
     def _set_access_token(self):
         rc = re.match(
@@ -86,10 +92,12 @@ class WebAppLogin:
 
     def _save_cookies(self):
         for domain in self.request_session.cookies._cookies:
-            for sub_domain in self.request_session.cookies._cookies[domain]:
-                for cookie in self.request_session.cookies._cookies[domain][sub_domain]:
-                    self.request_session.cookies._cookies[domain][sub_domain][cookie] = self.request_session.cookies._cookies[domain][sub_domain][cookie].__dict__
-        ea_accounts_collection.update_one({"email": self.email}, {"$set": {"cookies": self.request_session.cookies._cookies}})
+            for path in self.request_session.cookies._cookies[domain]:
+                for cookie in self.request_session.cookies._cookies[domain][path]:
+                    self.request_session.cookies._cookies[domain][path][cookie] = \
+                        self.request_session.cookies._cookies[domain][path][cookie].__dict__
+        ea_accounts_collection.update_one({"email": self.email}, {
+            "$set": {"cookies": self.request_session.cookies._cookies}})
 
     def _navigate_to_login_page(self):
         params = {
@@ -107,7 +115,8 @@ class WebAppLogin:
             'Referer': EA_WEB_APP_URL
         }
 
-        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params, headers=headers, timeout=REQUEST_TIMEOUT)
+        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params,
+                                                           headers=headers, timeout=REQUEST_TIMEOUT)
 
         if self.ea_server_response.url != REDIRECT_URI_WEB_APP:
             self.request_session.headers['Referer'] = self.ea_server_response.url
@@ -123,23 +132,58 @@ class WebAppLogin:
                     'vrememberMe': 'on',
                     '_eventId': 'submit'}
 
-            self.ea_server_response = self.request_session.post(self.ea_server_response.url, data=data, timeout=REQUEST_TIMEOUT)
+            self.ea_server_response = self.request_session.post(self.ea_server_response.url,
+                                                                data=data, timeout=REQUEST_TIMEOUT)
 
     def _check_if_correct_credentials(self):
         if "'successfulLogin': false" in self.ea_server_response.text:
             # Your credentials are incorrect or have expired. Please try again or reset your password.
-            failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+', self.ea_server_response.text).group(1)
+            failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+',
+                                     self.ea_server_response.text).group(1)
             self.entered_correct_creadentials = False
             raise WebAppLoginError(reason=failedReason)
 
     def _send_verification_code_to_client(self):
         if 'var redirectUri' in self.ea_server_response.text:
-            self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
+            self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={
+                '_eventId': 'end'})  # initref param was missing here
         if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
             if AuthMethod(self.auth_method) == AuthMethod.SMS:
-                pass
-                # self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'SMS'})
+                self.ea_server_response = self.request_session.post(self.ea_server_response.url,
+                                                                    {'_eventId': 'submit',
+                                                                     'codeType': 'SMS'})
             else:  # email
-                self.ea_server_response = self.request_session.post(self.ea_server_response.url, {'_eventId': 'submit', 'codeType': 'EMAIL'})
+                self.ea_server_response = self.request_session.post(self.ea_server_response.url,
+                                                                    {'_eventId': 'submit',
+                                                                     'codeType': 'EMAIL'})
         else:
             raise WebAppLoginError(reason='failed to send verification code')
+
+    def _load_cookies(self, user_cookies):
+        for domain in user_cookies:
+            for path in user_cookies[domain]:
+                for cookie in user_cookies[domain][path]:
+                    version = user_cookies[domain][path][cookie].get("version")
+                    name = user_cookies[domain][path][cookie].get("name")
+                    value = user_cookies[domain][path][cookie].get("value")
+                    port = user_cookies[domain][path][cookie].get("port")
+                    port_specified = user_cookies[domain][path][cookie].get("port_specified")
+                    domain = user_cookies[domain][path][cookie].get("domain")
+                    domain_specified = user_cookies[domain][path][cookie].get("domain_specified")
+                    domain_initial_dot = user_cookies[domain][path][cookie].get("domain_initial_dot")
+                    path = user_cookies[domain][path][cookie].get("path")
+                    path_specified = user_cookies[domain][path][cookie].get("path_specified")
+                    secure = user_cookies[domain][path][cookie].get("secure")
+                    expires = user_cookies[domain][path][cookie].get("expires")
+                    discard = user_cookies[domain][path][cookie].get("discard")
+                    comment = user_cookies[domain][path][cookie].get("comment")
+                    comment_url = user_cookies[domain][path][cookie].get("comment_url")
+                    rest = user_cookies[domain][path][cookie].get("_rest")
+                    user_cookies[domain][path][cookie] = Cookie(version, name, value, port,
+                                                                port_specified, domain,
+                                                                domain_specified,
+                                                                domain_initial_dot, path,
+                                                                path_specified, secure, expires,
+                                                                discard, comment, comment_url,
+                                                                rest)
+        return user_cookies

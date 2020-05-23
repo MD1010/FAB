@@ -14,3 +14,6 @@ def server_response(code=200,**kwargs):
 def refresh_access_token():
     current_user = get_jwt_identity()
     return create_access_token(identity=current_user)
+
+def destructor(**kwargs):
+    return kwargs.values()
