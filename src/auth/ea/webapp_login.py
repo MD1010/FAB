@@ -17,14 +17,16 @@ class WebAppLogin:
     def get_instance():
         return WebAppLogin.__instance
 
-    def __init__(self, email, password, platform, auth_method):
+    def __init__(self, email, password, platform):
         self.email = email
         self.password = password
         self.platform = platform
-        self.auth_method = auth_method
+        self.auth_method = None
         self.request_session = requests.Session()
         self.ea_server_response = None
         self.entered_correct_creadentials = False
+        self.access_token = None
+        self.token_type = None
         WebAppLogin.__instance = self
 
     def verify_client(self):
@@ -53,12 +55,41 @@ class WebAppLogin:
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
 
-    def get_verification_code(self):
+    def get_verification_code(self, auth_method):
+        self.auth_method = auth_method
         self._send_verification_code_to_client()
         return server_response(status=f'verification code sent via {str(self.auth_method).lower()}')
 
     def set_verification_code(self, code):
-        return code
+        # todo: check maybe some conditions are not necessarry
+        if 'Enter your security code' in self.ea_server_response.text:
+            self.request_session.headers = url = self.ea_server_response.url
+            self.ea_server_response = self.request_session.post(url.replace('s3', 's4'),
+                                                                {'oneTimeCode': code,
+                                                                 '_trustThisDevice': 'on',
+                                                                 '_eventId': 'submit'}, timeout=REQUEST_TIMEOUT)
+            if 'Incorrect code entered' in self.ea_server_response.text or 'Please enter a valid security code' in self.ea_server_response.text:
+                return server_response(error="provided code is incorrect", code=401)
+            # if 'Set Up an App Authenticator' in self.ea_server_response.text:
+            #     self.ea_server_response = self.request_session.post(url.replace('s3', 's4'), {'_eventId': 'cancel', 'appDevice': 'IPHONE'},
+            #                                    timeout=REQUEST_TIMEOUT)
+            self._set_access_token()
+            self._save_cookies()
+            return server_response(status="verification code accepted", code=200)
+
+    def _set_access_token(self):
+        rc = re.match(
+            'https://www.easports.com/fifa/ultimate-team/web-app/auth.html#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+',
+            self.ea_server_response.url)
+        self.access_token = rc.group(1)
+        self.token_type = rc.group(2)
+
+    def _save_cookies(self):
+        for domain in self.request_session.cookies._cookies:
+            for sub_domain in self.request_session.cookies._cookies[domain]:
+                for cookie in self.request_session.cookies._cookies[domain][sub_domain]:
+                    self.request_session.cookies._cookies[domain][sub_domain][cookie] = self.request_session.cookies._cookies[domain][sub_domain][cookie].__dict__
+        ea_accounts_collection.update_one({"email": self.email}, {"$set": {"cookies": self.request_session.cookies._cookies}})
 
     def _navigate_to_login_page(self):
         params = {
@@ -89,7 +120,7 @@ class WebAppLogin:
                     'isPhoneNumberLogin': 'false',
                     'isIncompletePhone': '',
                     '_rememberMe': 'on',
-                    'rememberMe': 'on',
+                    'vrememberMe': 'on',
                     '_eventId': 'submit'}
 
             self.ea_server_response = self.request_session.post(self.ea_server_response.url, data=data, timeout=REQUEST_TIMEOUT)
@@ -104,7 +135,6 @@ class WebAppLogin:
     def _send_verification_code_to_client(self):
         if 'var redirectUri' in self.ea_server_response.text:
             self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
-
         if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
             if AuthMethod(self.auth_method) == AuthMethod.SMS:
                 pass

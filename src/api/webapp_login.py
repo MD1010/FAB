@@ -22,14 +22,15 @@ def ea_webapp_login():
     email = json_data.get('email')
     password = json_data.get('password')
     platform = json_data.get('platform')
-    auth_method = json_data.get('auth_method')
-    return WebAppLogin(email, password, platform, auth_method).verify_client()
+    return WebAppLogin(email, password, platform).verify_client()
 
-@login.route('/get-status-code', methods=['GET'])
+@login.route('/get-status-code', methods=['POST'])
 @check_login_attempt
 def get_status_code():
+    json_data = request.get_json()
+    auth_method = json_data.get('auth_method')
     login_attempt = WebAppLogin.get_instance()
-    return login_attempt.get_verification_code()
+    return login_attempt.get_verification_code(auth_method)
 
 @login.route('/set-status-code', methods=['POST'])
 @check_login_attempt
