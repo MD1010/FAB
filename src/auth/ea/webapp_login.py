@@ -4,7 +4,8 @@ from http.cookiejar import Cookie, LWPCookieJar
 import requests
 
 from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, \
-    WEB_APP_CLIENT_ID, headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT
+    headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT, PIDS_ME_URL, FUT_HOST, SHARDS_V2, GAME_URL, \
+    ACOUNTS_INFO,ROOT_URL
 from enums import AuthMethod, Platform
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
@@ -25,13 +26,17 @@ class WebAppLogin:
         self.platform = platform
         self.sku = None
         self.game_sku = None
+        self.nucleus_id = None # client pid
+        self.dob = None
+        self.persona_id = None
 
         # web app
-        self.authURL = None
+        self.auth_url = None
         self.pin_url = None
-        self.client_id = None
+        self.client_id = None  # FIFA-20-WEBCLIENT
         self.release_type = None
         self.fun_captcha_public_key = None
+        self.fut_host = FUT_HOST[platform]
 
         # auth
         self.request_session = requests.Session()
@@ -89,11 +94,11 @@ class WebAppLogin:
     # private functions in order
     def _initialize_webapp_config(self):
         self.ea_server_response = self.request_session.get(CONFIG_URL).json()
-        self.authURL = self.ea_server_response['authURL']
-        self.pin_url = self.ea_server_response['pinURL']
-        self.client_id = self.ea_server_response['eadpClientId']
-        self.release_type = self.ea_server_response['releaseType']
-        self.fun_captcha_public_key = self.ea_server_response['funCaptchaPublicKey']
+        self.auth_url = self.ea_server_response['authURL']  # utas.mob.v2.fut.ea.com:443
+        self.pin_url = self.ea_server_response['pinURL']  # https://pin-river.data.ea.com/pinEvents
+        self.client_id = self.ea_server_response['eadpClientId']  # FIFA-20-WEBCLIENT
+        self.release_type = self.ea_server_response['releaseType']  # prod
+        self.fun_captcha_public_key = self.ea_server_response['funCaptchaPublicKey']  # A4EECF77-AC87-8C8D-5754-BF882F72063B
         self.ea_server_response = self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}").json()
         if self.ea_server_response['pin'] != PIN_DICT:
             raise WebAppPinEventChanged(reason="structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
@@ -121,20 +126,20 @@ class WebAppLogin:
         params = {
             'prompt': 'login',
             'accessToken': '',
-            'client_id': WEB_APP_CLIENT_ID,
+            'client_id': self.client_id,
             'response_type': 'token',
             'display': 'web2/login',
             'locale': 'en_US',
             'redirect_uri': REDIRECT_URI_WEB_APP,
             'release_type': 'prod',
-            'scope': 'basic.identity offline signin'
+            'scope': 'basic.identity offline signin basic.entitlement basic.persona'
         }
-        headers = {
+        referer_header = {
             'Referer': EA_WEB_APP_URL
         }
 
         self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params,
-                                                           headers=headers, timeout=REQUEST_TIMEOUT)
+                                                           headers=referer_header, timeout=REQUEST_TIMEOUT)
 
         if self.ea_server_response.url != REDIRECT_URI_WEB_APP:
             self.request_session.headers['Referer'] = self.ea_server_response.url
@@ -178,11 +183,11 @@ class WebAppLogin:
             raise WebAppLoginError(reason='failed to send verification code')
 
     def _set_access_token_first_time(self):
-        rc = re.match(
+        self.ea_server_response = re.match(
             'https://www.easports.com/fifa/ultimate-team/web-app/auth.html#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+',
             self.ea_server_response.url)
-        self.access_token = rc.group(1)
-        self.token_type = rc.group(2)
+        self.access_token = self.ea_server_response.group(1)
+        self.token_type = self.ea_server_response.group(2)
 
     def _save_cookies(self):
         for domain in self.request_session.cookies._cookies:
@@ -228,20 +233,21 @@ class WebAppLogin:
         # todo: check whitch PIN EVENT is sent here!
         self._update_access_token()
         self._get_additional_account_data()
-        raise WebAppLoginError(reason="Wrong Platform specified")
+        self._check_if_persona_found()
+        self._finish_authoriztion_and_get_sid()
 
     def _determine_game_sku(self):
         if Platform(self.platform) == Platform.pc:
-            self.game_sku = '%sPCC' % PRE_GAME_SKU
+            self.game_sku = f'{PRE_GAME_SKU}PCC'
         elif Platform(self.platform) == Platform.xbox:
-            self.game_skuu = '%sXBO' % PRE_GAME_SKU
+            self.game_skuu = f'{PRE_GAME_SKU}XBO'
         elif Platform(self.platform) == Platform.xbox360:
-            self.game_sku = '%sXBX' % PRE_GAME_SKU
+            self.game_sku = f'{PRE_GAME_SKU}XBX'
         elif Platform(self.platform) == Platform.ps3:
-            self.game_sku = '%sPS3' % PRE_GAME_SKU
+            self.game_sku = f'{PRE_GAME_SKU}PS3'
         elif Platform(self.platform) == Platform.ps4:
-            self.game_sku = '%sPS4' % PRE_GAME_SKU
-        self.sku = '%sWEB' % PRE_SKU
+            self.game_sku = f'{PRE_GAME_SKU}PS4'
+        self.sku = f'{PRE_SKU}WEB'
 
     def _update_access_token(self):
         params = {'accessToken': self.access_token,
@@ -258,4 +264,46 @@ class WebAppLogin:
         self.token_type = self.ea_server_response.group(2)
 
     def _get_additional_account_data(self):
+        self.ea_server_response = self.request_session.get(EA_WEB_APP_URL, timeout=REQUEST_TIMEOUT).text
+        self.request_session.headers['Referer'] = EA_WEB_APP_URL
+        self.request_session.headers['Accept'] = 'application/json'
+        self.request_session.headers['Authorization'] = f'{self.token_type} {self.access_token}'
+        self.ea_server_response = self.request_session.get(PIDS_ME_URL).json()
+        # this check is not needed ???
+        if self.ea_server_response.get('error') == 'invalid_access_token':
+            raise WebAppLoginError(reason="invalid access token")
+        self.nucleus_id = self.ea_server_response['pid']['externalRefValue']
+        self.dob = self.ea_server_response['pid']['dob']
+        del self.request_session.headers['Authorization']
+        # shards
+        self.ea_server_response = self.request_session.get(f'https://{self.auth_url}/{SHARDS_V2}').json()
 
+    def _check_if_persona_found(self):
+        data = {'filterConsoleLogin': 'true',
+                'sku': self.sku,
+                'returningUserGameYear': YEAR - 1}
+        self.ea_server_response = self.request_session.get(f'https://{self.fut_host}/{GAME_URL}/{ACOUNTS_INFO}', params=data).json()
+        # find persona
+        personas = self.ea_server_response['userAccountInfo']['personas']
+        for p in personas:
+            for c in p['userClubList']:
+                if c['skuAccessList'] and self.game_sku in c['skuAccessList']:
+                    self.persona_id = p['personaId']
+                    break
+        if not self.persona_id:
+            raise WebAppLoginError(reason="No persona found - Maybe Wrong Platform specified? ")
+
+    def _finish_authoriztion_and_get_sid(self):
+        del self.request_session.headers['Easw-Session-Data-Nucleus-Id']
+        self.request_session.headers['Origin'] = ROOT_URL
+        params = {'client_id': 'FOS-SERVER',  # i've seen in some js/json response but cannot find now
+                  'redirect_uri': 'nucleus:rest',
+                  'response_type': 'code',
+                  'access_token': self.access_token,
+                  'release_type': 'prod'}
+        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params).json()
+        auth_code = self.ea_server_response['code']
+        hashed_ds = self._generate_ds(auth_code)
+
+    def _generate_ds(self,auth_code):
+        return ""
