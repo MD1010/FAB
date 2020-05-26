@@ -1,11 +1,14 @@
+import copy
+import json
 import re
-from http.cookiejar import Cookie, LWPCookieJar
+from http.cookiejar import Cookie
 
 import requests
+from Naked.toolshed.shell import muterun_js
 
 from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_APP_URL, \
     headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT, PIDS_ME_URL, FUT_HOST, SHARDS_V2, GAME_URL, \
-    ACOUNTS_INFO,ROOT_URL
+    ACOUNTS_INFO, ROOT_URL, DS_JS_PATH, CLIENT_VERSION
 from enums import AuthMethod, Platform
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
@@ -26,7 +29,7 @@ class WebAppLogin:
         self.platform = platform
         self.sku = None
         self.game_sku = None
-        self.nucleus_id = None # client pid
+        self.nucleus_id = None  # client pid
         self.dob = None
         self.persona_id = None
 
@@ -40,11 +43,11 @@ class WebAppLogin:
 
         # auth
         self.request_session = requests.Session()
-        self.request_session.cookies = LWPCookieJar()
         self.ea_server_response = None
         self.entered_correct_creadentials = False
         self.access_token = None
         self.token_type = None
+        self.sid = None
 
         WebAppLogin.__instance = self
         self.pre_login()
@@ -60,7 +63,7 @@ class WebAppLogin:
     def launch_webapp(self):
         try:
             self._verify_client()
-            self._get_client_session()
+            return self._get_client_session()
 
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
@@ -125,14 +128,14 @@ class WebAppLogin:
     def _navigate_to_login_page(self):
         params = {
             'prompt': 'login',
-            'accessToken': '',
+            'accessToken': 'null',
             'client_id': self.client_id,
             'response_type': 'token',
             'display': 'web2/login',
             'locale': 'en_US',
             'redirect_uri': REDIRECT_URI_WEB_APP,
             'release_type': 'prod',
-            'scope': 'basic.identity offline signin basic.entitlement basic.persona'
+            'scope': 'basic.identity offline signin'
         }
         referer_header = {
             'Referer': EA_WEB_APP_URL
@@ -190,6 +193,8 @@ class WebAppLogin:
         self.token_type = self.ea_server_response.group(2)
 
     def _save_cookies(self):
+        # copy the cookie format to revert after save
+        cookies_in_Cookie_format = copy.deepcopy(self.request_session.cookies._cookies)
         for domain in self.request_session.cookies._cookies:
             for path in self.request_session.cookies._cookies[domain]:
                 for cookie in self.request_session.cookies._cookies[domain][path]:
@@ -197,6 +202,8 @@ class WebAppLogin:
                         self.request_session.cookies._cookies[domain][path][cookie].__dict__
         ea_accounts_collection.update_one({"email": self.email}, {
             "$set": {"cookies": self.request_session.cookies._cookies}})
+        # convert back to Cookie Format from dict
+        self.request_session.cookies._cookies = cookies_in_Cookie_format
 
     def _load_cookies(self, user_cookies):
         for domain in user_cookies:
@@ -235,12 +242,13 @@ class WebAppLogin:
         self._get_additional_account_data()
         self._check_if_persona_found()
         self._finish_authoriztion_and_get_sid()
+        return self._save_sid_if_success()
 
     def _determine_game_sku(self):
         if Platform(self.platform) == Platform.pc:
             self.game_sku = f'{PRE_GAME_SKU}PCC'
         elif Platform(self.platform) == Platform.xbox:
-            self.game_skuu = f'{PRE_GAME_SKU}XBO'
+            self.game_sku = f'{PRE_GAME_SKU}XBO'
         elif Platform(self.platform) == Platform.xbox360:
             self.game_sku = f'{PRE_GAME_SKU}XBX'
         elif Platform(self.platform) == Platform.ps3:
@@ -275,6 +283,7 @@ class WebAppLogin:
         self.nucleus_id = self.ea_server_response['pid']['externalRefValue']
         self.dob = self.ea_server_response['pid']['dob']
         del self.request_session.headers['Authorization']
+        self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
         # shards
         self.ea_server_response = self.request_session.get(f'https://{self.auth_url}/{SHARDS_V2}').json()
 
@@ -296,14 +305,48 @@ class WebAppLogin:
     def _finish_authoriztion_and_get_sid(self):
         del self.request_session.headers['Easw-Session-Data-Nucleus-Id']
         self.request_session.headers['Origin'] = ROOT_URL
-        params = {'client_id': 'FOS-SERVER',  # i've seen in some js/json response but cannot find now
+        params = {'client_id': 'FOS-SERVER',
                   'redirect_uri': 'nucleus:rest',
                   'response_type': 'code',
                   'access_token': self.access_token,
                   'release_type': 'prod'}
-        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params).json()
-        auth_code = self.ea_server_response['code']
-        hashed_ds = self._generate_ds(auth_code)
+        res = self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params).json()
+        auth_code = res['code']
 
-    def _generate_ds(self,auth_code):
-        return ""
+        # ds algorithm
+        ds = self._generate_ds(auth_code)
+        self.request_session.headers['Content-Type'] = 'application/json'
+        data = {'isReadOnly': 'false',
+                'sku': self.sku,
+                'clientVersion': CLIENT_VERSION,
+                'nucleusPersonaId': self.persona_id,
+                'gameSku': self.game_sku,
+                'locale': 'en-US',
+                'method': 'authcode',
+                'priorityLevel': 4,
+                'identification': {'authCode': auth_code,
+                                   'redirectUrl': 'nucleus:rest'},
+                'ds': ds}
+        self.ea_server_response = self.request_session.post(f'https://{self.fut_host}/ut/auth', data=json.dumps(data),
+                                                            timeout=REQUEST_TIMEOUT)
+
+    def _generate_ds(self, auth_code):
+        ds = auth_code + " " + self.sku + " " + self.access_token
+        return str(muterun_js(DS_JS_PATH, ds).stdout)[2:-3]
+
+    def _save_sid_if_success(self):
+        if self.ea_server_response.status_code == 401:  # and rc.text == 'multiple session'
+            raise WebAppLoginError(reason='multiple session')
+        if self.ea_server_response.status_code == 500:
+            raise WebAppLoginError(reason='Servers are probably temporary down.')
+        if self.ea_server_response.status_code == 458:
+            raise WebAppLoginError(reason='Fun Captcha found. Go to webapp and solve it, then log in again.')
+        if self.ea_server_response.status_code == 403:
+            raise WebAppLoginError(reason='Server returned Forbiden. Probably you have not received access to web app')
+        self.ea_server_response = self.ea_server_response.json()
+        if self.ea_server_response.get('reason'):
+            raise WebAppLoginError(reason=self.ea_server_response.get('reason'))
+
+        self.request_session.headers['X-UT-SID'] = self.sid = self.ea_server_response['sid']
+        self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
+        return server_response(auth=self.ea_server_response)

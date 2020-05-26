@@ -1,3 +1,5 @@
+import os
+
 APP_SECRET_KEY = 'EA708E8DE7AACDFCAB0A7351714682CCCD906591C27E0DF23E1D77880995566A'
 ROOT_URL = 'https://www.easports.com'
 BASE_URL = 'fifa/ultimate-team/web-application/content'
@@ -38,3 +40,4 @@ FUT_HOST = {
     'xbox': 'utas.external.s3.fut.ea.com:443',
     'xbox360': 'utas.external.s3.fut.ea.com:443',
 }
+DS_JS_PATH = os.path.abspath(f'{os.path.dirname(os.path.abspath(""))}/utils/ds.js')
