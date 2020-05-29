@@ -17,7 +17,7 @@ messages = []
 def initApp():
     register_routes(app)
 
-    @app.route('/test')
+    @app.route('/test',methods=['GET'])
     def test():
         return "asdasdasd"
 

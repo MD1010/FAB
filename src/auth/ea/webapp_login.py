@@ -3,6 +3,7 @@ import json
 import re
 from http.cookiejar import Cookie
 
+import bcrypt
 import requests
 from Naked.toolshed.shell import muterun_js
 
@@ -44,6 +45,7 @@ class WebAppLogin:
         # auth
         self.request_session = requests.Session()
         self.ea_server_response = None
+        self.db_user = None
         self.entered_correct_creadentials = False
         self.access_token = None
         self.token_type = None
@@ -56,7 +58,7 @@ class WebAppLogin:
         try:
             self._initialize_webapp_config()
             if self.ea_server_response["futweb_maintenance"]:
-                raise WebAppMaintenance(reason="webapp is not available due to maintenance")
+                raise WebAppMaintenance(reason="Webapp is not available due to maintenance")
         except WebAppPinEventChanged as e:
             return server_response(error=e.reason, code=503)
 
@@ -69,17 +71,16 @@ class WebAppLogin:
             return server_response(error=e.reason, code=401)
 
         except WebAppVerificationRequired:
-            return server_response(status="verified credentials, waiting for status code",
-                                   verification_method=True)
+            return server_response(status="verified credentials, waiting for status code", verification_method=True)
 
     def get_verification_code(self, auth_method):
         self._send_verification_code_to_client(auth_method)
-        return server_response(status=f'verification code sent via {str(auth_method).lower()}')
+        return server_response(status=f'Verification code sent via {str(auth_method).lower()}')
 
     def continue_login_with_status_code(self, code):
         # todo: check maybe some conditions are not necessarry
         if 'Enter your security code' in self.ea_server_response.text:
-            self.request_session.headers = url = self.ea_server_response.url
+            self.request_session.headers['Referer'] = url = self.ea_server_response.url
             self.ea_server_response = self.request_session.post(url.replace('s3', 's4'),
                                                                 {'oneTimeCode': code,
                                                                  '_trustThisDevice': 'on',
@@ -90,9 +91,9 @@ class WebAppLogin:
             # if 'Set Up an App Authenticator' in self.ea_server_response.text:
             #     self.ea_server_response = self.request_session.post(url.replace('s3', 's4'), {'_eventId': 'cancel', 'appDevice': 'IPHONE'},
             #                                    timeout=REQUEST_TIMEOUT)
-            self._set_access_token_first_time()
-            self._save_cookies()
-            self.launch_webapp()
+        self._set_access_token_first_time()
+        self._save_cookies()
+        return self.launch_webapp()
 
     # private functions in order
     def _initialize_webapp_config(self):
@@ -104,21 +105,22 @@ class WebAppLogin:
         self.fun_captcha_public_key = self.ea_server_response['funCaptchaPublicKey']  # A4EECF77-AC87-8C8D-5754-BF882F72063B
         self.ea_server_response = self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}").json()
         if self.ea_server_response['pin'] != PIN_DICT:
-            raise WebAppPinEventChanged(reason="structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
+            raise WebAppPinEventChanged(reason="Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
 
     def _verify_client(self):
-        # already verified - enters here again after successfull status code
-        if self.entered_correct_creadentials: return
+        # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
+        self.db_user = ea_accounts_collection.find_one({"email": self.email})
+        # credential verification from db -> the user already was logged in previously so there is no point to refer to ea
+        if self.db_user:
+            if bcrypt.hashpw(self.password.encode('utf-8'), self.db_user["password"]) == self.db_user["password"] and self.platform == self.db_user["platform"]:
+                self.entered_correct_creadentials = True
+            else:
+                self.entered_correct_creadentials = False
+                raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)
 
-        user = ea_accounts_collection.find_one({"email": self.email})
-
-        if not user:
-            raise WebAppLoginError(reason='user does not exist')
-
-        user_cookies = user["cookies"]
-        if user_cookies:
-            self.request_session.cookies._cookies = self._load_cookies(user_cookies)
-            self.entered_correct_creadentials = True
+        # if provided correct credentials take the cookies and launch web app
+        if self.db_user.get("cookies"):
+            self.request_session.cookies._cookies = self._load_cookies(self.db_user["cookies"])
         else:
             self._navigate_to_login_page()
             self._check_if_correct_credentials()
@@ -137,12 +139,8 @@ class WebAppLogin:
             'release_type': 'prod',
             'scope': 'basic.identity offline signin'
         }
-        referer_header = {
-            'Referer': EA_WEB_APP_URL
-        }
-
-        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params,
-                                                           headers=referer_header, timeout=REQUEST_TIMEOUT)
+        self.request_session.headers['Referer'] = EA_WEB_APP_URL
+        self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params, timeout=REQUEST_TIMEOUT)
 
         if self.ea_server_response.url != REDIRECT_URI_WEB_APP:
             self.request_session.headers['Referer'] = self.ea_server_response.url
@@ -171,8 +169,7 @@ class WebAppLogin:
 
     def _send_verification_code_to_client(self, auth_method):
         if 'var redirectUri' in self.ea_server_response.text:
-            self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={
-                '_eventId': 'end'})  # initref param was missing here
+            self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
         if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
             if AuthMethod(auth_method) == AuthMethod.SMS:
                 self.ea_server_response = self.request_session.post(self.ea_server_response.url,
@@ -201,7 +198,7 @@ class WebAppLogin:
                     self.request_session.cookies._cookies[domain][path][cookie] = \
                         self.request_session.cookies._cookies[domain][path][cookie].__dict__
         ea_accounts_collection.update_one({"email": self.email}, {
-            "$set": {"cookies": self.request_session.cookies._cookies}})
+            "$set": {"cookies": self.request_session.cookies._cookies, "platform": self.platform}})
         # convert back to Cookie Format from dict
         self.request_session.cookies._cookies = cookies_in_Cookie_format
 
@@ -268,6 +265,12 @@ class WebAppLogin:
                   'scope': 'basic.identity offline signin'}
         self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params)
         self.ea_server_response = re.match(f'{REDIRECT_URI_WEB_APP}#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+', self.ea_server_response.url)
+        # remid cookie expired
+        if self.ea_server_response is None:
+            # delete the expired cookies
+            ea_accounts_collection.update_one({"email": self.email}, {
+                "$set": {"cookies": {}, "platform": self.platform}})
+            raise WebAppVerificationRequired()
         self.access_token = self.ea_server_response.group(1)
         self.token_type = self.ea_server_response.group(2)
 
@@ -300,7 +303,11 @@ class WebAppLogin:
                     self.persona_id = p['personaId']
                     break
         if not self.persona_id:
-            raise WebAppLoginError(reason="No persona found - Maybe Wrong Platform specified? ")
+            raise WebAppLoginError(reason="No persona found - wrong credentials provided.")
+
+    def _generate_ds(self, auth_code):
+        ds = auth_code + " " + self.sku + " " + self.access_token
+        return str(muterun_js(DS_JS_PATH, ds).stdout)[2:-3]
 
     def _finish_authoriztion_and_get_sid(self):
         del self.request_session.headers['Easw-Session-Data-Nucleus-Id']
@@ -330,13 +337,9 @@ class WebAppLogin:
         self.ea_server_response = self.request_session.post(f'https://{self.fut_host}/ut/auth', data=json.dumps(data),
                                                             timeout=REQUEST_TIMEOUT)
 
-    def _generate_ds(self, auth_code):
-        ds = auth_code + " " + self.sku + " " + self.access_token
-        return str(muterun_js(DS_JS_PATH, ds).stdout)[2:-3]
-
     def _save_sid_if_success(self):
         if self.ea_server_response.status_code == 401:  # and rc.text == 'multiple session'
-            raise WebAppLoginError(reason='multiple session')
+            raise WebAppLoginError(reason='Multiple session')
         if self.ea_server_response.status_code == 500:
             raise WebAppLoginError(reason='Servers are probably temporary down.')
         if self.ea_server_response.status_code == 458:
