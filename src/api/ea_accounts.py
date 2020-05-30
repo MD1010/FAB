@@ -7,12 +7,6 @@ from src.users.user_ea_accounts import add_ea_account_to_user, delete_ea_account
 ea_accounts = Blueprint("ea_accounts", __name__)
 
 
-@ea_accounts.route('/login', methods=['POST'])
-@jwt_required
-def ea_account_login():
-    return ""
-
-
 @ea_accounts.route('/add', methods=['POST'])
 @jwt_required
 def add_user_ea_account():

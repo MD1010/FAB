@@ -45,7 +45,7 @@ class WebAppLogin:
         # auth
         self.request_session = requests.Session()
         self.ea_server_response = None
-        self.db_user = None
+        self.ea_account = None
         self.entered_correct_creadentials = False
         self.access_token = None
         self.token_type = None
@@ -71,7 +71,7 @@ class WebAppLogin:
             return server_response(error=e.reason, code=401)
 
         except WebAppVerificationRequired:
-            return server_response(status="verified credentials, waiting for status code", verification_method=True)
+            return server_response(status="verified credentials, waiting for status code", verification=True)
 
     def get_verification_code(self, auth_method):
         self._send_verification_code_to_client(auth_method)
@@ -109,23 +109,23 @@ class WebAppLogin:
 
     def _verify_client(self):
         # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
-        self.db_user = ea_accounts_collection.find_one({"email": self.email})
+        self.ea_account = ea_accounts_collection.find_one({"email": self.email})
+        if not self.ea_account:
+            raise WebAppLoginError(reason="The account doesnt exists in the users accounts")
         # credential verification from db -> the user already was logged in previously so there is no point to refer to ea
-        if self.db_user:
-            if bcrypt.hashpw(self.password.encode('utf-8'), self.db_user["password"]) == self.db_user["password"] and self.platform == self.db_user["platform"]:
+        if bcrypt.hashpw(self.password.encode('utf-8'), self.ea_account["password"]) == self.ea_account["password"] and self.platform == self.ea_account["platform"]:
+            if self.ea_account.get("cookies"):
                 self.entered_correct_creadentials = True
+                self.request_session.cookies._cookies = self._load_cookies(self.ea_account["cookies"])
             else:
-                self.entered_correct_creadentials = False
-                raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)
-
-        # if provided correct credentials take the cookies and launch web app
-        if self.db_user.get("cookies"):
-            self.request_session.cookies._cookies = self._load_cookies(self.db_user["cookies"])
+                # if provided correct credentials take the cookies and launch web app
+                self._navigate_to_login_page()
+                self._check_if_correct_credentials()# can be removed
+                self.entered_correct_creadentials = True
+                raise WebAppVerificationRequired()
         else:
-            self._navigate_to_login_page()
-            self._check_if_correct_credentials()
-            self.entered_correct_creadentials = True
-            raise WebAppVerificationRequired()
+            self.entered_correct_creadentials = False
+            raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)
 
     def _navigate_to_login_page(self):
         params = {
