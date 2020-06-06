@@ -13,6 +13,7 @@ from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_A
     headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT, PIDS_ME_URL, FUT_HOST, SHARDS_V2, GAME_URL, \
     ACOUNTS_INFO, ROOT_URL, DS_JS_PATH, CLIENT_VERSION
 from enums import AuthMethod, Platform
+from models.pin import Pin
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
 from utils.helper_functions import server_response
@@ -43,6 +44,7 @@ class WebAppLogin:
         self.release_type = None
         self.fun_captcha_public_key = None
         self.fut_host = FUT_HOST[platform]
+        self.pin = None
 
         # auth
         self.ea_server_response = None
@@ -222,7 +224,7 @@ class WebAppLogin:
                     path = user_cookies[domain][path][cookie].get("path")
                     path_specified = user_cookies[domain][path][cookie].get("path_specified")
                     secure = user_cookies[domain][path][cookie].get("secure")
-                    expires = round(time.time()) * (random.random() + 1) * 1.1 # random calculation to random the expiry time
+                    expires = round(time.time()) * (random.random() + 1) * 1.1  # random calculation to random the expiry time
                     discard = user_cookies[domain][path][cookie].get("discard")
                     comment = user_cookies[domain][path][cookie].get("comment")
                     comment_url = user_cookies[domain][path][cookie].get("comment_url")
@@ -359,3 +361,8 @@ class WebAppLogin:
         self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
 
         return server_response(auth=self.ea_server_response)
+
+    def _send_pin_events(self):
+        self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=self.platform)
+        events = [self.pin.generate_event('login', status='success')]
+        self.pin.send_pin(events)
