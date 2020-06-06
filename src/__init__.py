@@ -29,5 +29,4 @@ def initApp():
     #                 message = messages.pop(0)
     #                 return f"data:{message}\nevent:myEvent\n\n"
     #     return Response(event_stream(), mimetype="text/event-stream")
-
     app.run(host=SERVER_IP, debug=True)

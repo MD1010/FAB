@@ -1,6 +1,8 @@
 import copy
 import json
+import random
 import re
+import time
 from http.cookiejar import Cookie
 
 import bcrypt
@@ -43,7 +45,6 @@ class WebAppLogin:
         self.fut_host = FUT_HOST[platform]
 
         # auth
-        self.request_session = requests.Session()
         self.ea_server_response = None
         self.ea_account = None
         self.entered_correct_creadentials = False
@@ -55,11 +56,11 @@ class WebAppLogin:
         self.pre_login()
 
     def pre_login(self):
+        self.request_session = requests.Session()
         try:
             self._initialize_webapp_config()
-            if self.ea_server_response["futweb_maintenance"]:
-                raise WebAppMaintenance(reason="Webapp is not available due to maintenance")
-        except WebAppPinEventChanged as e:
+
+        except (WebAppPinEventChanged, WebAppMaintenance) as e:
             return server_response(error=e.reason, code=503)
 
     def launch_webapp(self):
@@ -106,6 +107,8 @@ class WebAppLogin:
         self.ea_server_response = self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}").json()
         if self.ea_server_response['pin'] != PIN_DICT:
             raise WebAppPinEventChanged(reason="Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
+        if self.ea_server_response["futweb_maintenance"]:
+            raise WebAppMaintenance(reason="Webapp is not available due to maintenance")
 
     def _verify_client(self):
         # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
@@ -120,7 +123,7 @@ class WebAppLogin:
             else:
                 # if provided correct credentials take the cookies and launch web app
                 self._navigate_to_login_page()
-                self._check_if_correct_credentials()# can be removed
+                self._check_if_correct_credentials()  # can be removed
                 self.entered_correct_creadentials = True
                 raise WebAppVerificationRequired()
         else:
@@ -191,12 +194,14 @@ class WebAppLogin:
 
     def _save_cookies(self):
         # copy the cookie format to revert after save
+        # self.request_session.cookies._cookies["accounts.ea.com"]['/connect']['sid'].expires = sys.maxsize
         cookies_in_Cookie_format = copy.deepcopy(self.request_session.cookies._cookies)
         for domain in self.request_session.cookies._cookies:
             for path in self.request_session.cookies._cookies[domain]:
                 for cookie in self.request_session.cookies._cookies[domain][path]:
                     self.request_session.cookies._cookies[domain][path][cookie] = \
                         self.request_session.cookies._cookies[domain][path][cookie].__dict__
+
         ea_accounts_collection.update_one({"email": self.email}, {
             "$set": {"cookies": self.request_session.cookies._cookies, "platform": self.platform}})
         # convert back to Cookie Format from dict
@@ -217,7 +222,7 @@ class WebAppLogin:
                     path = user_cookies[domain][path][cookie].get("path")
                     path_specified = user_cookies[domain][path][cookie].get("path_specified")
                     secure = user_cookies[domain][path][cookie].get("secure")
-                    expires = user_cookies[domain][path][cookie].get("expires")
+                    expires = round(time.time()) * (random.random() + 1) * 1.1 # random calculation to random the expiry time
                     discard = user_cookies[domain][path][cookie].get("discard")
                     comment = user_cookies[domain][path][cookie].get("comment")
                     comment_url = user_cookies[domain][path][cookie].get("comment_url")
@@ -352,4 +357,5 @@ class WebAppLogin:
 
         self.request_session.headers['X-UT-SID'] = self.sid = self.ea_server_response['sid']
         self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
+
         return server_response(auth=self.ea_server_response)
