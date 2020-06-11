@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 
 from consts import APP_SECRET_KEY, SERVER_IP
 from src.routes import register_routes
+from utils.helper_functions import server_response
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_SECRET_KEY
@@ -17,9 +18,9 @@ messages = []
 def initApp():
     register_routes(app)
 
-    @app.route('/test',methods=['GET'])
+    @app.route('/alive',methods=['GET'])
     def test():
-        return "asdasdasd"
+        return server_response(alive=True)
 
     # @app.route("/stream")
     # def stream():

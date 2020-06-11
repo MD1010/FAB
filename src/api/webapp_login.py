@@ -3,7 +3,7 @@ from functools import wraps
 from flask import request
 
 from src.api.webapp import login
-from src.auth.ea.webapp_login import WebAppLogin
+from src.auth.webapp_login import WebAppLogin
 from utils.helper_functions import server_response
 
 

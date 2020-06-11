@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_refresh_token_required
 
-from src.auth.application.login import log_in_user
-from src.auth.application.signup import create_new_user
+from src.auth.app_login import log_in_user
+from src.auth.app_signup import create_new_user
 from utils.helper_functions import refresh_access_token
 
 auth = Blueprint("auth", __name__)

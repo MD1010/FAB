@@ -23,7 +23,7 @@ class WebAppLogin:
     __instance = None
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> 'WebAppLogin':
         return WebAppLogin.__instance
 
     def __init__(self, email, password, platform):

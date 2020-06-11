@@ -10,4 +10,4 @@ try:
     ea_accounts_collection = fab_db[EA_ACCOUNTS_COLLECTION]
     users_collection = fab_db[USERS_COLLECTION]
 except ConnectionFailure:
-    print("connection failed")
+    raise Exception("connection failed")
