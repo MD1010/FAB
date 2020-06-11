@@ -224,7 +224,8 @@ class WebAppLogin:
                     path = user_cookies[domain][path][cookie].get("path")
                     path_specified = user_cookies[domain][path][cookie].get("path_specified")
                     secure = user_cookies[domain][path][cookie].get("secure")
-                    expires = round(time.time()) * (random.random() + 1) * 1.1  # random calculation to random the expiry time
+                    # expires = round(time.time()) * (random.random() + 1) * 1.1  # random calculation to random the expiry time
+                    expires = round(time.time() + round((time.time()) * (random.random() + 1) * 1.5))
                     discard = user_cookies[domain][path][cookie].get("discard")
                     comment = user_cookies[domain][path][cookie].get("comment")
                     comment_url = user_cookies[domain][path][cookie].get("comment_url")
@@ -246,7 +247,10 @@ class WebAppLogin:
         self._get_additional_account_data()
         self._check_if_persona_found()
         self._finish_authoriztion_and_get_sid()
-        return self._save_sid_if_success()
+        auth_data = self._save_sid_if_success()
+        self._send_pin_events()
+        return auth_data
+
 
     def _determine_game_sku(self):
         if Platform(self.platform) == Platform.pc:

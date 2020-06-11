@@ -1,4 +1,4 @@
-TAXV = 1.1
+TAXV = '1.1'
 TIDT = 'easku'
 REL = 'prod'
 GID = 0

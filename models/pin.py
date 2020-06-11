@@ -28,7 +28,7 @@ class Pin(object):
         self.et = ET
         self.pidt = PIDT
         self.v = APP_VERSION
-        self.s = 2  # 2 were sent and omitted
+        self.s = 1  # 2 were sent and omitted
 
         self.r = requests.Session()
         self.r.headers = headers
@@ -52,15 +52,15 @@ class Pin(object):
             "core": {
                 "en": en,
                 "pid": self.persona_id,
-                "pidm": {"nucleus": self.nucleus_id},
+                "pidm": {"nucleus": int(self.nucleus_id)},
                 "pidt": self.pidt,
                 "s": self.s,
                 "ts_event": self.__ts
             }
         }
         # todo: maybe not needed?
-        if self.dob:  # date of birth yyyy-mm
-            data['core']['dob'] = self.dob
+        # if self.dob:  # date of birth yyyy-mm
+        #     data['core']['dob'] = self.dob
         if pgid:
             data['pgid'] = pgid
         if status:
