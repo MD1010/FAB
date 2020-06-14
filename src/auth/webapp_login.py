@@ -173,17 +173,20 @@ class WebAppLogin:
             raise WebAppLoginError(reason=failedReason)
 
     def _send_verification_code_to_client(self, auth_method):
-        if 'var redirectUri' in self.ea_server_response.text:
-            self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
-        if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
-            if AuthMethod(auth_method) == AuthMethod.SMS:
-                self.ea_server_response = self.request_session.post(self.ea_server_response.url,
-                                                                    {'_eventId': 'submit',
-                                                                     'codeType': 'SMS'})
-            else:  # email
-                self.ea_server_response = self.request_session.post(self.ea_server_response.url,
-                                                                    {'_eventId': 'submit',
-                                                                     'codeType': 'EMAIL'})
+        if self.ea_server_response:
+            if 'var redirectUri' in self.ea_server_response.text:
+                self.ea_server_response = self.request_session.get(self.ea_server_response.url, params={'_eventId': 'end'})  # initref param was missing here
+            if 'Login Verification' in self.ea_server_response.text:  # click button to get code sent
+                if AuthMethod(auth_method) == AuthMethod.SMS:
+                    self.ea_server_response = self.request_session.post(self.ea_server_response.url,
+                                                                        {'_eventId': 'submit',
+                                                                         'codeType': 'SMS'})
+                else:  # email
+                    self.ea_server_response = self.request_session.post(self.ea_server_response.url,
+                                                                        {'_eventId': 'submit',
+                                                                         'codeType': 'EMAIL'})
+            else:
+                raise WebAppLoginError(reason='failed to send verification code')
         else:
             raise WebAppLoginError(reason='failed to send verification code')
 
