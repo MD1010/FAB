@@ -14,18 +14,14 @@ from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_A
     ACOUNTS_INFO, ROOT_URL, DS_JS_PATH, CLIENT_VERSION
 from enums import AuthMethod, Platform
 from models.pin import Pin
+from src.auth.live_logins import authenticated_accounts
+from utils.common_requests import get_user_ut_info
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
 from utils.helper_functions import server_response
 
 
 class WebAppLogin:
-    __instance = None
-
-    @staticmethod
-    def get_instance() -> 'WebAppLogin':
-        return WebAppLogin.__instance
-
     def __init__(self, email, password, platform):
         # account
         self.email = email
@@ -128,6 +124,7 @@ class WebAppLogin:
                 self._check_if_correct_credentials()  # can be removed
                 self.entered_correct_creadentials = True
                 raise WebAppVerificationRequired()
+            self._add_authenticated_account()
         else:
             self.entered_correct_creadentials = False
             raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)
@@ -251,9 +248,9 @@ class WebAppLogin:
         self._check_if_persona_found()
         self._finish_authoriztion_and_get_sid()
         auth_data = self._save_sid_if_success()
+        get_user_ut_info(self.email)
         self._send_pin_events()
         return auth_data
-
 
     def _determine_game_sku(self):
         if Platform(self.platform) == Platform.pc:
@@ -363,7 +360,6 @@ class WebAppLogin:
         self.ea_server_response = self.ea_server_response.json()
         if self.ea_server_response.get('reason'):
             raise WebAppLoginError(reason=self.ea_server_response.get('reason'))
-
         self.request_session.headers['X-UT-SID'] = self.sid = self.ea_server_response['sid']
         self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
 
@@ -373,3 +369,6 @@ class WebAppLogin:
         self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=self.platform)
         events = [self.pin.generate_event('login', status='success')]
         self.pin.send_pin(events)
+
+    def _add_authenticated_account(self):
+        authenticated_accounts[self.email] = self
