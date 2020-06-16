@@ -50,7 +50,6 @@ class WebAppLogin:
         self.token_type = None
         self.sid = None
 
-        WebAppLogin.__instance = self
         self.pre_login()
 
     def pre_login(self):
