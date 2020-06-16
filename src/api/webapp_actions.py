@@ -2,7 +2,7 @@ from flask import request
 
 from src.api.webapp import actions
 from src.api.webapp_login import check_login_attempt
-from utils.common_requests import get_user_ut_info
+from utils.usermassinfo import get_user_ut_info
 
 
 @actions.route('/get-ut-info', methods=['GET'])

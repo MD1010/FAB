@@ -15,10 +15,10 @@ from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_A
 from enums import AuthMethod, Platform
 from models.pin import Pin
 from src.auth.live_logins import authenticated_accounts
-from utils.common_requests import get_user_ut_info
 from utils.db import ea_accounts_collection
-from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance
-from utils.helper_functions import server_response
+from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance, MarketLockedError
+from utils.helper_functions import server_response, send_pin_event
+from utils.usermassinfo import get_user_ut_info
 
 
 class WebAppLogin:
@@ -64,10 +64,20 @@ class WebAppLogin:
     def launch_webapp(self):
         try:
             self._verify_client()
-            return self._get_client_session()
+            session_data = self._get_client_session()
+            send_pin_event(self.pin, 'login', status='success')
+            get_user_ut_info(self.email)
+            send_pin_event(self.pin, 'page_view', pgid='Hub - Home')
+            return session_data
 
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
+
+        except MarketLockedError as e:
+            return server_response(error=e.reason, code=503)
+
+        except WebAppPinEventChanged as e:
+            return server_response(error=e.reason, code=400)
 
         except WebAppVerificationRequired:
             return server_response(status="verified credentials, waiting for status code", verification=True)
@@ -247,10 +257,7 @@ class WebAppLogin:
         self._get_additional_account_data()
         self._check_if_persona_found()
         self._finish_authoriztion_and_get_sid()
-        auth_data = self._save_sid_if_success()
-        get_user_ut_info(self.email)
-        self._send_pin_events()
-        return auth_data
+        return self._save_sid_if_success()
 
     def _determine_game_sku(self):
         if Platform(self.platform) == Platform.pc:
@@ -362,13 +369,9 @@ class WebAppLogin:
             raise WebAppLoginError(reason=self.ea_server_response.get('reason'))
         self.request_session.headers['X-UT-SID'] = self.sid = self.ea_server_response['sid']
         self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
-
-        return server_response(auth=self.ea_server_response)
-
-    def _send_pin_events(self):
+        # create pin events object
         self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=self.platform)
-        events = [self.pin.generate_event('login', status='success')]
-        self.pin.send_pin(events)
+        return server_response(auth=self.ea_server_response)
 
     def _add_authenticated_account(self):
         authenticated_accounts[self.email] = self

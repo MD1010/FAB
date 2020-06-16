@@ -106,5 +106,5 @@ class Pin(object):
             self.r.options(PIN_URL)
         rc = self.r.post(PIN_URL, data=json.dumps(data)).json()
         if rc['status'] != 'ok':
-            raise WebAppPinEventChanged(reason='PinEvent is NOT OK, probably they changed something.')
+            raise WebAppPinEventChanged(reason='Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app')
         return True
