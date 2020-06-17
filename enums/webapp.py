@@ -7,3 +7,7 @@ class Platform(Enum):
     pc = 'pc'
     ps3 = 'ps3'
     ps4 = 'ps4'
+
+class AuthMethod(Enum):
+   SMS = 'SMS'
+   EMAIL = 'EMAIL'

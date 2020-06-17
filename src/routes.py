@@ -8,7 +8,7 @@ from src.api.webapp import webapp
 
 
 def register_routes(app):
-    app.register_blueprint(app_users, url_prefix="/api/users")
+    app.register_blueprint(app_users, url_prefix="/api/accounts")
     app.register_blueprint(ea_accounts, url_prefix="/api/accounts")
     app.register_blueprint(players, url_prefix="/api/players")
     app.register_blueprint(auth, url_prefix="/api/auth")

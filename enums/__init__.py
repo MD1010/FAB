@@ -1,2 +1,1 @@
-from .auth_method import *
-from .platform import *
+from .webapp import *

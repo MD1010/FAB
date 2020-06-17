@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask import request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from src.users.user_ea_accounts import add_ea_account_to_user, delete_ea_account_from_user
+from src.accounts.ea_account_actions import add_ea_account_to_user, delete_ea_account_from_user
 
 ea_accounts = Blueprint("ea_accounts", __name__)
 

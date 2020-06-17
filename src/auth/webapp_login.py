@@ -121,7 +121,7 @@ class WebAppLogin:
         # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
         self.ea_account = ea_accounts_collection.find_one({"email": self.email})
         if not self.ea_account:
-            raise WebAppLoginError(reason="The account doesnt exists in the users accounts")
+            raise WebAppLoginError(reason="The account doesnt exists in the accounts accounts")
         # credential verification from db -> the user already was logged in previously so there is no point to refer to ea
         if bcrypt.hashpw(self.password.encode('utf-8'), self.ea_account["password"]) == self.ea_account["password"] and self.platform == self.ea_account["platform"]:
             if self.ea_account.get("cookies"):
