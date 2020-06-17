@@ -16,7 +16,7 @@ from enums import AuthMethod, Platform
 from models.pin import Pin
 from src.auth.live_logins import authenticated_accounts
 from utils.db import ea_accounts_collection
-from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance, MarketLockedError
+from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance, MarketLocked
 from utils.helper_functions import server_response, send_pin_event
 from utils.usermassinfo import get_user_ut_info
 
@@ -72,7 +72,7 @@ class WebAppLogin:
         except WebAppLoginError as e:
             return server_response(error=e.reason, code=401)
 
-        except MarketLockedError as e:
+        except MarketLocked as e:
             return server_response(error=e.reason, code=503)
 
         except WebAppPinEventChanged as e:

@@ -1,6 +1,6 @@
 from consts import GAME_URL, REQUEST_TIMEOUT
 from src.auth.live_logins import authenticated_accounts
-from utils.exceptions import MarketLockedError
+from utils.exceptions import MarketLocked
 
 
 def get_user_ut_info(email, info_type=None):
@@ -11,7 +11,7 @@ def get_user_ut_info(email, info_type=None):
     else:
         response = request_session.get(f'https://{fut_host}/{GAME_URL}/usermassinfo', timeout=REQUEST_TIMEOUT).json()[info_type]
     if response['userInfo']['feature']['trade'] == 0:
-        raise MarketLockedError(reason="Transfer market is probably disabled on this account")
+        raise MarketLocked(reason="Transfer market is probably disabled on this account")
     return response
 
 
