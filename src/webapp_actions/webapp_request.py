@@ -5,10 +5,9 @@ import requests
 
 from consts import GAME_URL, REQUEST_TIMEOUT
 from src.auth.live_logins import authenticated_accounts
-
-
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError
+
 
 # this class will be vreated ouside the fab loop -> the decorator of the /start-fab will insure that the account is authenticated
 class WebappActions:
@@ -27,7 +26,7 @@ class WebappActions:
         url = f'https://{self.host}/{GAME_URL}/{url}'
         # respect min wait time between requests
         time.sleep(random.unform(1.1, 2.5))
-        self.request_session.options(url,params=params)
+        self.request_session.options(url, params=params)
 
         response = None
         try:
@@ -48,7 +47,7 @@ class WebappActions:
             401: ExpiredSession,
             409: Conflict,
             429: TooManyRequests,
-            458: Captcha, # todo handle this someday
+            458: Captcha,  # todo handle this someday
             461: PermissionDenied,
             460: PermissionDenied,
             494: MarketLocked,
@@ -58,9 +57,11 @@ class WebappActions:
 
         }
         if not response.ok:
-            raise operation_status_switcher.get(response.status_code,UnknownError(response.content))()
-        if response.text == '': response = {}
-        else: response = response.json()
+            raise operation_status_switcher.get(response.status_code, UnknownError(response.content))()
+        if response.text == '':
+            response = {}
+        else:
+            response = response.json()
         if 'credits' in response and response['credits']:
             self.credits = response['credits']
         if 'duplicateItemIdList' in response:
