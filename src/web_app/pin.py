@@ -2,6 +2,7 @@ import json
 import time
 from datetime import datetime
 from random import random
+from typing import List
 
 import requests
 
@@ -9,10 +10,12 @@ from consts import APP_VERSION, headers, ROOT_URL, EA_WEB_APP_URL
 from consts.pin_events import TAXV, TIDT, REL, GID, PLAT, ET, PIDT, PIN_URL
 from utils.exceptions import WebAppPinEventChanged
 
+
 class WebAppEvent:
     def __init__(self, name, **kwargs):
         self.name = name
         self.kwargs = kwargs
+
 
 class Pin(object):
     def __init__(self, sku=None, sid='', nucleus_id=0, persona_id='', dob=False, platform=False):
@@ -87,7 +90,7 @@ class Pin(object):
         self.s += 1  # bump event id
         return data
 
-    def send_pin(self, events, fast=False):
+    def _send_pin(self, events, fast=False):
         time.sleep(0.5 + random() / 50)
         data = {
             "custom": self.custom,
@@ -112,3 +115,30 @@ class Pin(object):
         if rc['status'] != 'ok':
             raise WebAppPinEventChanged(reason='Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app')
         return True
+
+    def send_pin_event(self, events: List[WebAppEvent]):
+        events = [self.generate_event(event.name, **event.kwargs) for event in events]
+        self._send_pin(events)
+
+    def send_new_search_pin_event(self):
+        self.send_pin_event([WebAppEvent('page_view', pgid='Transfer Market Search')])
+
+    def send_login_success_pin_event(self):
+        self.send_pin_event([WebAppEvent('login', status='success')])
+
+    def send_hub_home_pin_event(self):
+        self.send_pin_event([WebAppEvent('page_view', pgid='Hub - Home')])
+
+    def send_transfer_search_pin_event(self):
+        self.send_pin_event([WebAppEvent('page_view', pgid='Transfer Market Search')])
+
+    def send_hub_transfers_pin_event(self):
+        self.send_pin_event([WebAppEvent('page_view', pgid='Hub - Transfers')])
+
+    def send_got_search_results_pin_event(self):
+        self.send_pin_event([
+            WebAppEvent('page_view', pgid='Transfer Market Results - List View'),
+            WebAppEvent('page_view', pgid='Item - Detail View')
+        ])
+    def send_no_results_pin_event(self):
+        self.send_pin_event([WebAppEvent('page_view', pgid='Transfer Market Results - List View')])

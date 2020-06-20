@@ -1,18 +1,17 @@
 import json
+import random
 import time
-from random import random
 
 import requests
 
-from consts import GAME_URL, REQUEST_TIMEOUT
-from models.pin import WebAppEvent
+from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from src.auth.live_logins import authenticated_accounts
+from src.web_app.helper_functions import get_auction_data
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError
 
 
 # this class will be vreated ouside the fab loop -> the decorator of the /start-fab will insure that the account is authenticated
-from utils.helper_functions import send_pin_event
 
 
 class WebappActions:
@@ -31,7 +30,7 @@ class WebappActions:
         params = params or {}
         url = f'https://{self.host}/{GAME_URL}/{url}'
         # respect min wait time between requests
-        time.sleep(random.unform(1.1, 2.5))
+        time.sleep(random.uniform(1.1, 2.5))
         self.request_session.options(url, params=params)
 
         res = None
@@ -85,62 +84,45 @@ class WebappActions:
             """ emit here from socket io that the item was sent """
             print(f"item {item_id} was sent to transfer list")
         else:
-            print(f"failed to list item, reason: { res['itemData'][0]['reason']}")
+            print(f"failed to list item, reason: {res['itemData'][0]['reason']}")
 
-    def search_items(self, ctype, level=None, category=None, assetId=None, defId=None,
-                     min_price=None, max_price=None, min_buy=None, max_buy=None,
+    def enter_first_transfer_market_search(self):
+        self._web_app_request('GET', 'watchlist')
+        self.pin.send_hub_transfers_pin_event()
+        self.pin.send_transfer_search_pin_event()
+
+    def go_back_to_search(self):
+        self.pin.send_transfer_search_pin_event()
+
+    def search_items(self, item_type, level=None, category=None, masked_def_id=None, def_id=None,
+                     min_price=None, max_price=None, min_buy=None, max_bin=None,
                      league=None, club=None, position=None, zone=None, nationality=None,
-                     rare=False, playStyle=None, start=0, page_size=itemsPerPage['transferMarket'],
-                     fast=False):
-        """Prepare search request, send and return parsed data as a dict.
+                     rare=False, play_style=None, start=0, page_size=MAX_CARD_ON_PAGE):
 
-        :param ctype: player/training
-        :param level: (optional) Card level.
-        :param category: (optional) [fitness/?/?] Card category.
-        :param assetId: (optional) Asset id.
-        :param defId: (optional) Definition id.
-        :param min_price: (optional) Minimal price.
-        :param max_price: (optional) Maximum price.
-        :param min_buy: (optional) Minimal buy now price.
-        :param max_buy: (optional) Maximum buy now price.
-        :param league: (optional) League id.
-        :param club: (optional) Club id.
-        :param position: (optional) Position.
-        :param nationality: (optional) Nation id.
-        :param rare: (optional) [boolean] True for searching special cards.
-        :param playStyle: (optional) Play style.
-        :param start: (optional) Start page sent to server so it supposed to be 12/15, 24/30 etc. (default platform page_size*n)
-        :param page_size: (optional) Page size (items per page).
-        """
-
-        # pinEvents
-        if start == 0:
-            send_pin_event(self.pin, [
-                WebAppEvent('page_view', pgid='Hub - Transfers'),
-                WebAppEvent('page_view', pgid='Transfer Market Search')
-            ])
+        self.pin.send_transfer_search_pin_event()
 
         params = {
             'start': start,
             'num': page_size,
-            'type': ctype,  # "type" namespace is reserved in python
+            'type': item_type
         }
+
         if level:
             params['lev'] = level
         if category:
             params['cat'] = category
-        if assetId:
-            params['maskedDefId'] = assetId
-        if defId:
-            params['definitionId'] = defId
+        if masked_def_id:
+            params['maskedDefId'] = masked_def_id
+        if def_id:
+            params['definitionId'] = def_id
         if min_price:
             params['micr'] = min_price
         if max_price:
             params['macr'] = max_price
         if min_buy:
             params['minb'] = min_buy
-        if max_buy:
-            params['maxb'] = max_buy
+        if max_bin:
+            params['maxb'] = max_bin
         if league:
             params['leag'] = league
         if club:
@@ -153,18 +135,17 @@ class WebappActions:
             params['nat'] = nationality
         if rare:
             params['rare'] = 'SP'
-        if playStyle:
-            params['playStyle'] = playStyle
+        if play_style:
+            params['playStyle'] = play_style
 
-        rc = self._web_app_request('GET', 'transfermarket', params=params)
+        res = self._web_app_request('GET', 'transfermarket', params=params)
 
-        # pinEvents
-        if start == 0:
-            events = [self.pin.event('page_view', 'Transfer Market Results - List View'), self.pin.event('page_view', 'Item - Detail View')]
-            self.pin.send(events, fast=fast)
-
-        # return [itemParse(i) for i in rc.get('auctionInfo', ())]
+        search_results = [get_auction_data(i) for i in res.get('auctionInfo', ())]
+        if search_results:
+            self.pin.send_got_search_results_pin_event()
+        else:
+            self.pin.send_no_results_pin_event()
+        return search_results
 
     def logout(self):
-        self.request_session.delete(f'https://{self.host}/ut/auth' , timeout=REQUEST_TIMEOUT)
-
+        self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)

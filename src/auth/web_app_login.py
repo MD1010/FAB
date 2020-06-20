@@ -13,11 +13,11 @@ from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_A
     headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT, PIDS_ME_URL, FUT_HOST, SHARDS_V2, GAME_URL, \
     ACOUNTS_INFO, ROOT_URL, DS_JS_PATH, CLIENT_VERSION
 from enums import AuthMethod, Platform
-from models.pin import Pin, WebAppEvent
 from src.auth.live_logins import authenticated_accounts
+from src.web_app.pin import Pin
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance, MarketLocked
-from utils.helper_functions import server_response, send_pin_event
+from utils.helper_functions import server_response
 from utils.usermassinfo import get_user_ut_info
 
 
@@ -64,9 +64,9 @@ class WebAppLogin:
         try:
             self._verify_client()
             session_data = self._get_client_session()
-            send_pin_event(self.pin, [WebAppEvent('login',status='success')])
+            self.pin.send_login_success_pin_event()
             get_user_ut_info(self.email)
-            send_pin_event(self.pin, [WebAppEvent('page_view',pgid='Hub - Home')])
+            self.pin.send_hub_home_pin_event()
             return session_data
 
         except WebAppLoginError as e:
