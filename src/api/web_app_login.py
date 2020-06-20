@@ -2,9 +2,9 @@ from functools import wraps
 
 from flask import request
 
-from src.api.webapp import login
+from src.api.web_app import login
 from src.auth.live_logins import authenticated_accounts
-from src.auth.webapp_login import WebAppLogin
+from src.auth.web_app_login import WebAppLogin
 from utils.helper_functions import server_response
 
 
@@ -24,12 +24,12 @@ def check_login_attempt(func):
 
 
 @login.route('/launch', methods=['POST'])
-def ea_webapp_login():
+def ea_web_app_login():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
     platform = json_data.get('platform')
-    return WebAppLogin(email, password, platform).launch_webapp()
+    return WebAppLogin(email, password, platform).launch_web_app()
 
 
 @login.route('/get-status-code', methods=['POST'])

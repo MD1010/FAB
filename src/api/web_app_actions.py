@@ -1,7 +1,7 @@
 from flask import request
 
-from src.api.webapp import actions
-from src.api.webapp_login import check_login_attempt
+from src.api.web_app import actions
+from src.api.web_app_login import check_login_attempt
 from utils.usermassinfo import get_user_ut_info
 
 

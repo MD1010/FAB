@@ -55,12 +55,12 @@ class WebAppLogin:
     def pre_login(self):
         self.request_session = requests.Session()
         try:
-            self._initialize_webapp_config()
+            self._initialize_web_app_config()
 
         except (WebAppPinEventChanged, WebAppMaintenance) as e:
             return server_response(error=e.reason, code=503)
 
-    def launch_webapp(self):
+    def launch_web_app(self):
         try:
             self._verify_client()
             session_data = self._get_client_session()
@@ -104,10 +104,10 @@ class WebAppLogin:
             #                                    timeout=REQUEST_TIMEOUT)
         self._set_access_token_first_time()
         self._save_cookies()
-        return self.launch_webapp()
+        return self.launch_web_app()
 
     # private functions in order
-    def _initialize_webapp_config(self):
+    def _initialize_web_app_config(self):
         self.ea_server_response = self.request_session.get(CONFIG_URL).json()
         self.auth_url = self.ea_server_response['authURL']  # utas.mob.v2.fut.ea.com:443
         self.pin_url = self.ea_server_response['pinURL']  # https://pin-river.data.ea.com/pinEvents
@@ -365,7 +365,7 @@ class WebAppLogin:
         if self.ea_server_response.status_code == 500:
             raise WebAppLoginError(reason='Servers are probably temporary down.')
         if self.ea_server_response.status_code == 458:
-            raise WebAppLoginError(reason='Fun Captcha found. Go to webapp and solve it, then log in again.')
+            raise WebAppLoginError(reason='Fun Captcha found. Go to web app and solve it, then log in again.')
         if self.ea_server_response.status_code == 403:
             raise WebAppLoginError(reason='Server returned Forbiden. Probably you have not received access to web app')
         self.ea_server_response = self.ea_server_response.json()

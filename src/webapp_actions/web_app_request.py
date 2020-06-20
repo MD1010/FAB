@@ -25,7 +25,7 @@ class WebappActions:
         self.credits = 0
         self.duplicates = 0
 
-    def _webapp_request(self, method, url, data=None, params=None):
+    def _web_app_request(self, method, url, data=None, params=None):
         self.request_count += 1
         data = data or {}
         params = params or {}
@@ -79,7 +79,7 @@ class WebappActions:
             item_id = (item_id,)
         data = {"itemData": [{'pile': pile, 'id': i} for i in item_id]}
 
-        res = self._webapp_request('PUT', 'item', data=json.dumps(data))
+        res = self._web_app_request('PUT', 'item', data=json.dumps(data))
 
         if res['itemData'][0]['success']:
             """ emit here from socket io that the item was sent """
@@ -156,7 +156,7 @@ class WebappActions:
         if playStyle:
             params['playStyle'] = playStyle
 
-        rc = self._webapp_request('GET', 'transfermarket', params=params)
+        rc = self._web_app_request('GET', 'transfermarket', params=params)
 
         # pinEvents
         if start == 0:

@@ -28,7 +28,7 @@ class WebAppPinEventChanged(FutError):
 
 
 class WebAppMaintenance(FutError):
-    """ webapp is not available due to maintenance"""
+    """ web app is not available due to maintenance"""
 
 
 class UnknownError(FutError):
