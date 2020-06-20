@@ -13,7 +13,7 @@ from consts import REQUEST_TIMEOUT, WEB_APP_AUTH, REDIRECT_URI_WEB_APP, EA_WEB_A
     headers, PRE_GAME_SKU, PRE_SKU, CONFIG_URL, CONTENT_URL, GUID, YEAR, CONFIG_JSON_SUFFIX, PIN_DICT, PIDS_ME_URL, FUT_HOST, SHARDS_V2, GAME_URL, \
     ACOUNTS_INFO, ROOT_URL, DS_JS_PATH, CLIENT_VERSION
 from enums import AuthMethod, Platform
-from models.pin import Pin
+from models.pin import Pin, WebAppEvent
 from src.auth.live_logins import authenticated_accounts
 from utils.db import ea_accounts_collection
 from utils.exceptions import WebAppLoginError, WebAppVerificationRequired, WebAppPinEventChanged, WebAppMaintenance, MarketLocked
@@ -64,9 +64,9 @@ class WebAppLogin:
         try:
             self._verify_client()
             session_data = self._get_client_session()
-            send_pin_event(self.pin, 'login', status='success')
+            send_pin_event(self.pin, [WebAppEvent('login',status='success')])
             get_user_ut_info(self.email)
-            send_pin_event(self.pin, 'page_view', pgid='Hub - Home')
+            send_pin_event(self.pin, [WebAppEvent('page_view',pgid='Hub - Home')])
             return session_data
 
         except WebAppLoginError as e:
@@ -82,7 +82,10 @@ class WebAppLogin:
             return server_response(status="verified credentials, waiting for status code", verification=True)
 
     def get_verification_code(self, auth_method):
-        self._send_verification_code_to_client(auth_method)
+        try:
+            self._send_verification_code_to_client(auth_method)
+        except WebAppLoginError as e:
+            return server_response(error=e, code=400)
         return server_response(status=f'Verification code sent via {str(auth_method).lower()}')
 
     def continue_login_with_status_code(self, code):
@@ -127,13 +130,15 @@ class WebAppLogin:
             if self.ea_account.get("cookies"):
                 self.entered_correct_creadentials = True
                 self.request_session.cookies._cookies = self._load_cookies(self.ea_account["cookies"])
+                self._add_authenticated_account()
             else:
                 # if provided correct credentials take the cookies and launch web app
                 self._navigate_to_login_page()
                 self._check_if_correct_credentials()  # can be removed
                 self.entered_correct_creadentials = True
+                self._add_authenticated_account()
                 raise WebAppVerificationRequired()
-            self._add_authenticated_account()
+
         else:
             self.entered_correct_creadentials = False
             raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)

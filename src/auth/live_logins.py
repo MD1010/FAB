@@ -1,5 +1,7 @@
-from typing import Dict
+from typing import Dict,TYPE_CHECKING
 
-from src.auth.webapp_login import WebAppLogin
+# prevent cyclic imports
+if TYPE_CHECKING:
+    from src.auth.webapp_login import WebAppLogin
 
-authenticated_accounts: Dict[str, WebAppLogin] = {}
+authenticated_accounts: Dict[str, 'WebAppLogin'] = {}

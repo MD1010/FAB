@@ -9,6 +9,10 @@ from consts import APP_VERSION, headers, ROOT_URL, EA_WEB_APP_URL
 from consts.pin_events import TAXV, TIDT, REL, GID, PLAT, ET, PIDT, PIN_URL
 from utils.exceptions import WebAppPinEventChanged
 
+class WebAppEvent:
+    def __init__(self, name, **kwargs):
+        self.name = name
+        self.kwargs = kwargs
 
 class Pin(object):
     def __init__(self, sku=None, sid='', nucleus_id=0, persona_id='', dob=False, platform=False):
