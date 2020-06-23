@@ -85,7 +85,7 @@ class WebAppLogin:
         try:
             self._send_verification_code_to_client(auth_method)
         except WebAppLoginError as e:
-            return server_response(error=e, code=400)
+            return server_response(error=e.reason, code=400)
         return server_response(status=f'Verification code sent via {str(auth_method).lower()}')
 
     def continue_login_with_status_code(self, code):

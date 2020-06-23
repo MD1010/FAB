@@ -95,7 +95,7 @@ class WebappActions:
         self.pin.send_transfer_search_pin_event()
 
     def search_items(self, item_type, level=None, category=None, masked_def_id=None, def_id=None,
-                     min_price=None, max_price=None, min_buy=None, max_bin=None,
+                     min_price=None, max_price=None, min_bin=None, max_bin=None,
                      league=None, club=None, position=None, zone=None, nationality=None,
                      rare=False, play_style=None, start=0, page_size=MAX_CARD_ON_PAGE):
 
@@ -119,8 +119,8 @@ class WebappActions:
             params['micr'] = min_price
         if max_price:
             params['macr'] = max_price
-        if min_buy:
-            params['minb'] = min_buy
+        if min_bin:
+            params['minb'] = min_bin
         if max_bin:
             params['maxb'] = max_bin
         if league:
@@ -140,7 +140,8 @@ class WebappActions:
 
         res = self._web_app_request('GET', 'transfermarket', params=params)
 
-        search_results = [get_auction_data(i) for i in res.get('auctionInfo', ())]
+        search_results = [get_auction_data(i) for i in res.get('auctionInfo')]
+
         if search_results:
             self.pin.send_got_search_results_pin_event()
         else:

@@ -90,7 +90,7 @@ class Pin(object):
         self.s += 1  # bump event id
         return data
 
-    def _send_pin(self, events, fast=False):
+    def _send_pin(self, events):
         time.sleep(0.5 + random() / 50)
         data = {
             "custom": self.custom,
@@ -108,9 +108,7 @@ class Pin(object):
             "ts_post": self.__ts,
             "v": self.v
         }
-        # print(data)  # DEBUG
-        if not fast:
-            self.r.options(PIN_URL)
+        self.r.options(PIN_URL)
         rc = self.r.post(PIN_URL, data=json.dumps(data)).json()
         if rc['status'] != 'ok':
             raise WebAppPinEventChanged(reason='Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app')
