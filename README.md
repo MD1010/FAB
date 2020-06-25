@@ -14,9 +14,9 @@ Final functionality (Not all of these are implemented yet):
   * Performing Login and Logout from several accounts at the same time, as well as opertaing them simultaneously - accounts can be remembered with cookies storing
   * Viewing account activity that include the best deals found etc...
   * Scanning the market to find 59min deals and snipe them
-Versions and additional information
+# Versions and additional information
 • Current version is using python-requests,Flask and mongoDB for storing users,accounts and items data.
 • Last release used Selenium insead of actual requests to EA servers. It automated user's actions with actualy mocking a real user by doing all
 if this stuff mentioned above, without searching for special items -as this is not possible via the Web App(For that reason the next release will
-implement python-requests to perform actions that require data that is not presented in the WebApp current U1(20).
+implement python-requests to perform actions that require data that is not presented in the WebApp current UI(20).
 This version also uses Flask, but doesn't have UI - all actions have to be performed using curl/postman.

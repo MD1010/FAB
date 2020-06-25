@@ -18,8 +18,8 @@ def get_auction_data(auction_info):
         auction_info.get('tradeState'))
 
 
-def get_auction_with_min_bin(auctions: List[WebAppAuction]):
-    return min(auctions, key=lambda auction: auction.buy_now_price)
+def sort_results_by_min_bin(auctions: List[WebAppAuction]) -> List[WebAppAuction]:
+    return sorted(auctions,key=lambda auction: auction.buy_now_price)
 
 
 def get_successfull_trade_data(item_data, item_data_from_request):

@@ -1,7 +1,7 @@
 import json
-import json
 import random
 import time
+from typing import List
 
 import requests
 
@@ -151,31 +151,33 @@ class WebappActions:
             self.pin.send_no_results_pin_event()
         return search_results
 
-    # try to snipe
-    def snipe_item(self, min_auction: WebAppAuction, list_item=False, item_data_from_request=None):
-        trade_id = min_auction.trade_id
-        coins_to_bid = min_auction.buy_now_price
-        data = {'bid': coins_to_bid}
+    """ try to snipe - this function does not check if there is enough money, 
+     trade state and is not responsible for deciding the max bin price - it just snipes!"""
+    def snipe_items(self, auctions: List[WebAppAuction], list_item=False, item_data_from_request=None):
+        # if somehow there are more than one result snipe all the deals from min to max bin!
+        for min_auction in auctions:
+            trade_id = min_auction.trade_id
+            coins_to_bid = min_auction.buy_now_price
+            data = {'bid': coins_to_bid}
 
-        try:
-            res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
-            acquired_item_data = res.get('auctionInfo')[0].get('itemData')
-            successful_bid = get_successfull_trade_data(acquired_item_data, item_data_from_request)
-            print(
-                f'== SUCEESS {successful_bid.timestamp} == '
-                f'{successful_bid.rating} '
-                f'{successful_bid.revision} '
-                f'{successful_bid.player_name}  '
-                f'was bought for {coins_to_bid} coins')
-            self.send_item_to_trade_pile(successful_bid.item_id)
-            return True, 0
-        # error fatality -> 0=success, 1=failed to bid, 2=fatal that require relogin
-        except (Conflict, PermissionDenied, NoTradeExistingError):
-            print(f'Item was already bought 😐')
-            return False, 1
-        except (ExpiredSession, TooManyRequests, TemporaryBanned):
-            print(f'Cannot proceed, bad status received, log in again 😥')
-            return False, 2
+            try:
+                res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
+                acquired_item_data = res.get('auctionInfo')[0].get('itemData')
+                successful_bid = get_successfull_trade_data(acquired_item_data, item_data_from_request)
+                print(
+                    f'== SUCEESS {successful_bid.timestamp} == '
+                    f'{successful_bid.rating} '
+                    f'{successful_bid.revision} '
+                    f'{successful_bid.player_name} '
+                    f'was bought for {coins_to_bid} coins')
+                self.send_item_to_trade_pile(successful_bid.item_id)
+
+            except (Conflict, PermissionDenied, NoTradeExistingError):
+                print(f'Item was already bought 😐')
+            except (ExpiredSession, TooManyRequests, TemporaryBanned):
+                print(f'Cannot proceed, bad status received, log in again 😥')
+                return False
+        return True
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)
