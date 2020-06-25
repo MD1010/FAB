@@ -5,8 +5,9 @@ import time
 import requests
 
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
+from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
-from src.web_app.helper_functions import get_auction_data
+from src.web_app.auction_helpers import get_auction_data
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError
 
@@ -73,10 +74,10 @@ class WebappActions:
             self.duplicates = [i['itemId'] for i in res['duplicateItemIdList']]
         return res
 
-    def sendToPile(self, pile, item_id=None):
+    def send_item_to_trade_pile(self, item_id, pile="trade"):
         if not isinstance(item_id, (list, tuple)):
             item_id = (item_id,)
-        data = {"itemData": [{'pile': pile, 'id': i} for i in item_id]}
+        data = {"itemData": [{'id': i, 'pile': pile} for i in item_id]}
 
         res = self._web_app_request('PUT', 'item', data=json.dumps(data))
 
@@ -147,6 +148,23 @@ class WebappActions:
         else:
             self.pin.send_no_results_pin_event()
         return search_results
+
+    # try to snipe
+    def snipe_item(self, min_auction: WebAppAuction, list_item=False):
+        trade_id = min_auction.trade_id
+        coins_to_bid = min_auction.buy_now_price
+        data = {'bid': coins_to_bid}
+
+        try:
+            self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
+            self.send_item_to_trade_pile(min_auction.item_id)
+            self.notify_successfull_trade_data()
+            return True, 0
+        # error fatality -> 0=success, 1=failed to bid, 2=fatal that require relogin
+        except (Conflict, PermissionDenied, NoTradeExistingError):
+            return False, 1
+        except (ExpiredSession, TooManyRequests, TemporaryBanned):
+            return False, 2
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)

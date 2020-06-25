@@ -23,7 +23,9 @@ PIDS_ME_URL = 'https://gateway.ea.com/proxy/identity/pids/me'
 REDIRECT_URI_WEB_APP = 'https://www.easports.com/fifa/ultimate-team/web-app/auth.html'
 WEB_APP_AUTH = 'https://accounts.ea.com/connect/auth'
 FUTBIN_PLAYER_PRICE_URL = 'https://www.futbin.com/20/playerPrices?player='
-FUTHEAD_PLAYER = 'https://www.futhead.com/quicksearch/player/20/?term='
+FUTHEAD_PLAYER_SEARCH = 'https://www.futhead.com/quicksearch/player/20/?term='
+FUTWIZ_PLAYER_SEARCH = 'https://www.futwiz.com/en/searches/player20/'
+FUTBIN_PLAYER_SEARCH = 'https://www.futbin.com/search?year=20&extra=1&v=1&term='
 REQUEST_TIMEOUT = 15
 PROFIT_MULTIPLIER = 0.075
 EA_TAX = 0.95
