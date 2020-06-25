@@ -31,8 +31,6 @@ class WebappActions:
         data = data or {}
         params = params or {}
         url = f'https://{self.host}/{GAME_URL}/{url}'
-        # respect min wait time between requests
-        time.sleep(random.uniform(1.1, 2.5))
         self.request_session.options(url, params=params)
 
         res = None
@@ -76,10 +74,8 @@ class WebappActions:
             self.duplicates = [i['itemId'] for i in res['duplicateItemIdList']]
         return res
 
-    def send_item_to_trade_pile(self, item_id, pile="trade"):
-        if not isinstance(item_id, (list, tuple)):
-            item_id = (item_id,)
-        data = {"itemData": [{'id': i, 'pile': pile} for i in item_id]}
+    def send_item_to_trade_pile(self, item_ids, pile="trade"):
+        data = {"itemData": [{'id': i, 'pile': pile} for i in item_ids]}
 
         res = self._web_app_request('PUT', 'item', data=json.dumps(data))
 
@@ -97,7 +93,7 @@ class WebappActions:
     def go_back_to_search(self):
         self.pin.send_transfer_search_pin_event()
 
-    def search_items(self, item_type, level=None, category=None, masked_def_id=None, def_id=None,
+    def search_items(self, item_type, level=None, category=None, masked_def_id=None, defenition_id=None,
                      min_price=None, max_price=None, min_bin=None, max_bin=None,
                      league=None, club=None, position=None, zone=None, nationality=None,
                      rare=False, play_style=None, start=0, page_size=MAX_CARD_ON_PAGE):
@@ -116,8 +112,8 @@ class WebappActions:
             params['cat'] = category
         if masked_def_id:
             params['maskedDefId'] = masked_def_id
-        if def_id:
-            params['definitionId'] = def_id
+        if defenition_id:
+            params['definitionId'] = defenition_id
         if min_price:
             params['micr'] = min_price
         if max_price:
@@ -141,6 +137,7 @@ class WebappActions:
         if play_style:
             params['playStyle'] = play_style
 
+        # todo: inside the loop -> time.sleep(random.uniform(1.1, 2.5))
         res = self._web_app_request('GET', 'transfermarket', params=params)
 
         search_results = [get_auction_data(i) for i in res.get('auctionInfo')]
@@ -151,15 +148,17 @@ class WebappActions:
             self.pin.send_no_results_pin_event()
         return search_results
 
-    """ try to snipe - this function does not check if there is enough money, 
-     trade state and is not responsible for deciding the max bin price - it just snipes!"""
+    """ try to snipe - this function does not check, trade state and is not responsible for deciding the max bin price - it just snipes!"""
     def snipe_items(self, auctions: List[WebAppAuction], list_item=False, item_data_from_request=None):
         # if somehow there are more than one result snipe all the deals from min to max bin!
+        bought_items_ids = []
         for min_auction in auctions:
             trade_id = min_auction.trade_id
             coins_to_bid = min_auction.buy_now_price
+            if coins_to_bid > self.credits:
+                print(f"Not enough coins left")
+                break
             data = {'bid': coins_to_bid}
-
             try:
                 res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
                 acquired_item_data = res.get('auctionInfo')[0].get('itemData')
@@ -170,13 +169,15 @@ class WebappActions:
                     f'{successful_bid.revision} '
                     f'{successful_bid.player_name} '
                     f'was bought for {coins_to_bid} coins')
-                self.send_item_to_trade_pile(successful_bid.item_id)
+                bought_items_ids.append(successful_bid.item_id)
 
             except (Conflict, PermissionDenied, NoTradeExistingError):
                 print(f'Item was already bought 😐')
             except (ExpiredSession, TooManyRequests, TemporaryBanned):
                 print(f'Cannot proceed, bad status received, log in again 😥')
                 return False
+        if bought_items_ids:
+            self.send_item_to_trade_pile(bought_items_ids)
         return True
 
     def logout(self):
