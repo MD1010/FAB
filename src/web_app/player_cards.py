@@ -6,6 +6,11 @@ import requests
 from consts import FUTHEAD_PLAYER_SEARCH, FUTWIZ_PLAYER_SEARCH, FUTBIN_PLAYER_SEARCH
 
 
+def get_card_attribute_by_def_id(player_name, def_id, attribute):
+    cards = get_all_player_cards(player_name)
+    return [card for card in cards if card['id'] == def_id][0].get(attribute)
+
+
 def _get_combined_data_from_futbin_and_futwiz(searched_player_name_string):
     futwiz_url_player_data = f'{FUTWIZ_PLAYER_SEARCH}{searched_player_name_string}'
     futbin_url_player_data = f'{FUTBIN_PLAYER_SEARCH}{searched_player_name_string}'

@@ -1,4 +1,5 @@
 import json
+import json
 import random
 import time
 
@@ -7,7 +8,7 @@ import requests
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
-from src.web_app.auction_helpers import get_auction_data
+from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError
 
@@ -68,6 +69,7 @@ class WebappActions:
             res = {}
         else:
             res = res.json()
+        # update coin balance
         if 'credits' in res and res['credits']:
             self.credits = res['credits']
         if 'duplicateItemIdList' in res:
@@ -83,7 +85,7 @@ class WebappActions:
 
         if res['itemData'][0]['success']:
             """ emit here from socket io that the item was sent """
-            print(f"item {item_id} was sent to transfer list")
+            print("item was sent to transfer list")
         else:
             print(f"failed to list item, reason: {res['itemData'][0]['reason']}")
 
@@ -150,20 +152,29 @@ class WebappActions:
         return search_results
 
     # try to snipe
-    def snipe_item(self, min_auction: WebAppAuction, list_item=False):
+    def snipe_item(self, min_auction: WebAppAuction, list_item=False, item_data_from_request=None):
         trade_id = min_auction.trade_id
         coins_to_bid = min_auction.buy_now_price
         data = {'bid': coins_to_bid}
 
         try:
-            self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
-            self.send_item_to_trade_pile(min_auction.item_id)
-            self.notify_successfull_trade_data()
+            res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
+            acquired_item_data = res.get('auctionInfo')[0].get('itemData')
+            successful_bid = get_successfull_trade_data(acquired_item_data, item_data_from_request)
+            print(
+                f'== SUCEESS {successful_bid.timestamp} == '
+                f'{successful_bid.rating} '
+                f'{successful_bid.revision} '
+                f'{successful_bid.player_name}  '
+                f'was bought for {coins_to_bid} coins')
+            self.send_item_to_trade_pile(successful_bid.item_id)
             return True, 0
         # error fatality -> 0=success, 1=failed to bid, 2=fatal that require relogin
         except (Conflict, PermissionDenied, NoTradeExistingError):
+            print(f'Item was already bought 😐')
             return False, 1
         except (ExpiredSession, TooManyRequests, TemporaryBanned):
+            print(f'Cannot proceed, bad status received, log in again 😥')
             return False, 2
 
     def logout(self):
