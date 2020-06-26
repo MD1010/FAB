@@ -8,7 +8,11 @@ from consts import FUTHEAD_PLAYER_SEARCH, FUTWIZ_PLAYER_SEARCH, FUTBIN_PLAYER_SE
 
 def get_card_attribute_by_def_id(player_name, def_id, attribute):
     cards = get_all_player_cards(player_name)
-    return [card for card in cards if card['id'] == def_id][0].get(attribute)
+    results = [card for card in cards if card['id'] == def_id]
+    if results:
+        return results[0].get(attribute)
+    #  some champions cards and some suod americana cards are not correct
+    return None
 
 
 def _get_combined_data_from_futbin_and_futwiz(searched_player_name_string):

@@ -1,10 +1,9 @@
 import json
-import random
-import time
 from typing import List
 
 import requests
 
+from consts import CONTENT_URL, GUID, CONFIG_JSON_SUFFIX, YEAR
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
@@ -74,6 +73,12 @@ class WebappActions:
             self.duplicates = [i['itemId'] for i in res['duplicateItemIdList']]
         return res
 
+    def make_settings_request(self):
+        self._web_app_request('GET', 'settings')
+
+    def make_remote_config_request(self):
+        self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}")
+
     def send_item_to_trade_pile(self, item_ids, pile="trade"):
         data = {"itemData": [{'id': i, 'pile': pile} for i in item_ids]}
 
@@ -90,7 +95,7 @@ class WebappActions:
         self.pin.send_hub_transfers_pin_event()
         self.pin.send_transfer_search_pin_event()
 
-    def go_back_to_search(self):
+    def send_back_to_new_search_pin_event(self):
         self.pin.send_transfer_search_pin_event()
 
     def search_items(self, item_type, level=None, category=None, masked_def_id=None, defenition_id=None,
@@ -137,7 +142,6 @@ class WebappActions:
         if play_style:
             params['playStyle'] = play_style
 
-        # todo: inside the loop -> time.sleep(random.uniform(1.1, 2.5))
         res = self._web_app_request('GET', 'transfermarket', params=params)
 
         search_results = [get_auction_data(i) for i in res.get('auctionInfo')]
@@ -149,6 +153,7 @@ class WebappActions:
         return search_results
 
     """ try to snipe - this function does not check, trade state and is not responsible for deciding the max bin price - it just snipes!"""
+
     def snipe_items(self, auctions: List[WebAppAuction], list_item=False, item_data_from_request=None):
         # if somehow there are more than one result snipe all the deals from min to max bin!
         bought_items_ids = []
@@ -173,12 +178,11 @@ class WebappActions:
 
             except (Conflict, PermissionDenied, NoTradeExistingError):
                 print(f'Item was already bought 😐')
-            except (ExpiredSession, TooManyRequests, TemporaryBanned):
+            except (ExpiredSession, TooManyRequests, TemporaryBanned) as e:
                 print(f'Cannot proceed, bad status received, log in again 😥')
-                return False
+                raise e
         if bought_items_ids:
             self.send_item_to_trade_pile(bought_items_ids)
-        return True
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)
