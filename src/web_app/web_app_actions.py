@@ -9,7 +9,7 @@ from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
-    NoTradeExistingError
+    NoTradeExistingError, NoBudgetLeft
 
 
 # this class will be vreated ouside the fab loop -> the decorator of the /start-fab will insure that the account is authenticated
@@ -161,8 +161,7 @@ class WebappActions:
             trade_id = min_auction.trade_id
             coins_to_bid = min_auction.buy_now_price
             if coins_to_bid > self.credits:
-                print(f"Not enough coins left")
-                break
+                raise NoBudgetLeft(reason="Not enough coins left")
             data = {'bid': coins_to_bid}
             try:
                 res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
@@ -180,6 +179,8 @@ class WebappActions:
                 print(f'Item was already bought 😐')
             except (ExpiredSession, TooManyRequests, TemporaryBanned) as e:
                 print(f'Cannot proceed, bad status received, log in again 😥')
+                raise e
+            except NoBudgetLeft as e:
                 raise e
         if bought_items_ids:
             self.send_item_to_trade_pile(bought_items_ids)

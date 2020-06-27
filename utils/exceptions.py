@@ -91,3 +91,6 @@ class Conflict(FutError):
 
 class TemporaryBanned(FutError):
     """[512/521] Conflict. item belongs to someone else"""
+
+class NoBudgetLeft(FutError):
+    """ You have no more coins left """

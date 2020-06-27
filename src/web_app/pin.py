@@ -91,7 +91,7 @@ class Pin(object):
         return data
 
     def _send_pin(self, events):
-        time.sleep(0.5 + random() / 50)
+        # time.sleep(0.5 + random() / 50)
         data = {
             "custom": self.custom,
             "et": self.et,

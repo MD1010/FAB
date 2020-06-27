@@ -13,7 +13,7 @@ def start_fab_loop(ea_account, search_parameters, configuration):
     loop_time = configuration['time']
     is_sniping = configuration['snipe']  # maybe bid
     list_after_buy = configuration['list']
-    search_count = 0
+    search_count = 1
     try:
         web_app_actions = WebappActions(ea_account)
         start_time = time.time()
@@ -32,26 +32,29 @@ def start_fab_loop(ea_account, search_parameters, configuration):
                 keepalive_requests_count += 1
 
             # respect interval between requests
-            time.sleep(random.uniform(1.1, 2.5))
-            print("searching...")
+            time.sleep(random.uniform(1, 1.5))
+            print(f"search number {search_count}")
 
             # to make the market refresh - randomize the decreases to not get temp ban from searching
             if is_sniping:
-                if search_parameters["max_price"] <= BOTTOM_LIMIT_MAX_PRICE: search_parameters["max_price"] = MAX_PRICE
                 search_parameters["max_price"] = MAX_PRICE - random.randint(1, 3) * 1000  # random the decrease to not be suspecious
+                if search_parameters["max_price"] <= BOTTOM_LIMIT_MAX_PRICE: search_parameters["max_price"] = MAX_PRICE
 
             results = web_app_actions.search_items(**search_parameters)
             if results:
                 sorted_results = sort_results_by_min_bin(results)
                 web_app_actions.snipe_items(sorted_results)
+                if list_after_buy:
+                    pass
             else:
-                print(f"search number {search_count} - no results")
+                print(f"No results 😑")
             web_app_actions.send_back_to_new_search_pin_event()
 
             # to not overload with requests
             if search_count % AMOUNT_OF_SEARCHES_BEFORE_SLEEP == 0:
+                print("sleeping after amount of searches...")
                 time.sleep(SLEEP_MID_OPERATION_DURATION)
             search_count += 1
     except FutError as e:
         return False, e.reason
-    return True
+    return True, None
