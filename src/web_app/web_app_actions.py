@@ -1,4 +1,5 @@
 import json
+import time
 from typing import List
 
 import requests
@@ -61,7 +62,11 @@ class WebappActions:
 
         }
         if not res.ok:
-            raise operation_status_switcher.get(res.status_code, UnknownError(res.content))()
+            exception = operation_status_switcher.get(res.status_code)
+            if exception:
+                raise exception
+            raise UnknownError(res.content)
+
         if res.text == '':
             res = {}
         else:
@@ -176,6 +181,7 @@ class WebappActions:
                 bought_items_ids.append(successful_bid.item_id)
 
             except (Conflict, PermissionDenied, NoTradeExistingError):
+                time.sleep(3)
                 print(f'Item was already bought 😐')
             except (ExpiredSession, TooManyRequests, TemporaryBanned) as e:
                 print(f'Cannot proceed, bad status received, log in again 😥')
