@@ -25,9 +25,11 @@ def start_fab_loop(ea_account, search_parameters, configuration):
 
             # send "keepalives"
             if elapsed_time > keepalive_requests_count * keepalive_request_interval:  # just send every 10 minutes to keep alive
+                print("sending settings request")
                 web_app_actions.make_settings_request()
                 keepalive_requests_count += 1
             if elapsed_time > keepalive_requests_count * keepalive_request_interval * 3:  # just send every 30 minutes to keep alive
+                print("sending remote.json request")
                 web_app_actions.make_remote_config_request()
                 keepalive_requests_count += 1
 

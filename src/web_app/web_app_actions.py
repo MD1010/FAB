@@ -44,10 +44,10 @@ class WebappActions:
             elif method.upper() == 'DELETE':
                 res = self.request_session.delete(url, data=data, params=params, timeout=REQUEST_TIMEOUT)
             if res is None:
-                raise UnknownError(reason="Something went wrong..")
+                raise UnknownError()
 
-        except requests.exceptions.Timeout as e:
-            raise TimeoutError(e)
+        except requests.exceptions.Timeout:
+            raise TimeoutError()
         operation_status_switcher = {
             401: ExpiredSession,
             409: Conflict,
@@ -59,13 +59,12 @@ class WebappActions:
             512: TemporaryBanned,
             521: TemporaryBanned,
             478: NoTradeExistingError
-
         }
         if not res.ok:
             exception = operation_status_switcher.get(res.status_code)
             if exception:
                 raise exception
-            raise UnknownError(res.content)
+            raise UnknownError()
 
         if res.text == '':
             res = {}
@@ -166,7 +165,7 @@ class WebappActions:
             trade_id = min_auction.trade_id
             coins_to_bid = min_auction.buy_now_price
             if coins_to_bid > self.credits:
-                raise NoBudgetLeft(reason="Not enough coins left")
+                raise NoBudgetLeft()
             data = {'bid': coins_to_bid}
             try:
                 res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
@@ -180,12 +179,22 @@ class WebappActions:
                     f'was bought for {coins_to_bid} coins')
                 bought_items_ids.append(successful_bid.item_id)
 
-            except (Conflict, PermissionDenied, NoTradeExistingError):
+            except (Conflict, PermissionDenied, NoTradeExistingError) as e:
                 time.sleep(3)
-                print(f'Item was already bought 😐')
-            except (ExpiredSession, TooManyRequests, TemporaryBanned) as e:
-                print(f'Cannot proceed, bad status received, log in again 😥')
+                print(f'{e.reason}')
+
+            except TemporaryBanned as e:
+                print(f'{e.reason}')
+                time.sleep(5)
+
+            except TooManyRequests as e:
+                print(f'{e.reason}')
                 raise e
+
+            except ExpiredSession as e:
+                print(f'{e.reason}')
+                raise e
+
             except NoBudgetLeft as e:
                 raise e
         if bought_items_ids:

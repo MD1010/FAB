@@ -11,65 +11,70 @@ class FutError(RuntimeError):
         self.string = string
 
 
-class TimeoutError(BaseTimeout):
-    """Request timeout, looks like ea servers are down."""
+class TimeoutError(FutError,BaseTimeout):
+    def __init__(self):
+        self.reason = "Request timeout, looks like ea servers are down"
+
 
 
 class WebAppLoginError(FutError):
-    """error during login to web app"""
+    def __init__(self):
+        self.reason = "error during login to web app"
 
 
 class WebAppVerificationRequired(FutError):
-    """ verification code is sent to the client to verify his identity"""
+    def __init__(self):
+        self.reason = "verification code is sent to the client to verify his identity"
 
 
 class WebAppPinEventChanged(FutError):
-    """ structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app"""
+    def __init__(self):
+        self.reason = "structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app"
 
 
 class WebAppMaintenance(FutError):
-    """ web app is not available due to maintenance"""
+    def __init__(self):
+        self.reason = "web app is not available due to maintenance"
 
 
 class UnknownError(FutError):
-    """Unknown error, please report full log at
-    https://github.com/oczkers/fut/issues/24"""
+    def __init__(self):
+        self.reason = "Unknown error occured, try and log in again"
 
 
 class NoTradeExistingError(FutError):
-    """[478] NO_TRADE_EXISTS (fut)
-    when you bid on an item that has already been sold or the trade id isn't valid."""
+    #[478]
+    def __init__(self):
+        self.reason = "Probably you bided on item that has already been sold or the trade id isn't valid"
 
 
 class ExpiredSession(FutError):
-    """Session has expired,
-    you should send at least one request every ~10 minutes."""
+    def __init__(self):
+        self.reason = "Session has expired"
 
 
 class MaxSessions(FutError):
-    """[503] Service Unavailable (ut) - max session."""
+    # [503]
+    def __init__(self):
+        self.reason = "Service Unavailable (ut) - max session"
 
 
 class InternalServerError(FutError):
-    """[500] Internal Server Error (ut). (invalid parameters?)"""
+    #[500]
+    def __init__(self):
+        self.reason = "Internal server error (invalid parameters?)"
 
 
 class MarketLocked(FutError):
-    """[494] If this is a new account, you need to unlock the transfer market
-    by playing games and completing the starter objectives.
-    If this is an older account, you may be banned from using the transfer market on the web app."""
-
-
-class FeatureDisabled(FutError):
-    """[480] Feature Disabled."""
-
-
-class NoUltimateTeam(FutError):
-    """[465] No Ultimate Team."""
+    #[494]
+    def __init__(self):
+        self.reason = "Transfer market is probably disabled on this account"
 
 
 class PermissionDenied(FutError):
-    """[461] Permission Denied. (outbid?)"""
+    # [461]
+    def __init__(self):
+        self.reason = "Permission denied, Item bought"
 
 
 class Captcha(FutError):
@@ -83,14 +88,23 @@ class Captcha(FutError):
         self.img = img
 
 class TooManyRequests(FutError):
-    """[429] Conflict. item belongs to someone else"""
+    # [429]
+    def __init__(self):
+        self.reason = "Too many requests"
+
 
 class Conflict(FutError):
-    """[409] Conflict. item belongs to someone else"""
+    # [409]
+    def __init__(self):
+        self.reason = "Conflict. item belongs to someone else"
 
 
 class TemporaryBanned(FutError):
-    """[512/521] Conflict. item belongs to someone else"""
+    # [512/521]
+    def __init__(self):
+        self.reason = "Temporary ban"
+
 
 class NoBudgetLeft(FutError):
-    """ You have no more coins left """
+    def __init__(self):
+        self.reason = "You have no more coins left"

@@ -11,7 +11,7 @@ def get_user_ut_info(email, info_type = None):
     else:
         response = request_session.get(f'https://{fut_host}/{GAME_URL}/usermassinfo', timeout=REQUEST_TIMEOUT).json()[info_type]
     if response['userInfo']['feature']['trade'] == 0:
-        raise MarketLocked(reason="Transfer market is probably disabled on this account")
+        raise MarketLocked()
     return response
 
     # {
