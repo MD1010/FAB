@@ -5,7 +5,7 @@ from typing import List
 
 import requests
 
-from consts import CONTENT_URL, GUID, CONFIG_JSON_SUFFIX, YEAR
+from consts import CONTENT_URL, GUID, CONFIG_JSON_SUFFIX, YEAR, MAX_PRICE
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
@@ -205,6 +205,7 @@ class WebappActions:
     def get_item_min_price(self, def_id):
         futbin_price = get_futbin_price(def_id, self.login_instance.platform)
         results = self.search_items(masked_def_id=def_id, max_bin=futbin_price)
+        if not results: return MAX_PRICE
         # todo :maybe add logic to if auction with big gap in price was found buy the player?
         return min(results, key=attrgetter('buy_now_price')).buy_now_price
 
