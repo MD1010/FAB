@@ -1,5 +1,6 @@
 import json
 import time
+from operator import attrgetter
 from typing import List
 
 import requests
@@ -9,6 +10,7 @@ from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
+from src.web_app.price_evaluator import get_futbin_price
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError, NoBudgetLeft
 
@@ -102,7 +104,7 @@ class WebappActions:
     def send_back_to_new_search_pin_event(self):
         self.pin.send_transfer_search_pin_event()
 
-    def search_items(self, item_type, level=None, category=None, masked_def_id=None, defenition_id=None,
+    def search_items(self, item_type='player', level=None, category=None, masked_def_id=None, defenition_id=None,
                      min_price=None, max_price=None, min_bin=None, max_bin=None,
                      league=None, club=None, position=None, zone=None, nationality=None,
                      rare=False, play_style=None, start=0, page_size=MAX_CARD_ON_PAGE):
@@ -199,6 +201,12 @@ class WebappActions:
                 raise e
         if bought_items_ids:
             self.send_item_to_trade_pile(bought_items_ids)
+
+    def get_item_min_price(self, def_id):
+        futbin_price = get_futbin_price(def_id, self.login_instance.platform)
+        results = self.search_items(masked_def_id=def_id, max_bin=futbin_price)
+        # todo :maybe add logic to if auction with big gap in price was found buy the player?
+        return min(results, key=attrgetter('buy_now_price')).buy_now_price
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)

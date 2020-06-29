@@ -18,8 +18,8 @@ class TimeoutError(FutError,BaseTimeout):
 
 
 class WebAppLoginError(FutError):
-    def __init__(self):
-        self.reason = "error during login to web app"
+    def __init__(self,reason="error during login to web app"):
+        self.reason = reason
 
 
 class WebAppVerificationRequired(FutError):

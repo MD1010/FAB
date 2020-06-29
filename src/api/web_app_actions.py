@@ -4,6 +4,7 @@ from src.api.web_app import actions
 from src.api.web_app_login import check_login_attempt
 from src.auth.web_app_login import WebAppLogin
 from src.fab_loop import start_fab_loop
+from src.web_app.web_app_actions import WebappActions
 from utils.helper_functions import server_response
 from utils.usermassinfo import get_user_ut_info
 

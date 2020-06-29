@@ -44,7 +44,6 @@ class WebAppLogin:
 
         # auth
         self.ea_server_response = None
-        self.ea_account = None
         self.entered_correct_creadentials = False
         self.access_token = None
         self.token_type = None
@@ -116,20 +115,20 @@ class WebAppLogin:
         self.fun_captcha_public_key = self.ea_server_response['funCaptchaPublicKey']  # A4EECF77-AC87-8C8D-5754-BF882F72063B
         self.ea_server_response = self.request_session.get(f"{CONTENT_URL}/{GUID}/{YEAR}/{CONFIG_JSON_SUFFIX}").json()
         if self.ea_server_response['pin'] != PIN_DICT:
-            raise WebAppPinEventChanged(reason="Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app")
+            raise WebAppPinEventChanged()
         if self.ea_server_response["futweb_maintenance"]:
-            raise WebAppMaintenance(reason="Webapp is not available due to maintenance")
+            raise WebAppMaintenance()
 
     def _verify_client(self):
         # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
-        self.ea_account = ea_accounts_collection.find_one({"email": self.email})
-        if not self.ea_account:
-            raise WebAppLoginError(reason="The account doesnt exists in the accounts accounts")
+        ea_account = ea_accounts_collection.find_one({"email": self.email})
+        if not ea_account:
+            raise WebAppLoginError()
         # credential verification from db -> the user already was logged in previously so there is no point to refer to ea
-        if bcrypt.hashpw(self.password.encode('utf-8'), self.ea_account["password"]) == self.ea_account["password"] and self.platform == self.ea_account["platform"]:
-            if self.ea_account.get("cookies"):
+        if bcrypt.hashpw(self.password.encode('utf-8'), ea_account["password"]) == ea_account["password"] and self.platform == ea_account["platform"]:
+            if ea_account.get("cookies"):
                 self.entered_correct_creadentials = True
-                self.request_session.cookies._cookies = self._load_cookies(self.ea_account["cookies"])
+                self.request_session.cookies._cookies = self._load_cookies(ea_account["cookies"])
                 self._add_authenticated_account()
             else:
                 # if provided correct credentials take the cookies and launch web app
@@ -141,7 +140,7 @@ class WebAppLogin:
 
         else:
             self.entered_correct_creadentials = False
-            raise WebAppLoginError(reason="Login failed, wrong credentials provided.", code=401)
+            raise WebAppLoginError()
 
     def _navigate_to_login_page(self):
         params = {
@@ -181,7 +180,7 @@ class WebAppLogin:
             failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+',
                                      self.ea_server_response.text).group(1)
             self.entered_correct_creadentials = False
-            raise WebAppLoginError(reason=failedReason)
+            raise WebAppLoginError(failedReason)
 
     def _send_verification_code_to_client(self, auth_method):
         if self.ea_server_response:
