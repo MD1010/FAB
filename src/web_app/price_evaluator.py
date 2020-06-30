@@ -43,13 +43,19 @@ def get_futbin_price(def_id, platform):
     futbin_final_price = _adjust_futbin_prices_if_outdated(player_prices)
     return futbin_final_price
 
+def get_start_price():
+    pass
+def get_max_bin_price():
+    pass
 
 def get_sell_price(market_price):
+    # todo: rewrite this
     list_price = market_price - (market_price * DECREASE_SALE_PRICE_PERCENTAGE)
-    for element in MAP_INC_DEC_PRICES.items():
-        values = element[0].split("-")
-        if float(values[0]) < list_price < float(values[1]):
-            scale = float(element[1])
+    for diff_range in MAP_INC_DEC_PRICES.items():
+        min_max_range = diff_range[0].split("-")
+        min_range,max_range = min_max_range
+        if float(min_max_range[0]) < list_price < float(min_max_range[1]):
+            scale = float(diff_range[1])
             break
     deviation = list_price % scale
     if deviation == scale / 2:

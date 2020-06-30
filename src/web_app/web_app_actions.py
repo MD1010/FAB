@@ -10,12 +10,9 @@ from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
-from src.web_app.price_evaluator import get_futbin_price
+from src.web_app.price_evaluator import get_futbin_price, get_sell_price
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError, NoBudgetLeft
-
-
-# this class will be vreated ouside the fab loop -> the decorator of the /start-fab will insure that the account is authenticated
 
 
 class WebappActions:
@@ -205,16 +202,29 @@ class WebappActions:
     def get_item_min_price(self, def_id):
         futbin_price = get_futbin_price(def_id, self.login_instance.platform)
         min_price = MAX_PRICE
+        page = 0
         while True:
-            page = 0
             results = self.search_items(masked_def_id=def_id, max_bin=futbin_price, start=MAX_CARD_ON_PAGE * page)
-            if not results: break
-            curr_min = min(results, key=attrgetter('buy_now_price')).buy_now_price
+            if not results:
+                break
+            min_auction = min(results, key=attrgetter('buy_now_price'))
+            curr_min = min_auction.buy_now_price
+            # someone accidently listed
+            if futbin_price != MAX_PRICE and curr_min < futbin_price * 0.5:
+                # buy this immidiately
+                self.snipe_items(min_auction)
+                page += 1
+                continue
             min_price = min(min_price, curr_min)
-            if len(results) < 20: break
+            if len(results) < MAX_CARD_ON_PAGE: break
             page += 1
-        # todo :maybe add logic to if auction with big gap in price was found buy the player?
+            self.send_back_to_new_search_pin_event()
         return min_price
+
+    def list_item(self, item_id, starting_bid, buy_now, duration=3600):
+        data = {'buyNowPrice': buy_now, 'duration': duration, 'startingBid': starting_bid, 'itemData': {'id': item_id}}
+        self._web_app_request('POST', 'auctionhouse', data=json.dumps(data))
+        self._web_app_request('GET', 'tradepile', data=json.dumps(data))
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)
