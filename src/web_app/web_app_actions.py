@@ -157,7 +157,7 @@ class WebappActions:
 
     """ try to snipe - this function does not check, trade state and is not responsible for deciding the max bin price - it just snipes!"""
 
-    def snipe_items(self, auctions: List[WebAppAuction], list_item=False, item_data_from_request=None):
+    def snipe_items(self, auctions: List[WebAppAuction], list_items=False, item_data_from_request=None):
         # if somehow there are more than one result snipe all the deals from min to max bin!
         bought_items_ids = []
         for min_auction in auctions:
@@ -196,7 +196,7 @@ class WebappActions:
 
             except NoBudgetLeft as e:
                 raise e
-        if bought_items_ids:
+        if bought_items_ids and not list_items:
             self.send_item_to_trade_pile(bought_items_ids)
 
     def get_item_min_price(self, def_id):
