@@ -19,11 +19,13 @@ def extract_info(login_attempt: WebAppLogin):
 @actions.route('/start-loop', methods=['GET'])
 @check_login_attempt
 def start_loop(login_attempt: WebAppLogin):
-    ea_account = login_attempt.email
-    json_data = request.get_json()
-    configuration = json_data['configuration']
-    search_parameters = json_data['search_parameters']
-    loop_result, fail_reason = start_fab_loop(ea_account, search_parameters, configuration)
-    if fail_reason:
-        return server_response(error=fail_reason, code=503)
+    # ea_account = login_attempt.email
+    # json_data = request.get_json()
+    # configuration = json_data['configuration']
+    # search_parameters = json_data['search_parameters']
+    # loop_result, fail_reason = start_fab_loop(ea_account, search_parameters, configuration)
+    # if fail_reason:
+    #     return server_response(error=fail_reason, code=503)
+    wa = WebappActions(login_attempt.email)
+    wa.get_item_min_price(20801)
     return server_response(status="Finished his job successfuly", code=200)

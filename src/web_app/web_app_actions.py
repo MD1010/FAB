@@ -107,13 +107,13 @@ class WebappActions:
     def search_items(self, item_type='player', level=None, category=None, masked_def_id=None, defenition_id=None,
                      min_price=None, max_price=None, min_bin=None, max_bin=None,
                      league=None, club=None, position=None, zone=None, nationality=None,
-                     rare=False, play_style=None, start=0, page_size=MAX_CARD_ON_PAGE):
+                     rare=False, play_style=None, start=0):
 
         self.pin.send_transfer_search_pin_event()
 
         params = {
             'start': start,
-            'num': page_size,
+            'num': 21,
             'type': item_type
         }
 
@@ -204,10 +204,17 @@ class WebappActions:
 
     def get_item_min_price(self, def_id):
         futbin_price = get_futbin_price(def_id, self.login_instance.platform)
-        results = self.search_items(masked_def_id=def_id, max_bin=futbin_price)
-        if not results: return MAX_PRICE
+        min_price = MAX_PRICE
+        while True:
+            page = 0
+            results = self.search_items(masked_def_id=def_id, max_bin=futbin_price, start=MAX_CARD_ON_PAGE * page)
+            if not results: break
+            curr_min = min(results, key=attrgetter('buy_now_price')).buy_now_price
+            min_price = min(min_price, curr_min)
+            if len(results) < 20: break
+            page += 1
         # todo :maybe add logic to if auction with big gap in price was found buy the player?
-        return min(results, key=attrgetter('buy_now_price')).buy_now_price
+        return min_price
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)
