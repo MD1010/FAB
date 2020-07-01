@@ -12,7 +12,7 @@ def start_fab_loop(ea_account, search_parameters, configuration):
     keepalive_request_interval = 600  # every ten minutes - settings / config.json
     loop_time = configuration['time']
     is_sniping = configuration['snipe']  # maybe bid
-    list_after_buy = configuration['list']
+    is_list_after_buy = configuration['list']
     search_count = 1
     try:
         web_app_actions = WebappActions(ea_account)
@@ -45,9 +45,12 @@ def start_fab_loop(ea_account, search_parameters, configuration):
             results = web_app_actions.search_items(**search_parameters)
             if results:
                 sorted_results = sort_results_by_min_bin(results)
-                web_app_actions.snipe_items(sorted_results)
-                if list_after_buy:
+                bought_items_ids = web_app_actions.snipe_items(sorted_results, is_list_after_buy)
+                # todo: get also the def ids (list of tupples) to call the list items method
+                if is_list_after_buy:
                     pass
+                else:
+                    web_app_actions.send_item_to_trade_pile(bought_items_ids)
             else:
                 print(f"No results 😑")
             web_app_actions.send_back_to_new_search_pin_event()

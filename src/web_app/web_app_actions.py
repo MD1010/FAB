@@ -86,12 +86,12 @@ class WebappActions:
         data = {"itemData": [{'id': i, 'pile': pile} for i in item_ids]}
 
         res = self._web_app_request('PUT', 'item', data=json.dumps(data))
-
-        if res['itemData'][0]['success']:
-            """ emit here from socket io that the item was sent """
-            print("item was sent to transfer list")
-        else:
-            print(f"failed to list item, reason: {res['itemData'][0]['reason']}")
+        if res.get('itemData'):
+            if res['itemData'][0]['success']:
+                """ emit here from socket io that the item was sent """
+                print("item was sent to transfer list")
+            else:
+                print(f"failed to list item, reason: {res['itemData'][0]['reason']}")
 
     def enter_first_transfer_market_search(self):
         self._web_app_request('GET', 'watchlist')
@@ -196,8 +196,7 @@ class WebappActions:
 
             except NoBudgetLeft as e:
                 raise e
-        if bought_items_ids and not list_items:
-            self.send_item_to_trade_pile(bought_items_ids)
+        return bought_items_ids
 
     def get_item_min_price(self, def_id):
         futbin_price = get_futbin_price(def_id, self.login_instance.platform)
@@ -208,15 +207,19 @@ class WebappActions:
             if not results:
                 break
             curr_page_min = min(results, key=attrgetter('buy_now_price')).buy_now_price
-            min_price = min(min_price,curr_page_min)
+            min_price = min(min_price, curr_page_min)
             if len(results) < MAX_CARD_ON_PAGE: break
             page += 1
             self.send_back_to_new_search_pin_event()
         return min_price
 
-    def list_item(self, item_id, starting_bid, buy_now, duration=3600):
+    def list_item(self, item_id, def_id, duration=3600):
         try:
-            data = {'buyNowPrice': buy_now, 'duration': duration, 'startingBid': starting_bid, 'itemData': {'id': item_id}}
+            # check rt price
+            market_price = self.get_item_min_price(def_id)
+            start_price, buy_now = get_sell_price(market_price)
+
+            data = {'buyNowPrice': buy_now, 'duration': duration, 'startingBid': start_price, 'itemData': {'id': item_id}}
             self._web_app_request('POST', 'auctionhouse', data=json.dumps(data))
             self._web_app_request('GET', 'tradepile')
         except FutError as e:
@@ -227,22 +230,25 @@ class WebappActions:
         listed_count = 0
         while True:
             self.pin.send_transfer_list_pin_evnet()
-            not_listed = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo') if trade.get('tradeId') == 0]
-            if len(not_listed) == 0: break
-            for item in not_listed:
+            # tradeId = 0 if the item was not listed and if it was not bought coinsProcessed does not exist
+            not_sold = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo')
+                          if (trade.get('tradeId') == 0 or (trade.get('expires') == -1 and not trade.get('coinsProcessed')))]
+            if len(not_sold) == 0: break
+            for item in not_sold:
                 item_id = item.get('itemData').get('id')
                 resource_id = item.get('itemData').get('resourceId')
-                market_price = self.get_item_min_price(resource_id)
-                start_price, buy_now = get_sell_price(market_price)
-                self.list_item(item_id, start_price, buy_now)
-                listed_count+=1
+                self.list_item(item_id, resource_id)
+                # market_price = self.get_item_min_price(resource_id)
+                # start_price, buy_now = get_sell_price(market_price)
+                # self.list_item(item_id, start_price, buy_now)
+                listed_count += 1
                 print(f"listed {listed_count}")
                 # wait a bit to avoid exceptions
                 if listed_count == 5:
                     time.sleep(1)
         # check if clear is needed
         self.pin.send_transfer_list_pin_evnet()
-        sold = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo') if trade.get('tradeId') != 0]
+        sold = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo') if trade.get('coinsProcessed')]
         # clear if there are sold items
         if len(sold) != 0:
             self._web_app_request('DELETE', 'trade/sold')
