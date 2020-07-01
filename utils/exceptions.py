@@ -74,7 +74,7 @@ class MarketLocked(FutError):
 class PermissionDenied(FutError):
     # [461]
     def __init__(self):
-        self.reason = "Permission denied, Item bought"
+        self.reason = "Permission denied"
 
 
 class Captcha(FutError):

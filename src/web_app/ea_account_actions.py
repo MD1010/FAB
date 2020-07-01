@@ -6,7 +6,6 @@ import bcrypt
 from flask import request
 from flask_jwt_extended import get_jwt_identity
 
-from consts import MAP_INC_DEC_PRICES
 from consts import server_status_messages
 from models import EaAccount
 from src.users.subscription_plan import check_if_account_limit_exceeded

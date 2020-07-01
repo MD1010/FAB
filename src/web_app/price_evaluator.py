@@ -2,8 +2,8 @@ import json
 
 import requests
 
-from consts import DECREASE_SALE_PRICE_PERCENTAGE, MAP_INC_DEC_PRICES, MAX_PRICE, SANITY_PRICE_RATIO
 from consts import EA_TAX, PROFIT_MULTIPLIER, FUTBIN_PLAYER_PRICE_URL
+from consts import MAX_PRICE, SANITY_PRICE_RATIO
 
 
 # this function adjusts that the futbin prices are up to date and if not it adjust
@@ -43,28 +43,24 @@ def get_futbin_price(def_id, platform):
     futbin_final_price = _adjust_futbin_prices_if_outdated(player_prices)
     return futbin_final_price
 
-def get_start_price():
-    pass
-def get_max_bin_price():
-    pass
 
 def get_sell_price(market_price):
-    # todo: rewrite this
-    list_price = market_price - (market_price * DECREASE_SALE_PRICE_PERCENTAGE)
-    for diff_range in MAP_INC_DEC_PRICES.items():
-        min_max_range = diff_range[0].split("-")
-        min_range,max_range = min_max_range
-        if float(min_max_range[0]) < list_price < float(min_max_range[1]):
-            scale = float(diff_range[1])
-            break
-    deviation = list_price % scale
-    if deviation == scale / 2:
-        list_price = list_price + deviation
-    elif deviation > scale / 2:
-        list_price = list_price - deviation + scale
-    else:
-        list_price = list_price - deviation
-    return list_price
+    prices = [[x for x in range(0, 1000, 50)],
+              [x for x in range(1000, 10001, 100)],
+              [x for x in range(10000, 50001, 250)],
+              [x for x in range(50000, 100001, 500)],
+              [x for x in range(100000, 15000001, 1000)]]
+
+    for price_entry in prices:
+        if market_price > max(price_entry):
+            continue
+        else:
+            start_price_index = price_entry.index(min(price_entry, key=lambda price: abs(market_price - price)))
+            start_price = price_entry[start_price_index - 2]
+            buy_now = price_entry[start_price_index - 1]
+            if start_price < 200: start_price = 200
+            if buy_now < 250: buy_now = 250
+            return start_price, buy_now
 
 
 def _get_max_buy_now_price(item_market_price):

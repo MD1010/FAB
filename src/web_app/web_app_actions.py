@@ -12,7 +12,7 @@ from src.auth.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
 from src.web_app.price_evaluator import get_futbin_price, get_sell_price
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
-    NoTradeExistingError, NoBudgetLeft
+    NoTradeExistingError, NoBudgetLeft, FutError
 
 
 class WebappActions:
@@ -207,24 +207,45 @@ class WebappActions:
             results = self.search_items(masked_def_id=def_id, max_bin=futbin_price, start=MAX_CARD_ON_PAGE * page)
             if not results:
                 break
-            min_auction = min(results, key=attrgetter('buy_now_price'))
-            curr_min = min_auction.buy_now_price
-            # someone accidently listed
-            if futbin_price != MAX_PRICE and curr_min < futbin_price * 0.5:
-                # buy this immidiately
-                self.snipe_items(min_auction)
-                page += 1
-                continue
-            min_price = min(min_price, curr_min)
+            curr_page_min = min(results, key=attrgetter('buy_now_price')).buy_now_price
+            min_price = min(min_price,curr_page_min)
             if len(results) < MAX_CARD_ON_PAGE: break
             page += 1
             self.send_back_to_new_search_pin_event()
         return min_price
 
     def list_item(self, item_id, starting_bid, buy_now, duration=3600):
-        data = {'buyNowPrice': buy_now, 'duration': duration, 'startingBid': starting_bid, 'itemData': {'id': item_id}}
-        self._web_app_request('POST', 'auctionhouse', data=json.dumps(data))
-        self._web_app_request('GET', 'tradepile', data=json.dumps(data))
+        try:
+            data = {'buyNowPrice': buy_now, 'duration': duration, 'startingBid': starting_bid, 'itemData': {'id': item_id}}
+            self._web_app_request('POST', 'auctionhouse', data=json.dumps(data))
+            self._web_app_request('GET', 'tradepile')
+        except FutError as e:
+            time.sleep(1)
+
+    def list_all_items_in_tradepile(self):
+        # items can be bought at the middle of the search thus this is needed to be in while all items are listed
+        listed_count = 0
+        while True:
+            self.pin.send_transfer_list_pin_evnet()
+            not_listed = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo') if trade.get('tradeId') == 0]
+            if len(not_listed) == 0: break
+            for item in not_listed:
+                item_id = item.get('itemData').get('id')
+                resource_id = item.get('itemData').get('resourceId')
+                market_price = self.get_item_min_price(resource_id)
+                start_price, buy_now = get_sell_price(market_price)
+                self.list_item(item_id, start_price, buy_now)
+                listed_count+=1
+                print(f"listed {listed_count}")
+                # wait a bit to avoid exceptions
+                if listed_count == 5:
+                    time.sleep(1)
+        # check if clear is needed
+        self.pin.send_transfer_list_pin_evnet()
+        sold = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo') if trade.get('tradeId') != 0]
+        # clear if there are sold items
+        if len(sold) != 0:
+            self._web_app_request('DELETE', 'trade/sold')
 
     def logout(self):
         self.request_session.delete(f'https://{self.host}/ut/auth', timeout=REQUEST_TIMEOUT)

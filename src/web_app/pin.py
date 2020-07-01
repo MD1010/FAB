@@ -111,7 +111,7 @@ class Pin(object):
         self.r.options(PIN_URL)
         rc = self.r.post(PIN_URL, data=json.dumps(data)).json()
         if rc['status'] != 'ok':
-            raise WebAppPinEventChanged(reason='Structure of pin event has changed. High risk for ban, we suggest waiting for an update before using the app')
+            raise WebAppPinEventChanged()
         return True
 
     def send_pin_event(self, events: List[WebAppEvent]):
@@ -137,6 +137,12 @@ class Pin(object):
         self.send_pin_event([
             WebAppEvent('page_view', pgid='Transfer Market Results - List View'),
             WebAppEvent('page_view', pgid='Item - Detail View')
+        ])
+    def send_transfer_list_pin_evnet(self):
+        self.send_pin_event([WebAppEvent('menu', pgid='Hub - Transfers')])
+        self.send_pin_event([
+            WebAppEvent('menu', pgid='Transfer List - List View'),
+            WebAppEvent('menu', pgid='Item - Detail View')
         ])
     def send_no_results_pin_event(self):
         self.send_pin_event([WebAppEvent('page_view', pgid='Transfer Market Results - List View')])

@@ -4,6 +4,7 @@ from src.api.web_app import actions
 from src.api.web_app_login import check_login_attempt
 from src.auth.web_app_login import WebAppLogin
 from src.fab_loop import start_fab_loop
+from src.web_app.price_evaluator import get_sell_price
 from src.web_app.web_app_actions import WebappActions
 from utils.helper_functions import server_response
 from utils.usermassinfo import get_user_ut_info
@@ -27,5 +28,7 @@ def start_loop(login_attempt: WebAppLogin):
     if fail_reason:
         return server_response(error=fail_reason, code=503)
     # wa = WebappActions(login_attempt.email)
-    # wa.get_item_min_price(230977)
+    # wa.list_all_items_in_tradepile()
+    # p = wa.get_item_min_price(197756)
+    # s,b = get_sell_price(p)
     return server_response(status="Finished his job successfuly", code=200)
