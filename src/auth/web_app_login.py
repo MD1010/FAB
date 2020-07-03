@@ -69,7 +69,7 @@ class WebAppLogin:
             return session_data
 
         except WebAppLoginError as e:
-            return server_response(error=e.reason, code=401)
+            return server_response(error=e.reason, code=e.code)
 
         except MarketLocked as e:
             return server_response(error=e.reason, code=503)
@@ -123,7 +123,7 @@ class WebAppLogin:
         # if the user exists in db it means that he was logged in successfully previously or code was set correctly with correct credentials
         ea_account = ea_accounts_collection.find_one({"email": self.email})
         if not ea_account:
-            raise WebAppLoginError()
+            raise WebAppLoginError(reason="account doesn't exist in user's accounts", code=400)
         # credential verification from db -> the user already was logged in previously so there is no point to refer to ea
         if bcrypt.hashpw(self.password.encode('utf-8'), ea_account["password"]) == ea_account["password"] and self.platform == ea_account["platform"]:
             if ea_account.get("cookies"):
@@ -140,7 +140,7 @@ class WebAppLogin:
 
         else:
             self.entered_correct_creadentials = False
-            raise WebAppLoginError()
+            raise WebAppLoginError(reason="wrong credentials entered", code=401)
 
     def _navigate_to_login_page(self):
         params = {
@@ -156,7 +156,8 @@ class WebAppLogin:
         }
         self.request_session.headers['Referer'] = EA_WEB_APP_URL
         self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params, timeout=REQUEST_TIMEOUT)
-
+        if not self.ea_server_response.ok:
+            raise WebAppLoginError("some request in login stage didn't go as expected, check for captcha")
         if self.ea_server_response.url != REDIRECT_URI_WEB_APP:
             self.request_session.headers['Referer'] = self.ea_server_response.url
             data = {'email': self.email,
@@ -173,6 +174,8 @@ class WebAppLogin:
 
             self.ea_server_response = self.request_session.post(self.ea_server_response.url,
                                                                 data=data, timeout=REQUEST_TIMEOUT)
+            if not self.ea_server_response.ok:
+                raise WebAppLoginError("some request in login stage didn't go as expected, check for captcha")
 
     def _check_if_correct_credentials(self):
         if "'successfulLogin': false" in self.ea_server_response.text:
@@ -180,7 +183,7 @@ class WebAppLogin:
             failedReason = re.search('general-error">\s+<div>\s+<div>\s+(.*)\s.+',
                                      self.ea_server_response.text).group(1)
             self.entered_correct_creadentials = False
-            raise WebAppLoginError(failedReason)
+            raise WebAppLoginError(reason=failedReason, code=401)
 
     def _send_verification_code_to_client(self, auth_method):
         if self.ea_server_response:
@@ -196,9 +199,9 @@ class WebAppLogin:
                                                                         {'_eventId': 'submit',
                                                                          'codeType': 'EMAIL'})
             else:
-                raise WebAppLoginError(reason='failed to send verification code')
+                raise WebAppLoginError(reason='failed to send verification code', code=503)
         else:
-            raise WebAppLoginError(reason='failed to send verification code')
+            raise WebAppLoginError(reason='failed to send verification code', code=503)
 
     def _set_access_token_first_time(self):
         self.ea_server_response = re.match(
@@ -255,7 +258,6 @@ class WebAppLogin:
     def _get_client_session(self):
         self.request_session.headers = headers.copy()
         self._determine_game_sku()
-        # todo: check whitch PIN EVENT is sent here!
         self._update_access_token()
         self._get_additional_account_data()
         self._check_if_persona_found()
@@ -285,6 +287,8 @@ class WebAppLogin:
                   'redirect_uri': REDIRECT_URI_WEB_APP,
                   'scope': 'basic.identity offline signin'}
         self.ea_server_response = self.request_session.get(WEB_APP_AUTH, params=params)
+        if not self.ea_server_response.ok:
+            raise WebAppLoginError("some request in login stage didn't go as expected, check for captcha")
         self.ea_server_response = re.match(f'{REDIRECT_URI_WEB_APP}#access_token=(.+?)&token_type=(.+?)&expires_in=[0-9]+', self.ea_server_response.url)
         # remid cookie expired
         if self.ea_server_response is None:
@@ -303,7 +307,7 @@ class WebAppLogin:
         self.ea_server_response = self.request_session.get(PIDS_ME_URL).json()
         # this check is not needed ???
         if self.ea_server_response.get('error') == 'invalid_access_token':
-            raise WebAppLoginError(reason="invalid access token")
+            raise WebAppLoginError(reason="invalid access token",code=401)
         self.nucleus_id = self.ea_server_response['pid']['externalRefValue']
         self.dob = self.ea_server_response['pid']['dob']
         del self.request_session.headers['Authorization']
@@ -324,7 +328,7 @@ class WebAppLogin:
                     self.persona_id = p['personaId']
                     break
         if not self.persona_id:
-            raise WebAppLoginError(reason="No persona found - wrong credentials provided.")
+            raise WebAppLoginError(reason="No persona found - wrong credentials provided.", code=401)
 
     def _generate_ds(self, auth_code):
         ds = auth_code + " " + self.sku + " " + self.access_token
@@ -360,18 +364,26 @@ class WebAppLogin:
 
     def _save_sid_if_success(self):
         if self.ea_server_response.status_code == 401:  # and rc.text == 'multiple session'
-            raise WebAppLoginError(reason='Multiple session')
+            raise WebAppLoginError(reason='Multiple session', code=401)
         if self.ea_server_response.status_code == 500:
-            raise WebAppLoginError(reason='Servers are probably temporary down.')
+            raise WebAppLoginError(reason='Servers are probably temporary down.', code=500)
         if self.ea_server_response.status_code == 458:
-            raise WebAppLoginError(reason='Fun Captcha found. Go to web app and solve it, then log in again.')
+            print("if captcha was found and this is not printed, this is useless")
+            raise WebAppLoginError(reason='Fun Captcha found. Go to web app and solve it, then log in again.', code=458)
         if self.ea_server_response.status_code == 403:
-            raise WebAppLoginError(reason='Server returned Forbiden. Probably you have not received access to web app')
+            raise WebAppLoginError(reason='Server returned Forbiden. Probably you have not received access to web app', code=403)
+        if not self.ea_server_response.ok:
+            raise WebAppLoginError("some request in login stage didn't go as expected, check for captcha")
         self.ea_server_response = self.ea_server_response.json()
         if self.ea_server_response.get('reason'):
-            raise WebAppLoginError(reason=self.ea_server_response.get('reason'))
+            raise WebAppLoginError(reason=self.ea_server_response.get('reason'), code=503)
+
         self.request_session.headers['X-UT-SID'] = self.sid = self.ea_server_response['sid']
         self.request_session.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
+
+        res = self.request_session.get(f'https://{self.fut_host}/{GAME_URL}/phishing/question', timeout=REQUEST_TIMEOUT).json()
+        if res.get('code') == '458':
+            raise WebAppLoginError(reason='Fun Captcha found. Go to web app and solve it, then log in again.', code=458)
         # create pin events object
         self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=self.platform)
         return server_response(auth=self.ea_server_response)

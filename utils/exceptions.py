@@ -11,15 +11,15 @@ class FutError(RuntimeError):
         self.string = string
 
 
-class TimeoutError(FutError,BaseTimeout):
+class TimeoutError(FutError, BaseTimeout):
     def __init__(self):
         self.reason = "Request timeout, looks like ea servers are down"
 
 
-
 class WebAppLoginError(FutError):
-    def __init__(self,reason="error during login to web app"):
+    def __init__(self, code, reason="error during login to web app"):
         self.reason = reason
+        self.code = code
 
 
 class WebAppVerificationRequired(FutError):
@@ -43,7 +43,7 @@ class UnknownError(FutError):
 
 
 class NoTradeExistingError(FutError):
-    #[478]
+    # [478]
     def __init__(self):
         self.reason = "Probably you bided on item that has already been sold or the trade id isn't valid"
 
@@ -60,13 +60,13 @@ class MaxSessions(FutError):
 
 
 class InternalServerError(FutError):
-    #[500]
+    # [500]
     def __init__(self):
         self.reason = "Internal server error (invalid parameters?)"
 
 
 class MarketLocked(FutError):
-    #[494]
+    # [494]
     def __init__(self):
         self.reason = "Transfer market is probably disabled on this account"
 
@@ -86,6 +86,7 @@ class Captcha(FutError):
         self.string = string
         self.token = token
         self.img = img
+
 
 class TooManyRequests(FutError):
     # [429]

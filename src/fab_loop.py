@@ -45,8 +45,9 @@ def start_fab_loop(ea_account, search_parameters, configuration):
             results = web_app_actions.search_items(**search_parameters)
             if results:
                 sorted_results = sort_results_by_min_bin(results)
-                bought_items_ids = web_app_actions.snipe_items(sorted_results, is_list_after_buy)
+                bought_items_ids = web_app_actions.snipe_items(sorted_results)
                 # todo: get also the def ids (list of tupples) to call the list items method
+                # todo dont forget the /item
                 if is_list_after_buy:
                     pass
                 else:

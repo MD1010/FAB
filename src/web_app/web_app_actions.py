@@ -51,7 +51,7 @@ class WebappActions:
             401: ExpiredSession,
             409: Conflict,
             429: TooManyRequests,
-            458: Captcha,  # todo handle this someday
+            458: Captcha,
             461: PermissionDenied,
             460: PermissionDenied,
             494: MarketLocked,
@@ -157,7 +157,7 @@ class WebappActions:
 
     """ try to snipe - this function does not check, trade state and is not responsible for deciding the max bin price - it just snipes!"""
 
-    def snipe_items(self, auctions: List[WebAppAuction], list_items=False, item_data_from_request=None):
+    def snipe_items(self, auctions: List[WebAppAuction], item_data_from_request=None):
         # if somehow there are more than one result snipe all the deals from min to max bin!
         bought_items_ids = []
         for min_auction in auctions:
