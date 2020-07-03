@@ -92,6 +92,8 @@ class WebappActions:
                 print("item was sent to transfer list")
             else:
                 print(f"failed to list item, reason: {res['itemData'][0]['reason']}")
+        else:
+            raise FutError(reason="listing went wrong, log into the webapp and chek the issue. come back later.")
 
     def enter_first_transfer_market_search(self):
         self._web_app_request('GET', 'watchlist')
@@ -114,36 +116,21 @@ class WebappActions:
             'type': item_type
         }
 
-        if level:
-            params['lev'] = level
-        if category:
-            params['cat'] = category
-        if masked_def_id:
-            params['maskedDefId'] = masked_def_id
-        if defenition_id:
-            params['definitionId'] = defenition_id
-        if min_price:
-            params['micr'] = min_price
-        if max_price:
-            params['macr'] = max_price
-        if min_bin:
-            params['minb'] = min_bin
-        if max_bin:
-            params['maxb'] = max_bin
-        if league:
-            params['leag'] = league
-        if club:
-            params['team'] = club
-        if position:
-            params['pos'] = position
-        if zone:
-            params['zone'] = zone
-        if nationality:
-            params['nat'] = nationality
-        if rare:
-            params['rare'] = 'SP'
-        if play_style:
-            params['playStyle'] = play_style
+        if level: params['lev'] = level
+        if category: params['cat'] = category
+        if masked_def_id: params['maskedDefId'] = masked_def_id
+        if defenition_id: params['definitionId'] = defenition_id
+        if min_price: params['micr'] = min_price
+        if max_price: params['macr'] = max_price
+        if min_bin: params['minb'] = min_bin
+        if max_bin: params['maxb'] = max_bin
+        if league: params['leag'] = league
+        if club: params['team'] = club
+        if position: params['pos'] = position
+        if zone: params['zone'] = zone
+        if nationality: params['nat'] = nationality
+        if rare: params['rare'] = 'SP'
+        if play_style: params['playStyle'] = play_style
 
         res = self._web_app_request('GET', 'transfermarket', params=params)
 
@@ -232,7 +219,7 @@ class WebappActions:
             self.pin.send_transfer_list_pin_evnet()
             # tradeId = 0 if the item was not listed and if it was not bought coinsProcessed does not exist
             not_sold = [trade for trade in self._web_app_request('GET', 'tradepile').get('auctionInfo')
-                          if (trade.get('tradeId') == 0 or (trade.get('expires') == -1 and not trade.get('coinsProcessed')))]
+                        if (trade.get('tradeId') == 0 or (trade.get('expires') == -1 and not trade.get('coinsProcessed')))]
             if len(not_sold) == 0: break
             for item in not_sold:
                 item_id = item.get('itemData').get('id')
