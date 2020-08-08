@@ -1,4 +1,4 @@
-from src import initApp
+from src import init_app
 
 if __name__ == '__main__':
-    initApp()
+    init_app()

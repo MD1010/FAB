@@ -1,6 +1,9 @@
+import pychrome as pychrome
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.driver import ChromeDriver
 
 from consts import APP_SECRET_KEY, SERVER_IP
 from src.routes import register_routes
@@ -15,7 +18,7 @@ app.config['JSON_SORT_KEYS'] = False
 messages = []
 
 
-def initApp():
+def init_app():
     register_routes(app)
 
     @app.route('/alive',methods=['GET'])

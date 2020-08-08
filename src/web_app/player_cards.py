@@ -16,6 +16,8 @@ def get_card_attribute_by_def_id(player_name, def_id, attribute):
 
 
 def _get_combined_data_from_futbin_and_futwiz(searched_player_name_string):
+    if len(searched_player_name_string) < 3:
+        return []
     futwiz_url_player_data = f'{FUTWIZ_PLAYER_SEARCH}{searched_player_name_string}'
     futbin_url_player_data = f'{FUTBIN_PLAYER_SEARCH}{searched_player_name_string}'
     futwiz_data = json.loads(requests.get(futwiz_url_player_data).content)
@@ -57,12 +59,18 @@ def _get_data_from_futhead(searched_player_name_string):
     existing_cards = []
     futhead_data = json.loads(requests.get(futhead_url_player_data).content)
     if futhead_data:
+
+
         for futhead_record in futhead_data:
-            # if player_in_json_futhead["player_id"] == player_id:
+            card_revision = futhead_record["revision_type"]
+            if futhead_record["revision_type"] == 'NIF':
+                card_revision = futhead_record["rating_color"]
+            if futhead_record["revision_type"] == 'IF':
+                card_revision = futhead_record["rating_color"] + "IF"
             player_card = {
                 'id': futhead_record["def_id"],
                 'name': futhead_record["full_name"],
-                'revision': futhead_record["revision_type"],
+                'revision': card_revision,
                 'rating': futhead_record["rating"],
                 'position': futhead_record["position"],
                 'clubImage': futhead_record["club_image"],
@@ -74,6 +82,7 @@ def _get_data_from_futhead(searched_player_name_string):
 
 
 def get_all_player_cards(searched_player_name_string):
+    if not searched_player_name_string.strip().isalpha(): return []
     existing_cards = _get_data_from_futhead(searched_player_name_string)
     if existing_cards: return existing_cards
     # if no results were found in futhead check futwiz

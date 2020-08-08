@@ -4,6 +4,7 @@ from flask import request
 
 from src.api.web_app import login
 from src.auth.live_logins import authenticated_accounts
+from src.auth.selenium_login import SeleniumLogin
 from src.auth.web_app_login import WebAppLogin
 from utils.helper_functions import server_response
 
@@ -25,6 +26,8 @@ def check_login_attempt(func):
 
 @login.route('/launch', methods=['POST'])
 def ea_web_app_login():
+    # SeleniumLogin()
+    # return "ok"
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
