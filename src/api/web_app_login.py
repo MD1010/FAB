@@ -3,9 +3,8 @@ from functools import wraps
 from flask import request
 
 from src.api.web_app import login
-from src.auth.live_logins import authenticated_accounts
+from src.auth.live_logins import login_attempts
 from src.auth.selenium_login import SeleniumLogin
-from src.auth.web_app_login import WebAppLogin
 from utils.helper_functions import server_response
 
 
@@ -14,38 +13,36 @@ def check_login_attempt(func):
     def determine_if_func_should_run(*args):
         json_data = request.get_json()
         email = json_data['email']
-        login_attempt = authenticated_accounts.get(email)
-        if login_attempt is None:
+        login_attempt = login_attempts.get(email)
+        if not login_attempt:
             return server_response(status='not authenticated', code=401)
-        if login_attempt.entered_correct_creadentials is False:
-            return server_response(status='not authenticated', code=401)
-        return func(login_attempt,*args)
+        return func(login_attempt, *args)
 
     return determine_if_func_should_run
 
 
 @login.route('/launch', methods=['POST'])
 def ea_web_app_login():
-    # SeleniumLogin()
-    # return "ok"
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    platform = json_data.get('platform')
-    return WebAppLogin(email, password, platform).launch_web_app()
+    owner = json_data.get('owner')
+    # platform = json_data.get('platform')
+    return SeleniumLogin(owner, email, password).start_login(email)
+    # return WebAppLogin(email, password, platform).launch_web_app()
 
 
-@login.route('/get-status-code', methods=['POST'])
+# @login.route('/get-status-code', methods=['POST'])
+# @check_login_attempt
+# def get_status_code(login_attempt):
+#     json_data = request.get_json()
+#     auth_method = json_data.get('auth_method')
+#     return login_attempt.get_verification_code(auth_method)
+
+
+@login.route('/send-login-code', methods=['POST'])
 @check_login_attempt
-def get_status_code(login_attempt):
-    json_data = request.get_json()
-    auth_method = json_data.get('auth_method')
-    return login_attempt.get_verification_code(auth_method)
-
-
-@login.route('/login-with-code', methods=['POST'])
-@check_login_attempt
-def send_status_code(login_attempt):
+def send_status_code(login_attempt: SeleniumLogin):
     json_data = request.get_json()
     code = json_data.get('code')
-    return login_attempt.continue_login_with_status_code(code)
+    return login_attempt.set_status_code(code)

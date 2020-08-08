@@ -21,6 +21,9 @@ class WebAppLoginError(FutError):
         self.reason = reason
         self.code = code
 
+class UserNotFound(BaseException):
+    def __init__(self):
+        self.reason = "The user doesn't exist"
 
 class WebAppVerificationRequired(FutError):
     def __init__(self):
