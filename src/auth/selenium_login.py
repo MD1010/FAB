@@ -18,12 +18,15 @@ class SeleniumLogin:
         self.element_actions = None
         self.driver = None
         self.is_status_code_set = None
+        self.sid = None
 
     # exported to api
     def start_login(self, email):
         # if user exists in db then he must have already logged in before and he has cookies
         try:
+            # todo: check if the account belongs to the owner
             existing_account = check_account_if_exists(email)
+
             self.driver = get_or_create_driver_instance(email)
             self.element_actions = ElementActions(self.driver)
             if existing_account:
@@ -32,15 +35,17 @@ class SeleniumLogin:
                 self.login_first_time()
                 self._wait_for_status_code_loop()
                 self._remember_account()
-                self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
-                self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-                # self.element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK, None, timeout=60)
+            self.driver.wait_for_request('https://utas.external.s3.fut.ea.com/ut/auth', timeout=60)
+            for request in self.driver.requests:
+                if request.path == 'https://utas.external.s3.fut.ea.com/ut/auth':
+                    self.sid = request.response.headers.get('X-UT-SID')
+                    break
 
-                for request in self.driver.requests:
-                    if request.response:
-                        print(request)
             close_driver(email)
-            return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
+            print("sid = " + self.sid)
+            if self.sid:
+                return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
+            raise WebAppLoginError(reason=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
 
         except UserNotFound as e:
             return server_response(code=401, error=e.reason)
@@ -50,7 +55,7 @@ class SeleniumLogin:
     def set_status_code(self, status_code):
         try:
             self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                        Keys.CONTROL,"a")
+                                                        Keys.CONTROL, "a")
 
             self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
                                                         status_code)

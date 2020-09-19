@@ -1,5 +1,4 @@
 import datetime
-import math
 from functools import wraps
 
 import bcrypt
@@ -105,5 +104,3 @@ def register_new_ea_account(owner, email, password, cookies):
     hashed_password = hash_password(password)
     new_account = EaAccount(owner, email, hashed_password, cookies).__dict__
     return db.ea_accounts_collection.insert(new_account)
-
-
