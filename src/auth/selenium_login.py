@@ -1,3 +1,4 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 
 from consts import server_status_messages, app, elements
@@ -35,22 +36,26 @@ class SeleniumLogin:
                 self.login_first_time()
                 self._wait_for_status_code_loop()
                 self._remember_account()
-            self.driver.wait_for_request('https://utas.external.s3.fut.ea.com/ut/auth', timeout=60)
-            for request in self.driver.requests:
-                if request.path == 'https://utas.external.s3.fut.ea.com/ut/auth':
-                    self.sid = request.response.headers.get('X-UT-SID')
-                    break
+
+            self.element_actions.check_if_web_app_is_available()
+            self.set_sid_from_requests()
 
             close_driver(email)
-            print("sid = " + self.sid)
+            print("sid = " + self.sid) if self.sid else print("NO SID found")
             if self.sid:
                 return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
             raise WebAppLoginError(reason=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
 
+        except TimeoutException as e:
+            close_driver(email)
+            return server_response(code=503, error=server_status_messages.COULD_NOT_GET_SID)
         except UserNotFound as e:
+            close_driver(email)
             return server_response(code=401, error=e.reason)
         except WebAppLoginError as e:
-            return server_response(msg=server_status_messages.LOGIN_FAILED, code=401)
+            close_driver(email)
+            return server_response(code=e.code, error=e.reason)
+
 
     def set_status_code(self, status_code):
         try:
@@ -117,6 +122,14 @@ class SeleniumLogin:
         login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
         code_error = self.element_actions.get_element(elements.CODE_ERROR)
         if login_error:
-            raise WebAppLoginError
+            raise WebAppLoginError(code=401,reason=server_status_messages.LOGIN_FAILED)
         if code_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.WRONG_STATUS_CODE)
+
+
+    def set_sid_from_requests(self):
+        self.driver.wait_for_request('https://utas.external.s3.fut.ea.com/ut/auth')
+        for request in self.driver.requests:
+            if request.path == 'https://utas.external.s3.fut.ea.com/ut/auth':
+                self.sid = request.response.headers.get('X-UT-SID')
+                break

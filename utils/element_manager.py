@@ -1,14 +1,16 @@
+import time
 from enum import Enum
 from functools import partial
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from consts import elements
+from consts import elements, server_status_messages, TIME_TO_LOGIN
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
+from utils.exceptions import WebAppLoginError
 
 
 class ElementCallback(Enum):
@@ -57,7 +59,6 @@ class ElementActions:
         }
         found_element = path_by_switcher[path_by](actual_path)
         if len(found_element) == 0:
-            print(f"{actual_path} element was not found")
             return None
         return found_element[0]
 
@@ -98,7 +99,7 @@ class ElementActions:
                 if path_by == ElementPathBy.XPATH \
                 else WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, actual_path)))
         except TimeoutException as e:
-            if timeout == 60:  # stuck on login
+            if timeout == TIME_TO_LOGIN:  # stuck on login
                 print("Unable to log into the web app")
             else:
                 raise TimeoutException(f"{actual_path} element was not found - Timeout")
@@ -109,35 +110,38 @@ class ElementActions:
             elements.NO_RESULTS_FOUND) is None:
             pass
 
-    # def check_if_last_element_exist(self):
-    #     while True:
-    #         try:
-    #             self.execute_element_action(elements.NEXT_BUTTON, ElementCallback.CLICK, timeout=0)
-    #             return True
-    #
-    #         except WebDriverException:
-    #             if self.get_element(
-    #                     "{}{}{}".format(START_PLAYER_PRICE_ON_PAGE, 1, END_PLAYER_PRICE_ON_PAGE)):
-    #                 return False
-
     def check_if_web_app_is_available(self):
+        self._wait_for_page_to_load_first_time_after_login()
+        print("checking captchas...")
         getting_started = self.get_element(elements.GETTING_STARTED)
         logged_on_console = self.get_element(elements.LOGGED_ON_CONSOLE)
         login_captcha = self.get_element(elements.LOGIN_CAPTHA)
         login_popup = self.get_element(elements.LOGIN_POPUP)
         if getting_started or logged_on_console or login_captcha or login_popup:
-            return False
-        return True
+            print("found captcha/login screen issue")
+            raise WebAppLoginError(code=503, reason=server_status_messages.WEB_APP_NOT_AVAILABLE)
 
-    # def wait_for_page_to_load_first_time_after_login(self):
-    #     start_time = time.time()
-    #     while time.time() - start_time < TIME_TO_LOGIN / 15:
-    #         try:
-    #             for i in range(3):
-    #                 self.execute_element_action(elements.SETTINGS_ICON, ElementCallback.CLICK, timeout=0)
-    #                 time.sleep(1)
-    #             break
-    #
-    #         except WebDriverException:
-    #             print("loading page.. ")
-    #             time.sleep(1)
+    def _wait_for_page_to_load_first_time_after_login(self):
+        start_time = time.time()
+        is_page_loaded = False
+        while time.time() - start_time < TIME_TO_LOGIN and not is_page_loaded:
+            try:
+                # blocked = when the web app has captcha or club does not exist message the settings icon is located in different place
+                # opened = when the web app is fully loaded
+                blocked_settings =  self.get_element(elements.SETTINGS_ICON_BLOCKED_WEB_APP)
+                opened_settings = self.get_element(elements.SETTINGS_ICON_OPEN_WEB_APP)
+
+                if blocked_settings or opened_settings:
+                    if blocked_settings:
+                        self.execute_element_action(elements.SETTINGS_ICON_BLOCKED_WEB_APP,ElementCallback.CLICK)
+                    else:
+                        self.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP,ElementCallback.CLICK)
+                    is_page_loaded = True
+                else:
+                    raise WebDriverException()
+            except WebDriverException:
+                print("web app loading...")
+                time.sleep(1)
+
+        if not is_page_loaded:
+            raise WebAppLoginError(code=503, reason=server_status_messages.WEB_APP_NOT_AVAILABLE)

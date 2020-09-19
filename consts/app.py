@@ -45,4 +45,4 @@ FUT_HOST = {
     'xbox360': 'utas.external.s3.fut.ea.com:443',
 }
 DS_JS_PATH = os.path.abspath(f'{os.path.dirname(os.path.abspath(""))}/utils/ds.js')
-TIME_TO_LOGIN = 180
+TIME_TO_LOGIN = 60

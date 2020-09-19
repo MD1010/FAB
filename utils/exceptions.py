@@ -112,3 +112,6 @@ class TemporaryBanned(FutError):
 class NoBudgetLeft(FutError):
     def __init__(self):
         self.reason = "You have no more coins left"
+
+class LoadingWebApp(Exception):
+    pass
