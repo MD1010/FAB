@@ -1,5 +1,4 @@
 import datetime
-import math
 from functools import wraps
 
 import bcrypt
@@ -63,7 +62,7 @@ def check_if_user_owns_ea_account(func):
 
 def initialize_ea_account_from_db(owner, email):
     ea_account_from_db = db.ea_accounts_collection.find_one({"email": email})
-    return EaAccount(owner, email, ea_account_from_db["password"], ea_account_from_db["cookies"], ea_account_from_db["username"], ea_account_from_db["platform"])
+    return EaAccount(owner, email, ea_account_from_db["password"], ea_account_from_db["cookies"])
 
 
 def get_ea_account_if_exists(email, password):
@@ -96,30 +95,12 @@ def update_ea_account_total_runtime(fab):
     db.ea_accounts_collection.update({"email": fab.ea_account.email}, {"$inc": {"total_runtime.{}".format(today): fab.ea_account.total_runtime}}, upsert=True)
 
 
-def check_if_new_ea_account(email):
+def check_account_if_exists(email):
     existing_account = db.ea_accounts_collection.find_one({'email': email})
-    if existing_account is not None:
-        return False
-    return True
+    return existing_account
 
 
 def register_new_ea_account(owner, email, password, cookies):
     hashed_password = hash_password(password)
     new_account = EaAccount(owner, email, hashed_password, cookies).__dict__
     return db.ea_accounts_collection.insert(new_account)
-
-
-def update_earned_coins_in_fab(fab, listed_price, bought_price):
-    for element in MAP_INC_DEC_PRICES.items():
-        values = element[0].split("-")
-        if float(values[0]) < listed_price < float(values[1]):
-            scale = float(element[1])
-            break
-    deviation = listed_price % scale
-    if deviation == scale / 2:
-        listed_price = listed_price + deviation
-    elif deviation > scale / 2:
-        listed_price = listed_price - deviation + scale
-    else:
-        listed_price = listed_price - deviation
-    fab.ea_account.coins_earned += (math.ceil(listed_price * 0.95) - bought_price)
