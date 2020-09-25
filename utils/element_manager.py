@@ -126,6 +126,7 @@ class ElementActions:
         is_page_loaded = False
         while time.time() - start_time < TIME_TO_LOGIN and not is_page_loaded:
             try:
+                self.remove_unexpected_popups()
                 # blocked = when the web app has captcha or club does not exist message the settings icon is located in different place
                 # opened = when the web app is fully loaded
                 blocked_settings =  self.get_element(elements.SETTINGS_ICON_BLOCKED_WEB_APP)
@@ -145,3 +146,9 @@ class ElementActions:
 
         if not is_page_loaded:
             raise WebAppLoginError(code=503, reason=server_status_messages.WEB_APP_NOT_AVAILABLE)
+
+    def remove_unexpected_popups(self):
+        remove_element_script = """var element = arguments[0];element.parentNode.removeChild(element);"""
+        popup = self.get_element(elements.VIEW_MODAL_CONTAINER)
+        if popup:
+            self.driver.execute_script(remove_element_script, popup)
