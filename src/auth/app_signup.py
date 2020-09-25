@@ -1,6 +1,4 @@
-from consts import TRIAL
 from consts import server_status_messages
-from models import SubscriptionPlan
 from models import User
 from utils import db
 from utils.helper_functions import hash_password, server_response
@@ -17,8 +15,7 @@ def create_new_user(username, password):
     is_new_user = _check_if_new_user(username)
     if is_new_user:
         hashed_password = hash_password(password)
-        user_basic_subscription_plan = SubscriptionPlan(TRIAL).__dict__
-        new_user = User(username, hashed_password, user_basic_subscription_plan).__dict__
+        new_user = User(username, hashed_password).__dict__
         result = db.users_collection.insert(new_user)
         if result:
             return server_response(msg=server_status_messages.USER_CREATE_SUCCESS, code=201)
