@@ -3,6 +3,7 @@ import time
 
 from consts import MAX_PRICE, BOTTOM_LIMIT_MAX_PRICE, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 from src.web_app.auction_helpers import sort_results_by_min_bin
+from src.web_app.price_evaluator import get_max_buy_now_price
 from src.web_app.web_app_actions import WebappActions
 from utils.exceptions import FutError
 
@@ -11,7 +12,7 @@ def start_fab_loop(ea_account, search_parameters, configuration):
     keepalive_requests_count = 1  # send settings request every 10 minutes every request up the counter
     keepalive_request_interval = 600  # every ten minutes - settings / config.json
     loop_time = configuration['time']
-    is_sniping = configuration['snipe']  # maybe bid
+    is_random_snipe = configuration['randomSnipe']  # maybe bid
     is_list_after_buy = configuration['list']
     search_count = 1
     try:
@@ -38,20 +39,23 @@ def start_fab_loop(ea_account, search_parameters, configuration):
             print(f"search number {search_count}")
 
             # to make the market refresh - randomize the decreases to not get temp ban from searching
-            if is_sniping:
-                search_parameters["max_price"] = MAX_PRICE - random.randint(1, 3) * 1000  # random the decrease to not be suspecious
-                if search_parameters["max_price"] <= BOTTOM_LIMIT_MAX_PRICE: search_parameters["max_price"] = MAX_PRICE
+
+            search_parameters["max_price"] = MAX_PRICE - random.randint(1, 3) * 1000  # random the decrease to not be suspecious
+            if search_parameters["max_price"] <= BOTTOM_LIMIT_MAX_PRICE: search_parameters["max_price"] = MAX_PRICE
+
+            if not is_random_snipe: # buying certain player
+                market_price = web_app_actions.get_item_min_price(search_parameters["def_id"])
+                search_parameters["max_bin"] = get_max_buy_now_price(market_price)
 
             results = web_app_actions.search_items(**search_parameters)
             if results:
                 sorted_results = sort_results_by_min_bin(results)
-                bought_items_ids = web_app_actions.snipe_items(sorted_results)
-                # todo: get also the def ids (list of tupples) to call the list items method
-                # todo dont forget the /item
+                succrssful_bids = web_app_actions.snipe_items(sorted_results)
                 if is_list_after_buy:
-                    pass
+                    for item in succrssful_bids:
+                        web_app_actions.list_item(item.item_id, item.def_id)
                 else:
-                    web_app_actions.send_item_to_trade_pile(bought_items_ids)
+                    web_app_actions.send_item_to_trade_pile(succrssful_bids)
             else:
                 print(f"No results 😑")
             web_app_actions.send_back_to_new_search_pin_event()

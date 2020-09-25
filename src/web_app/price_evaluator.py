@@ -63,5 +63,5 @@ def get_sell_price(market_price):
             return start_price, buy_now
 
 
-def _get_max_buy_now_price(item_market_price):
+def get_max_buy_now_price(item_market_price):
     return item_market_price * EA_TAX - item_market_price * PROFIT_MULTIPLIER

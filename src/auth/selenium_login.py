@@ -1,8 +1,8 @@
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 
-from consts import server_status_messages, app, elements
-from src.auth.live_logins import login_attempts
+from consts import server_status_messages, app, elements, FUT_HOST
+from src.auth.live_logins import login_attempts, authenticated_accounts
 from src.driver import get_or_create_driver_instance, close_driver
 from src.web_app.ea_account_actions import check_account_if_exists, register_new_ea_account
 from utils.element_manager import ElementActions, ElementCallback
@@ -12,7 +12,7 @@ from utils.helper_functions import server_response
 
 class SeleniumLogin:
 
-    def __init__(self, owner, email, password):
+    def __init__(self, owner, email, password, platform):
         self.email = email
         self.password = password
         self.owner = owner
@@ -20,6 +20,9 @@ class SeleniumLogin:
         self.driver = None
         self.is_status_code_set = None
         self.sid = None
+        self.platform = platform
+        # get the platform from the html
+        self.fut_host = FUT_HOST[platform]
 
     # exported to api
     def start_login(self, email):
@@ -39,7 +42,7 @@ class SeleniumLogin:
 
             self.element_actions.check_if_web_app_is_available()
             self.set_sid_from_requests()
-
+            self.add_authenticated_ea_account()
             close_driver(email)
             print("sid = " + self.sid) if self.sid else print("NO SID found")
             if self.sid:
@@ -55,7 +58,6 @@ class SeleniumLogin:
         except WebAppLoginError as e:
             close_driver(email)
             return server_response(code=e.code, error=e.reason)
-
 
     def set_status_code(self, status_code):
         try:
@@ -122,10 +124,9 @@ class SeleniumLogin:
         login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
         code_error = self.element_actions.get_element(elements.CODE_ERROR)
         if login_error:
-            raise WebAppLoginError(code=401,reason=server_status_messages.LOGIN_FAILED)
+            raise WebAppLoginError(code=401, reason=server_status_messages.LOGIN_FAILED)
         if code_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.WRONG_STATUS_CODE)
-
 
     def set_sid_from_requests(self):
         self.driver.wait_for_request('https://utas.external.s3.fut.ea.com/ut/auth')
@@ -133,3 +134,6 @@ class SeleniumLogin:
             if request.path == 'https://utas.external.s3.fut.ea.com/ut/auth':
                 self.sid = request.response.headers.get('X-UT-SID')
                 break
+
+    def add_authenticated_ea_account(self):
+        authenticated_accounts[self.email] = self.email
