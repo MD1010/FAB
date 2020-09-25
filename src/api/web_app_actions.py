@@ -2,24 +2,14 @@ from flask import request
 
 from src.api.web_app import actions
 from src.api.web_app_login import check_login_attempt
-from src.auth.web_app_login import WebAppLogin
+from src.auth.selenium_login import SeleniumLogin
 from src.fab_loop import start_fab_loop
-from src.web_app.price_evaluator import get_sell_price
-from src.web_app.web_app_actions import WebappActions
 from utils.helper_functions import server_response
-from utils.usermassinfo import get_user_ut_info
-
-
-@actions.route('/get-ut-info', methods=['GET'])
-@check_login_attempt
-# todo split it to many routes json too big
-def extract_info(login_attempt: WebAppLogin):
-    return get_user_ut_info(login_attempt.email)
 
 
 @actions.route('/start-loop', methods=['GET'])
 @check_login_attempt
-def start_loop(login_attempt: WebAppLogin):
+def start_loop(login_attempt: SeleniumLogin):
     ea_account = login_attempt.email
     json_data = request.get_json()
     configuration = json_data['configuration']
@@ -27,8 +17,4 @@ def start_loop(login_attempt: WebAppLogin):
     loop_result, fail_reason = start_fab_loop(ea_account, search_parameters, configuration)
     if fail_reason:
         return server_response(error=fail_reason, code=503)
-    # wa = WebappActions(login_attempt.email)
-    # wa.list_all_items_in_tradepile()
-    # p = wa.get_item_min_price(197756)
-    # s,b = get_sell_price(p)
     return server_response(status="Finished his job successfuly", code=200)

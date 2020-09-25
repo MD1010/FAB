@@ -4,9 +4,8 @@ from typing import Dict, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from src.auth.web_app_login import WebAppLogin
     from src.auth.selenium_login import SeleniumLogin
 
-authenticated_accounts: Dict[str, 'WebAppLogin'] = {}
+authenticated_accounts: Dict[str, 'SeleniumLogin'] = {}
 
 login_attempts: Dict[str, 'SeleniumLogin'] = {}

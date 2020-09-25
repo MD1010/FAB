@@ -7,6 +7,7 @@ import requests
 
 from consts import CONTENT_URL, GUID, CONFIG_JSON_SUFFIX, YEAR, MAX_PRICE
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
+from models.successful_bid import SuccessfulBid
 from models.web_app_auction import WebAppAuction
 from src.auth.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
@@ -19,7 +20,8 @@ class WebappActions:
     def __init__(self, ea_account):
         self.login_instance = authenticated_accounts.get(ea_account)
         self.host = self.login_instance.fut_host
-        self.request_session = self.login_instance.request_session
+        self.request_session = requests.Session()
+        self.request_session.headers['X-UT-SID'] = self.login_instance.sid
         self.pin = self.login_instance.pin
         self.request_count = 0
         self.credits = 0
@@ -144,9 +146,9 @@ class WebappActions:
 
     """ try to snipe - this function does not check, trade state and is not responsible for deciding the max bin price - it just snipes!"""
 
-    def snipe_items(self, auctions: List[WebAppAuction], item_data_from_request=None):
+    def snipe_items(self, auctions: List[WebAppAuction]):
         # if somehow there are more than one result snipe all the deals from min to max bin!
-        bought_items_ids = []
+        successful_bids: List[SuccessfulBid] = []
         for min_auction in auctions:
             trade_id = min_auction.trade_id
             coins_to_bid = min_auction.buy_now_price
@@ -156,14 +158,14 @@ class WebappActions:
             try:
                 res = self._web_app_request('PUT', f'trade/{trade_id}/bid', data=json.dumps(data))
                 acquired_item_data = res.get('auctionInfo')[0].get('itemData')
-                successful_bid = get_successfull_trade_data(acquired_item_data, item_data_from_request)
+                successful_bid = get_successfull_trade_data(acquired_item_data)
                 print(
                     f'== SUCEESS {successful_bid.timestamp} == '
                     f'{successful_bid.rating} '
                     f'{successful_bid.revision} '
                     f'{successful_bid.player_name} '
                     f'was bought for {coins_to_bid} coins')
-                bought_items_ids.append(successful_bid.item_id)
+                successful_bids.append(successful_bid)
 
             except (Conflict, PermissionDenied, NoTradeExistingError) as e:
                 time.sleep(3)
@@ -183,7 +185,7 @@ class WebappActions:
 
             except NoBudgetLeft as e:
                 raise e
-        return bought_items_ids
+        return successful_bids
 
     def get_item_min_price(self, def_id):
         futbin_price = get_futbin_price(def_id, self.login_instance.platform)
@@ -198,6 +200,7 @@ class WebappActions:
             if len(results) < MAX_CARD_ON_PAGE: break
             page += 1
             self.send_back_to_new_search_pin_event()
+        # todo: think about "fraiers"
         return min_price
 
     def list_item(self, item_id, def_id, duration=3600):
@@ -225,9 +228,6 @@ class WebappActions:
                 item_id = item.get('itemData').get('id')
                 resource_id = item.get('itemData').get('resourceId')
                 self.list_item(item_id, resource_id)
-                # market_price = self.get_item_min_price(resource_id)
-                # start_price, buy_now = get_sell_price(market_price)
-                # self.list_item(item_id, start_price, buy_now)
                 listed_count += 1
                 print(f"listed {listed_count}")
                 # wait a bit to avoid exceptions

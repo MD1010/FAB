@@ -19,24 +19,15 @@ def get_auction_data(auction_info):
 
 
 def sort_results_by_min_bin(auctions: List[WebAppAuction]) -> List[WebAppAuction]:
-    return sorted(auctions,key=lambda auction: auction.buy_now_price)
+    return sorted(auctions, key=lambda auction: auction.buy_now_price)
 
 
-def get_successfull_trade_data(item_data, item_data_from_request):
-    if item_data_from_request:
-        player_name = item_data_from_request['name']
-        rating = item_data_from_request['rating']
-        revision = item_data_from_request['revision']
-        def_id = item_data_from_request['id']
-    # when buying unknown players
-    else:
-        def_id = item_data.get('resourceId')
-        asset_id = item_data.get('assetId')  # base card id - the id we look in the db
-        rating = item_data.get('rating')
-        player_name = db.players_collection.find_one({'id': asset_id})['name']
-        revision = get_card_attribute_by_def_id(player_name, def_id, 'revision')
-
+def get_successfull_trade_data(item_data) -> SuccessfulBid:
+    def_id = item_data.get('resourceId')
+    asset_id = item_data.get('assetId')  # base card id - the id we look in the db
+    rating = item_data.get('rating')
+    player_name = db.players_collection.find_one({'id': asset_id})['name']
+    revision = get_card_attribute_by_def_id(player_name, def_id, 'revision')
     timestamp = datetime.datetime.now().strftime("%H:%M:%S")
     item_id = item_data.get('id')
-
     return SuccessfulBid(item_id, def_id, player_name, rating, revision, timestamp)

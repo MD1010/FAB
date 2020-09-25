@@ -27,17 +27,8 @@ def ea_web_app_login():
     email = json_data.get('email')
     password = json_data.get('password')
     owner = json_data.get('owner')
-    # platform = json_data.get('platform')
-    return SeleniumLogin(owner, email, password).start_login(email)
-    # return WebAppLogin(email, password, platform).launch_web_app()
-
-
-# @login.route('/get-status-code', methods=['POST'])
-# @check_login_attempt
-# def get_status_code(login_attempt):
-#     json_data = request.get_json()
-#     auth_method = json_data.get('auth_method')
-#     return login_attempt.get_verification_code(auth_method)
+    platform = json_data.get('platform')
+    return SeleniumLogin(owner, email, password, platform).start_login(email)
 
 
 @login.route('/send-login-code', methods=['POST'])
