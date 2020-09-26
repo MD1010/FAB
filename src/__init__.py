@@ -12,12 +12,10 @@ JWTManager(app)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['JSON_SORT_KEYS'] = False
-messages = []
 
 
 def init_app():
     register_routes(app)
-
     @app.route('/alive',methods=['GET'])
     def test():
         return server_response(alive=True)

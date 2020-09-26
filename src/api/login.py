@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import request
 
-from src.api.web_app import login
+from src.api import login
 from src.auth.live_logins import login_attempts
 from src.auth.selenium_login import SeleniumLogin
 from utils.helper_functions import server_response
