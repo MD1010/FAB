@@ -1,7 +1,6 @@
 from flask import request
-
-from src.api import actions
-from src.api.login import check_login_attempt
+from src.api.companion.web_app import actions
+from src.api.companion.login import check_login_attempt
 from src.auth.selenium_login import SeleniumLogin
 from src.fab_loop import start_fab_loop
 from utils.helper_functions import server_response
