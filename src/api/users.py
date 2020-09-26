@@ -4,10 +4,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from src.users.user_details import update_user_username, update_user_password
 
-app_users = Blueprint("application", __name__)
+users = Blueprint("users", __name__)
 
 
-@app_users.route("/update-username", methods=['PUT'])
+@users.route("/update-username", methods=['PUT'])
 @jwt_required
 def edit_username():
     json_data = request.get_json()
@@ -17,7 +17,7 @@ def edit_username():
     return update_user_username(old_username, new_username)
 
 
-@app_users.route('/update-password', methods=['PUT'])
+@users.route('/update-password', methods=['PUT'])
 @jwt_required
 def edit_password():
     json_data = request.get_json()

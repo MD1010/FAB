@@ -19,3 +19,10 @@ def refresh_access_token():
 
 def destructor(**kwargs):
     return kwargs.values()
+
+def get_collection_documents(collection_name):
+    collection = collection_name.find({}, {'_id': 0})
+    res = []
+    for document in collection:
+        res.append(document)
+    return res
