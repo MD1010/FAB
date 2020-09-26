@@ -13,7 +13,6 @@ CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['JSON_SORT_KEYS'] = False
 
-
 def init_app():
     register_routes(app)
     @app.route('/alive',methods=['GET'])
