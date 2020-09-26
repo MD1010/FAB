@@ -1,8 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import jsonify, request
 
+from src.api.web_app import cards
 from src.web_app.player_cards import get_all_player_cards
-
-cards = Blueprint("cards", __name__)
 
 
 @cards.route('/', methods=['GET'])
