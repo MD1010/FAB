@@ -2,9 +2,9 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 
 from consts import server_status_messages, app, elements, FUT_HOST
-from src.auth.live_logins import login_attempts, authenticated_accounts
-from src.driver import get_or_create_driver_instance, close_driver
-from src.web_app.ea_account_actions import check_account_if_exists, register_new_ea_account
+from src.web_app.live_logins import login_attempts, authenticated_accounts
+from utils.driver import get_or_create_driver_instance, close_driver
+from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError
 from utils.helper_functions import server_response

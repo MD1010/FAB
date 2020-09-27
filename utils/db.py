@@ -15,3 +15,10 @@ try:
     teams_collection = fab_db[TEAMS_COLLECTION]
 except ConnectionFailure:
     raise Exception("connection failed")
+
+def get_collection_documents(collection_name):
+    collection = collection_name.find({}, {'_id': 0})
+    res = []
+    for document in collection:
+        res.append(document)
+    return res
