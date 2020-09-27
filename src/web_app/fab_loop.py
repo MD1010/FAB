@@ -4,7 +4,7 @@ import time
 from consts import MAX_PRICE, BOTTOM_LIMIT_MAX_PRICE, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 from src.web_app.auction_helpers import sort_results_by_min_bin
 from src.web_app.price_evaluator import get_max_buy_now_price
-from src.web_app.web_app_actions import WebappActions
+from src.web_app.actions import WebAppActions
 from utils.exceptions import FutError
 
 
@@ -16,7 +16,7 @@ def start_fab_loop(ea_account, search_parameters, configuration):
     is_list_after_buy = configuration['list']
     search_count = 1
     try:
-        web_app_actions = WebappActions(ea_account)
+        web_app_actions = WebAppActions(ea_account)
         start_time = time.time()
         web_app_actions.enter_first_transfer_market_search()  # just pin events
         while True:

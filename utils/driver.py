@@ -5,7 +5,7 @@ from seleniumwire import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
 from consts import app
-from src.auth.live_logins import login_attempts
+from src.web_app.live_logins import login_attempts
 
 opened_drivers: Dict[str, 'WebDriver'] = {}
 def get_or_create_driver_instance(email):

@@ -1,5 +1,5 @@
 class EaAccount:
-    def __init__(self, owner, email, password="", cookies=None):
+    def __init__(self, owner, email, password="", cookies=None, is_running=False):
         if cookies is None:
             cookies = []
         self.owner = owner
@@ -7,3 +7,4 @@ class EaAccount:
         self.password = password
         self.cookies = cookies
         self.coins_earned = {}
+        self.is_running = is_running

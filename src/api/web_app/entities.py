@@ -3,7 +3,7 @@ from flask import jsonify, request
 from src.api.web_app import entities
 from src.web_app.player_cards import get_all_player_cards
 from utils import db
-from utils.helper_functions import get_collection_documents
+from utils.db import get_collection_documents
 
 
 @entities.route('/cards', methods=['GET'])
@@ -23,5 +23,5 @@ def get_all_nations():
 
 
 @entities.route('/teams', methods=['GET'])
-def get_all_clubs():
+def get_all_teams():
     return jsonify(get_collection_documents(db.teams_collection))

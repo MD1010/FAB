@@ -1,6 +1,5 @@
 import bcrypt
 from flask import jsonify, make_response
-from flask_jwt_extended import get_jwt_identity, create_access_token
 
 
 def hash_password(password):
@@ -12,17 +11,5 @@ def server_response(code=200, **kwargs):
     return make_response(res, code)
 
 
-def refresh_access_token():
-    current_user = get_jwt_identity()
-    return create_access_token(identity=current_user)
-
-
 def destructor(**kwargs):
     return kwargs.values()
-
-def get_collection_documents(collection_name):
-    collection = collection_name.find({}, {'_id': 0})
-    res = []
-    for document in collection:
-        res.append(document)
-    return res

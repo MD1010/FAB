@@ -42,3 +42,5 @@ ACCESS_TOKEN_REFRESHED = "new access token was generated"
 CONNECTION_PROBLEM = "check your internet connection, and then restarat the application"
 WRONG_STATUS_CODE = "Wrong code provided"
 COULD_NOT_GET_SID = "X-UT-SID was not found"
+AUTH_FAILED = "Auth failed"  # generated access token
+LOGOUT_SUCCESS = "Logout successfuly"

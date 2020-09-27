@@ -1,37 +1,26 @@
-from functools import wraps
-
 from flask import request
+from flask_jwt_extended import jwt_required
 
+from src.accounts.account_owner import check_if_user_owns_ea_account
 from src.api.web_app import login
-from src.auth.live_logins import login_attempts
-from src.auth.selenium_login import SeleniumLogin
-from utils.helper_functions import server_response
-
-
-def check_login_attempt(func):
-    @wraps(func)
-    def determine_if_func_should_run(*args):
-        json_data = request.get_json()
-        email = json_data['email']
-        login_attempt = login_attempts.get(email)
-        if not login_attempt:
-            return server_response(status='not authenticated', code=401)
-        return func(login_attempt, *args)
-
-    return determine_if_func_should_run
+from src.users.login import check_if_user_authenticated
+from src.web_app.live_logins import check_login_attempt
+from src.web_app.selenium_login import SeleniumLogin
 
 
 @login.route('/launch', methods=['POST'])
-def ea_web_app_login():
+@jwt_required
+@check_if_user_authenticated
+@check_if_user_owns_ea_account
+def ea_web_app_launch(owner):
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    owner = json_data.get('owner')
     platform = json_data.get('platform')
     return SeleniumLogin(owner, email, password, platform).start_login(email)
 
 
-@login.route('/send-login-code', methods=['POST'])
+@login.route('/send-status-code', methods=['POST'])
 @check_login_attempt
 def send_status_code(login_attempt: SeleniumLogin):
     json_data = request.get_json()

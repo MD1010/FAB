@@ -9,14 +9,14 @@ from consts import CONTENT_URL, GUID, CONFIG_JSON_SUFFIX, YEAR, MAX_PRICE
 from consts import GAME_URL, REQUEST_TIMEOUT, MAX_CARD_ON_PAGE
 from models.successful_bid import SuccessfulBid
 from models.web_app_auction import WebAppAuction
-from src.auth.live_logins import authenticated_accounts
+from src.web_app.live_logins import authenticated_accounts
 from src.web_app.auction_helpers import get_auction_data, get_successfull_trade_data
 from src.web_app.price_evaluator import get_futbin_price, get_sell_price
 from utils.exceptions import TimeoutError, UnknownError, ExpiredSession, Conflict, TooManyRequests, Captcha, PermissionDenied, MarketLocked, TemporaryBanned, \
     NoTradeExistingError, NoBudgetLeft, FutError
 
 
-class WebappActions:
+class WebAppActions:
     def __init__(self, ea_account):
         self.login_instance = authenticated_accounts.get(ea_account)
         self.host = self.login_instance.fut_host
