@@ -41,3 +41,17 @@ def register_new_ea_account(owner, email, password, cookies):
     hashed_password = hash_password(password)
     new_account = EaAccount(owner, email, hashed_password, cookies).__dict__
     return db.ea_accounts_collection.insert(new_account)
+
+
+def add_search_filter_to_account(account, search_filter):
+    res = db.ea_accounts_collection.update_one({'email': account}, {"$push": {"search_filters": search_filter}})
+    if res.modified_count > 0:
+        return server_response(code=201, msg=server_status_messages.NEW_SEARCH_FILTER_ADD_SUCCESS)
+    return server_response(code=503, msg=server_status_messages.NEW_SEARCH_FILTER_ADD_FAIL)
+
+
+def remove_search_filter_to_account(account, filter_id):
+    res = db.ea_accounts_collection.update_one({'email': account}, {"$pull": {"search_filters": {"id": filter_id}}})
+    if res.modified_count > 0:
+        return server_response(code=200, msg=server_status_messages.SEARCH_FILTER_REMOVE_SUCCESS)
+    return server_response(code=503, msg=server_status_messages.SEARCH_FILTER_REMOVE_FAIL)
