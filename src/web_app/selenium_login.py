@@ -1,10 +1,11 @@
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
+from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
-from src.web_app.live_logins import login_attempts, authenticated_accounts
-from utils.driver import get_or_create_driver_instance, close_driver
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
+from src.web_app.live_logins import login_attempts, authenticated_accounts
+from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError
 from utils.helper_functions import server_response
@@ -28,10 +29,10 @@ class SeleniumLogin:
     def start_login(self, email):
         # if user exists in db then he must have already logged in before and he has cookies
         try:
-            # todo: check if the account belongs to the owner
+            add_running_account(email)
             existing_account = check_account_if_exists(email)
 
-            self.driver = get_or_create_driver_instance(email)
+            self.driver = create_driver_instance(email)
             self.element_actions = ElementActions(self.driver)
             if existing_account:
                 self.login_with_cookies(existing_account["cookies"])
@@ -58,6 +59,9 @@ class SeleniumLogin:
         except WebAppLoginError as e:
             close_driver(email)
             return server_response(code=e.code, error=e.reason)
+        except MaxRetryError as e:
+            close_driver(email)
+            return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
 
     def set_status_code(self, status_code):
         try:
@@ -86,6 +90,7 @@ class SeleniumLogin:
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         self._raise_if_login_error_label_exists()
+        login_attempts[self.email] = self
 
     def login_first_time(self):
         self.driver.get(app.SIGN_IN_URL)
@@ -98,7 +103,6 @@ class SeleniumLogin:
         # send the sms verfication
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # save the login attempt if the credentials were ok
-        login_attempts[self.email] = self
 
     def _remember_account(self):
         ea_cookies = self.driver.get_cookies()
@@ -113,7 +117,8 @@ class SeleniumLogin:
 
         # update the db
         register_new_ea_account(self.owner, self.email, self.password, ea_cookies)
-
+        login_attempts[self.email] = self
+        login_attempts[self.email].is_running = True
         self.driver.back()
 
     def _wait_for_status_code_loop(self):

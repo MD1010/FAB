@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from src.web_app.selenium_login import SeleniumLogin
 
 authenticated_accounts: Dict[str, 'SeleniumLogin'] = {}
-
+running_accounts = [] # account that a new driver was allocated for them
 login_attempts: Dict[str, 'SeleniumLogin'] = {}
 
 
