@@ -45,3 +45,7 @@ COULD_NOT_GET_SID = "X-UT-SID was not found"
 AUTH_FAILED = "Auth failed"  # generated access token
 LOGOUT_SUCCESS = "Logout successfuly"
 ACCOUNT_ALREADY_RUNNING = 'This account is already running'
+NEW_SEARCH_FILTER_ADD_SUCCESS = "Search filter added successfully"
+NEW_SEARCH_FILTER_ADD_FAIL = "Adding Search Filter Failed"
+SEARCH_FILTER_REMOVE_SUCCESS = "Search filter removed successfully"
+SEARCH_FILTER_REMOVE_FAIL = "Search filter failed to remove"

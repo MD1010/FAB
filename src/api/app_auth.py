@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_refresh_token_required, jwt_required
+from flask_jwt_extended import jwt_refresh_token_required, jwt_required, get_jwt_identity
 
 from consts import server_status_messages
 from src.users.login import log_in_user, check_if_user_authenticated
@@ -28,7 +28,8 @@ def login():
 @auth.route('/logout', methods=['POST'])
 @jwt_required
 @check_if_user_authenticated
-def logout(username):
+def logout():
+    username = get_jwt_identity()['username']
     access_tokens.pop(username)
     refresh_tokens.pop(username)
     return jsonify(msg=server_status_messages.LOGOUT_SUCCESS)

@@ -23,6 +23,7 @@ def check_if_user_owns_ea_account(func):
         if account_owner != owner:
             return server_response(msg=server_status_messages.EA_ACCOUNT_BELONGS_TO_ANOTHER_USER, code=503)
         else:
-            return func(account_owner)
+
+            return func(owner)
 
     return determine_if_func_should_run
