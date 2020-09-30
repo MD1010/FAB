@@ -13,7 +13,7 @@ from utils.helper_functions import server_response
 
 class SeleniumLogin:
 
-    def __init__(self, owner, email, password, platform):
+    def __init__(self, owner, email, password):
         self.email = email
         self.password = password
         self.owner = owner
@@ -21,9 +21,9 @@ class SeleniumLogin:
         self.driver = None
         self.is_status_code_set = None
         self.sid = None
-        self.platform = platform
+        self.platform = None
         # get the platform from the html
-        self.fut_host = FUT_HOST[platform]
+        self.fut_host = None
 
     # exported to api
     def start_login(self, email):
@@ -42,8 +42,9 @@ class SeleniumLogin:
                 self._remember_account()
 
             self.element_actions.check_if_web_app_is_available()
-            self.set_sid_from_requests()
-            self.add_authenticated_ea_account()
+            self._set_sid_from_requests()
+            self._set_user_platform()
+            self._add_authenticated_ea_account()
             close_driver(email)
             print("sid = " + self.sid) if self.sid else print("NO SID found")
             if self.sid:
@@ -103,6 +104,7 @@ class SeleniumLogin:
         # send the sms verfication
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # save the login attempt if the credentials were ok
+        login_attempts[self.email] = self
 
     def _remember_account(self):
         ea_cookies = self.driver.get_cookies()
@@ -117,8 +119,12 @@ class SeleniumLogin:
 
         # update the db
         register_new_ea_account(self.owner, self.email, self.password, ea_cookies)
-        login_attempts[self.email] = self
-        self.driver.back()
+        # enter the web app
+        self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
+        self.element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
+        self.element_actions.execute_element_action(elements.LOGIN_ENTER_APP, ElementCallback.CLICK)
+        self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
+        self.element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
 
     def _wait_for_status_code_loop(self):
         while not self.is_status_code_set:
@@ -132,12 +138,17 @@ class SeleniumLogin:
         if code_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.WRONG_STATUS_CODE)
 
-    def set_sid_from_requests(self):
-        self.driver.wait_for_request('https://utas.external.s3.fut.ea.com/ut/auth')
+    def _set_sid_from_requests(self):
         for request in self.driver.requests:
-            if request.path == 'https://utas.external.s3.fut.ea.com/ut/auth':
+            if str(request.path).endswith('fut.ea.com/ut/auth'):
                 self.sid = request.response.headers.get('X-UT-SID')
                 break
 
-    def add_authenticated_ea_account(self):
+    def _add_authenticated_ea_account(self):
         authenticated_accounts[self.email] = self.email
+
+    def _set_user_platform(self):
+        self.element_actions.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP, ElementCallback.CLICK)
+        platform_element = self.element_actions.get_element(elements.PLATFORM_ICON)
+        platform = platform_element.get_attribute("class").split()[1]
+        self.platform = FUT_HOST[platform]

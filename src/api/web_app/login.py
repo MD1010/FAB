@@ -18,8 +18,7 @@ def ea_web_app_launch(owner):
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    platform = json_data.get('platform')
-    return SeleniumLogin(owner, email, password, platform).start_login(email)
+    return SeleniumLogin(owner, email, password).start_login(email)
 
 
 @login.route('/send-status-code', methods=['POST'])
