@@ -118,7 +118,6 @@ class SeleniumLogin:
         # update the db
         register_new_ea_account(self.owner, self.email, self.password, ea_cookies)
         login_attempts[self.email] = self
-        login_attempts[self.email].is_running = True
         self.driver.back()
 
     def _wait_for_status_code_loop(self):

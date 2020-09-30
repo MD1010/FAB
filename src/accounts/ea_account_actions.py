@@ -11,6 +11,16 @@ def _check_if_account_exists(email):
     return db.users_collection.find_one({"ea_accounts": email})
 
 
+def get_owner_accounts(owner):
+    accounts = []
+    collection = db.ea_accounts_collection.find({"owner": owner}, {'_id': 0, 'cookies': 0, 'password': 0})
+
+    for account in collection:
+        accounts.append(account)
+
+    return server_response(accounts=accounts)
+
+
 def delete_ea_account_from_user(username, email):
     ea_accounts_result = db.ea_accounts_collection.delete_one({"owner": username, "email": email})
     if ea_accounts_result.deleted_count == 0:
@@ -55,3 +65,10 @@ def remove_search_filter_to_account(account, filter_id):
     if res.modified_count > 0:
         return server_response(code=200, msg=server_status_messages.SEARCH_FILTER_REMOVE_SUCCESS)
     return server_response(code=503, msg=server_status_messages.SEARCH_FILTER_REMOVE_FAIL)
+
+
+def set_selected_filter(account, filter_id):
+    res = db.ea_accounts_collection.update_one({'email': account}, {"$push": {"selected_search_filter": {"id": filter_id}}})
+    if res.modified_count > 0:
+        return server_response(code=200, msg=server_status_messages.SEARCH_FILTER_REMOVE_SUCCESS)
+    return server_response(code=503, msg=server_status_messages.MAIN_SEARCH_FILTER_SET_FAIL)
