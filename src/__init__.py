@@ -18,6 +18,13 @@ app.config['transports'] = 'websocket'
 register_routes(app)
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 
+register_routes(app)
+
+
+@app.route('/alive', methods=['GET'])
+def alive():
+    return server_response(alive=True)
+
 
 def notify_web_app_action(event):
     action_type = event['type']
@@ -28,7 +35,7 @@ def notify_web_app_action(event):
 
 @app.route('/alive', methods=['GET'])
 def test():
-    event = dict(type='search', payload= dict(account='md10fifa@gmail.com', info='search was made'))
+    event = dict(type='search', payload=dict(account='md10fifa@gmail.com', info='search was made'))
     notify_web_app_action(event)
     return server_response(alive=True)
 
@@ -47,10 +54,4 @@ def on_leave(account):
     socketio.send(f"{account} has left!", room=account)
 
 
-def init_app():
-    register_routes(app)
-    @app.route('/alive',methods=['GET'])
-    def test():
-        return server_response(alive=True)
-
-    app.run(host=SERVER_IP, debug=True)
+socketio.run(app, host=SERVER_IP, debug=True)

@@ -28,6 +28,7 @@ def remove_search_filter(owner):
     filter_id = json_data.get('filter_id')
     return remove_search_filter_to_account(email, filter_id)
 
+
 @filters.route('/set-selected-filter', methods=['POST'])
 @jwt_required
 @check_if_user_authenticated
