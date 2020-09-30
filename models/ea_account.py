@@ -8,5 +8,5 @@ class EaAccount:
         self.cookies = cookies
         self.coins_earned = {}
         self.search_filters = []
-
+        self.selected_filter = None
 
