@@ -68,10 +68,10 @@ def remove_search_filter_to_account(account, filter_id):
 
 
 def set_selected_filter(account, filter_id):
-    found_filter = db.ea_accounts_collection.find_one({'email': account}, {"search_filters": {"$elemMatch": {"id": filter_id}}})
+    found_filter = db.ea_accounts_collection.find_one({'email': account}, {"search_filters": {"$elemMatch": {"id": filter_id}}})['search_filters'][0]
     if not found_filter:
         return server_response(code=503, msg=server_status_messages.MAIN_SEARCH_FILTER_SET_FAIL)
-    res = db.ea_accounts_collection.update_one({'email': account}, {"$set": {"selected_search_filter": filter_id}})
+    res = db.ea_accounts_collection.update_one({'email': account}, {"$set": {"selected_search_filter": found_filter}})
     if res.modified_count > 0:
         return server_response(code=200, msg=server_status_messages.MAIN_SEARCH_FILTER_SET_SUCESS)
     return server_response(code=503, msg=server_status_messages.MAIN_SEARCH_FILTER_SET_FAIL)
