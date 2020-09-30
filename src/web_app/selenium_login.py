@@ -43,7 +43,7 @@ class SeleniumLogin:
 
             self.element_actions.check_if_web_app_is_available()
             self._set_sid_from_requests()
-            self._set_user_platform()
+            self._set_fut_host()
             self._add_authenticated_ea_account()
             close_driver(email)
             print("sid = " + self.sid) if self.sid else print("NO SID found")
@@ -147,8 +147,8 @@ class SeleniumLogin:
     def _add_authenticated_ea_account(self):
         authenticated_accounts[self.email] = self.email
 
-    def _set_user_platform(self):
+    def _set_fut_host(self):
         self.element_actions.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP, ElementCallback.CLICK)
         platform_element = self.element_actions.get_element(elements.PLATFORM_ICON)
         platform = platform_element.get_attribute("class").split()[1]
-        self.platform = FUT_HOST[platform]
+        self.fut_host = FUT_HOST[platform]
