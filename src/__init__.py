@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO, join_room, leave_room
 
 from consts import APP_SECRET_KEY, SERVER_IP
-from src.routes import register_routes
+from src.api.routes import register_routes
 from utils.helper_functions import server_response
 
 app = Flask(__name__)

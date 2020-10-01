@@ -2,13 +2,14 @@ import random
 import time
 
 from consts import MAX_PRICE, BOTTOM_LIMIT_MAX_PRICE, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
+from src.web_app.actions import WebAppActions
 from src.web_app.auction_helpers import sort_results_by_min_bin
 from src.web_app.price_evaluator import get_max_buy_now_price
-from src.web_app.actions import WebAppActions
+from src.web_app.selenium_login import SeleniumLogin
 from utils.exceptions import FutError
 
 
-def start_fab_loop(ea_account, search_parameters, configuration):
+def start_fab_loop(ea_account: SeleniumLogin, search_parameters, configuration):
     keepalive_requests_count = 1  # send settings request every 10 minutes every request up the counter
     keepalive_request_interval = 600  # every ten minutes - settings / config.json
     loop_time = configuration['time']
@@ -43,7 +44,7 @@ def start_fab_loop(ea_account, search_parameters, configuration):
             search_parameters["max_price"] = MAX_PRICE - random.randint(1, 3) * 1000  # random the decrease to not be suspecious
             if search_parameters["max_price"] <= BOTTOM_LIMIT_MAX_PRICE: search_parameters["max_price"] = MAX_PRICE
 
-            if not is_random_snipe: # buying certain player
+            if not is_random_snipe:  # buying certain player
                 market_price = web_app_actions.get_item_min_price(search_parameters["def_id"])
                 search_parameters["max_bin"] = get_max_buy_now_price(market_price)
 

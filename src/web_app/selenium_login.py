@@ -21,8 +21,6 @@ class SeleniumLogin:
         self.driver = None
         self.is_status_code_set = None
         self.sid = None
-        self.platform = None
-        # get the platform from the html
         self.fut_host = None
 
     # exported to api

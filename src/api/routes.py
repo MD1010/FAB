@@ -1,4 +1,4 @@
-from .api import *
+from src.api import *
 
 
 def register_routes(app):
