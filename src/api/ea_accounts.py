@@ -13,7 +13,6 @@ filters = NestedBlueprint(ea_accounts, 'search-filters')
 @ea_accounts.route('/', methods=['GET'])
 @jwt_required
 @check_if_user_authenticated
-@check_if_user_owns_ea_account
 def get_all_user_accounts(owner):
     return get_owner_accounts(owner)
 

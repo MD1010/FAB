@@ -28,8 +28,7 @@ def login():
 @auth.route('/logout', methods=['POST'])
 @jwt_required
 @check_if_user_authenticated
-def logout():
-    username = get_jwt_identity()['username']
+def logout(username):
     access_tokens.pop(username)
     refresh_tokens.pop(username)
     return jsonify(msg=server_status_messages.LOGOUT_SUCCESS)
@@ -38,5 +37,5 @@ def logout():
 @auth.route('/get-new-access-token', methods=['POST'])
 @jwt_refresh_token_required
 @check_if_user_authenticated
-def refresh_token():
+def refresh_token(username):
     return refresh_access_token()
