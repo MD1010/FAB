@@ -5,6 +5,8 @@ from urllib3.exceptions import MaxRetryError
 from consts import server_status_messages, app, elements, FUT_HOST
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
 from src.web_app.live_logins import login_attempts, authenticated_accounts
+# from src.main import app
+from utils import Socket
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError
@@ -26,7 +28,11 @@ class SeleniumLogin:
     # exported to api
     def start_login(self, email):
         # if user exists in db then he must have already logged in before and he has cookies
+        Socket.socket.emit('waiting_for_code', {'data': 123})
+        return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
+        # socket.emit('waiting_for_code', {'data': 123})
         try:
+
             add_running_account(email)
             existing_account = check_account_if_exists(email)
 
@@ -63,18 +69,14 @@ class SeleniumLogin:
             return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
 
     def set_status_code(self, status_code):
-        try:
-            self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                        Keys.CONTROL, "a")
+        self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                                    Keys.CONTROL, "a")
 
-            self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                        status_code)
-            self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
-            self._raise_if_login_error_label_exists()
-            self.is_status_code_set = True
-        except WebAppLoginError as e:
-            return server_response(code=401, message=e.reason)
-        return server_response(code=200, message=server_status_messages.STATUS_CODE_SET_CORRECTLY)
+        self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
+                                                    status_code)
+        self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+        self._raise_if_login_error_label_exists()
+        self.is_status_code_set = True
 
     def login_with_cookies(self, cookies):
         # self.driver.delete_all_cookies()
@@ -103,6 +105,7 @@ class SeleniumLogin:
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # save the login attempt if the credentials were ok
         login_attempts[self.email] = self
+        # socket.emit('waiting_for_code')
 
     def _remember_account(self):
         ea_cookies = self.driver.get_cookies()

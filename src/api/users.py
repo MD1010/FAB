@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 
 from consts import server_status_messages
 from src.users.login import check_if_user_authenticated
