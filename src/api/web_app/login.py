@@ -17,9 +17,9 @@ def ea_web_app_launch():
     return SeleniumLogin('MD10', email, password).start_login(email)
 
 
-@login.route('/send-status-code', methods=['POST'])
-@check_login_attempt
-def send_status_code(login_attempt: SeleniumLogin):
-    json_data = request.get_json()
-    code = json_data.get('code')
-    return login_attempt.set_status_code(code)
+# @login.route('/send-status-code', methods=['POST'])
+# @check_login_attempt
+# def send_status_code(login_attempt: SeleniumLogin):
+#     json_data = request.get_json()
+#     code = json_data.get('code')
+#     return login_attempt.set_status_code(code)

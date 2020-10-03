@@ -4,9 +4,8 @@ from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
+from src.main import socketio
 from src.web_app.live_logins import login_attempts, authenticated_accounts
-# from src.main import app
-from utils import Socket
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError
@@ -28,9 +27,9 @@ class SeleniumLogin:
     # exported to api
     def start_login(self, email):
         # if user exists in db then he must have already logged in before and he has cookies
-        Socket.socket.emit('waiting_for_code', {'data': 123})
+
+        socketio.emit('waiting_for_code', {'data': 123})
         return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
-        # socket.emit('waiting_for_code', {'data': 123})
         try:
 
             add_running_account(email)
