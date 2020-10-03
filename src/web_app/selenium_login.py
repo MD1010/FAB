@@ -4,7 +4,7 @@ from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
-from src.main import socketio
+from src.app import socketio
 from src.web_app.live_logins import login_attempts, authenticated_accounts
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback

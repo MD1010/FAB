@@ -13,4 +13,6 @@ CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['JSON_SORT_KEYS'] = False
 app.config['transports'] = 'websocket'
+
 socketio = SocketIO(app, cors_allowed_origins="*")
+
