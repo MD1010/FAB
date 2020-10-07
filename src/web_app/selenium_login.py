@@ -4,11 +4,10 @@ from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
-from src.app import socketio
 from src.web_app.live_logins import login_attempts, authenticated_accounts
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
-from utils.exceptions import UserNotFound, WebAppLoginError
+from utils.exceptions import UserNotFound, WebAppLoginError, AuthCodeRequired
 from utils.helper_functions import server_response
 
 
@@ -20,39 +19,23 @@ class SeleniumLogin:
         self.owner = owner
         self.element_actions = None
         self.driver = None
-        self.is_status_code_set = None
         self.sid = None
         self.fut_host = None
-
     # exported to api
-    def start_login(self, email):
-        # if user exists in db then he must have already logged in before and he has cookies
-
-        socketio.emit('waiting_for_code', {'data': 123})
-        return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
+    def web_app_login(self, email):
         try:
-
+            # first login try
             add_running_account(email)
-            existing_account = check_account_if_exists(email)
-
             self.driver = create_driver_instance(email)
             self.element_actions = ElementActions(self.driver)
+
+            existing_account = check_account_if_exists(email)
+
             if existing_account:
                 self.login_with_cookies(existing_account["cookies"])
             else:  # login the first time
                 self.login_first_time()
-                self._wait_for_status_code_loop()
-                self._remember_account()
-
-            self.element_actions.check_if_web_app_is_available()
-            self._set_sid_from_requests()
-            self._set_fut_host()
-            self._add_authenticated_ea_account()
-            close_driver(email)
-            print("sid = " + self.sid) if self.sid else print("NO SID found")
-            if self.sid:
-                return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
-            raise WebAppLoginError(reason=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
+            return self._launch()
 
         except TimeoutException as e:
             close_driver(email)
@@ -60,6 +43,8 @@ class SeleniumLogin:
         except UserNotFound as e:
             close_driver(email)
             return server_response(code=401, error=e.reason)
+        except AuthCodeRequired as e:
+            return server_response(msg=e.reason)
         except WebAppLoginError as e:
             close_driver(email)
             return server_response(code=e.code, error=e.reason)
@@ -67,12 +52,41 @@ class SeleniumLogin:
             close_driver(email)
             return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
 
-    def set_status_code(self, status_code):
+    # exported to api
+    def login_with_code(self, email, auth_code):
+        try:
+            self._set_status_code(auth_code)
+            self._remember_account()
+            return self._launch()
+        except TimeoutException as e:
+            close_driver(self.email)
+            return server_response(code=503, error=server_status_messages.COULD_NOT_GET_SID)
+        except WebAppLoginError as e:
+            # dont close the driver if code is incorrect
+            if e.reason != server_status_messages.WRONG_STATUS_CODE:
+                close_driver(email)
+            return server_response(code=e.code, error=e.reason)
+        except MaxRetryError as e:
+            close_driver(email)
+            return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
+
+    def _launch(self):
+        self.element_actions.check_if_web_app_is_available()
+        self._set_sid_from_requests()
+        self._set_fut_host()
+        self._add_authenticated_ea_account()
+        close_driver(self.email)
+        print("sid = " + self.sid) if self.sid else print("NO SID found")
+        if self.sid:
+            return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
+        raise WebAppLoginError(reason=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
+
+    def _set_status_code(self, auth_code):
         self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
                                                     Keys.CONTROL, "a")
 
         self.element_actions.execute_element_action(elements.ONE_TIME_CODE_FIELD, ElementCallback.SEND_KEYS,
-                                                    status_code)
+                                                    auth_code)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         self._raise_if_login_error_label_exists()
         self.is_status_code_set = True
@@ -104,7 +118,7 @@ class SeleniumLogin:
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # save the login attempt if the credentials were ok
         login_attempts[self.email] = self
-        # socket.emit('waiting_for_code')
+        raise AuthCodeRequired()
 
     def _remember_account(self):
         ea_cookies = self.driver.get_cookies()
@@ -126,10 +140,6 @@ class SeleniumLogin:
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
         self.element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
 
-    def _wait_for_status_code_loop(self):
-        while not self.is_status_code_set:
-            pass
-
     def _raise_if_login_error_label_exists(self):
         login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
         code_error = self.element_actions.get_element(elements.CODE_ERROR)
@@ -137,6 +147,7 @@ class SeleniumLogin:
             raise WebAppLoginError(code=401, reason=server_status_messages.LOGIN_FAILED)
         if code_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.WRONG_STATUS_CODE)
+            # socketio.emit('wrong_code')
 
     def _set_sid_from_requests(self):
         for request in self.driver.requests:

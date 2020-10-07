@@ -51,3 +51,4 @@ SEARCH_FILTER_REMOVE_SUCCESS = "Search filter removed successfully"
 SEARCH_FILTER_REMOVE_FAIL = "Search filter failed to remove"
 MAIN_SEARCH_FILTER_SET_FAIL = "Main Search filter failed to set"
 MAIN_SEARCH_FILTER_SET_SUCESS = "Main Search filter was set successfully"
+TOO_MANY_ATTEMPTS_TO_SET_CODE = 'Too mant attempts to set access code. Login Failed'

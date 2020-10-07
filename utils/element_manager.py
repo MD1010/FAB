@@ -10,6 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from consts import elements, server_status_messages, TIME_TO_LOGIN
 from consts.elements import START_PLAYER_PRICE_ON_PAGE, END_PLAYER_PRICE_ON_PAGE
+from src.app import socketio
 from utils.exceptions import WebAppLoginError
 
 
@@ -112,7 +113,7 @@ class ElementActions:
 
     def check_if_web_app_is_available(self):
         self._wait_for_page_to_load_first_time_after_login()
-        print("checking captchas...")
+        socketio.emit('captchaCheck', "checking for captchas...")
         getting_started = self.get_element(elements.GETTING_STARTED)
         logged_on_console = self.get_element(elements.LOGGED_ON_CONSOLE)
         login_captcha = self.get_element(elements.LOGIN_CAPTHA)
@@ -129,19 +130,19 @@ class ElementActions:
                 self.remove_unexpected_popups()
                 # blocked = when the web app has captcha or club does not exist message the settings icon is located in different place
                 # opened = when the web app is fully loaded
-                blocked_settings =  self.get_element(elements.SETTINGS_ICON_BLOCKED_WEB_APP)
+                blocked_settings = self.get_element(elements.SETTINGS_ICON_BLOCKED_WEB_APP)
                 opened_settings = self.get_element(elements.SETTINGS_ICON_OPEN_WEB_APP)
 
                 if blocked_settings or opened_settings:
                     if blocked_settings:
-                        self.execute_element_action(elements.SETTINGS_ICON_BLOCKED_WEB_APP,ElementCallback.CLICK)
+                        self.execute_element_action(elements.SETTINGS_ICON_BLOCKED_WEB_APP, ElementCallback.CLICK)
                     else:
-                        self.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP,ElementCallback.CLICK)
+                        self.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP, ElementCallback.CLICK)
                     is_page_loaded = True
                 else:
                     raise WebDriverException()
             except WebDriverException:
-                print("web app loading...")
+                socketio.emit("loadingWebApp", "web app loading...")
                 time.sleep(1)
 
         if not is_page_loaded:

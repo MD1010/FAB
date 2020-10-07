@@ -115,3 +115,7 @@ class NoBudgetLeft(FutError):
 
 class LoadingWebApp(Exception):
     pass
+
+class AuthCodeRequired(Exception):
+    def __init__(self):
+        self.reason = "Auth code is required"
