@@ -1,5 +1,6 @@
 import random
 import time
+import threading
 
 from consts import MAX_PRICE, BOTTOM_LIMIT_MAX_PRICE, AMOUNT_OF_SEARCHES_BEFORE_SLEEP, SLEEP_MID_OPERATION_DURATION
 from src.web_app.actions import WebAppActions
@@ -7,7 +8,15 @@ from src.web_app.auction_helpers import sort_results_by_min_bin
 from src.web_app.price_evaluator import get_max_buy_now_price
 from src.web_app.selenium_login import SeleniumLogin
 from utils.exceptions import FutError
+from utils.helper_functions import server_response
+from src.accounts.ea_account_actions import update_ea_account_status
+from models import EaAccountStatus
 
+def start_loop_run(ea_account: SeleniumLogin, search_parameters, configuration):
+    loop_thread = threading.Thread(target=start_fab_loop, args=(ea_account,search_parameters,configuration,), daemon=True)
+    loop_thread.start()
+    update_ea_account_status(ea_account.email, EaAccountStatus.RUNNING)
+    return server_response(code=200, msg="Running request accepted")
 
 def start_fab_loop(ea_account: SeleniumLogin, search_parameters, configuration):
     keepalive_requests_count = 1  # send settings request every 10 minutes every request up the counter

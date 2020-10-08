@@ -22,6 +22,6 @@ def check_login_attempt(func):
         login_attempt = login_attempts.get(email)
         if not login_attempt:
             return server_response(status='not authenticated', code=401)
-        return func(login_attempt, *args)
+        return func(login_attempt)
 
     return determine_if_func_should_run
