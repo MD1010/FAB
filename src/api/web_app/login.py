@@ -10,18 +10,18 @@ from utils.driver import check_if_driver_is_already_opened
 
 
 @login.route('/launch', methods=['POST'])
-@jwt_required
-@check_if_user_authenticated
-@check_if_driver_is_already_opened
-@check_if_user_owns_ea_account
-def ea_web_app_launch(owner):
+# @jwt_required
+# @check_if_user_authenticated
+# @check_if_driver_is_already_opened
+# @check_if_user_owns_ea_account
+def ea_web_app_launch():
     json_data = request.get_json()
     email = json_data.get('email')
     password = json_data.get('password')
-    return SeleniumLogin(owner, email, password).web_app_login(email)
+    return SeleniumLogin('Lidor10', email, password).web_app_login(email)
 
 
-@login.route('/send-status-code', methods=['POST'])
+@login.route('/launch-with-code', methods=['POST'])
 @check_login_attempt
 def send_status_code(login_attempt: SeleniumLogin):
     json_data = request.get_json()

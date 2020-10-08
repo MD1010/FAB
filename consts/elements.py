@@ -3,6 +3,7 @@ PASSWORD_FIELD = "//*[@id='password']"
 EMAIL_FIELD = "//*[@id='email']"
 BTN_NEXT = "btn-next"
 LOGIN_ENTER_APP="/html/body/main/div/div/div/button[1]"
+LOGIN_CREDENTIALS_CAPTCHA= 'recaptcha'
 LOGIN_BTN = "//*[@id='btnLogin']"
 CODE_BTN = "//input[@name='codeType' and @value='SMS']"
 ONE_TIME_CODE_FIELD = "//*[@id='oneTimeCode']"

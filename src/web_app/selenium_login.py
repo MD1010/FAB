@@ -1,9 +1,12 @@
+import time
+
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
 from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
+from src.app import socketio
 from src.web_app.live_logins import login_attempts, authenticated_accounts
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
@@ -24,13 +27,14 @@ class SeleniumLogin:
     # exported to api
     def web_app_login(self, email):
         try:
+            socketio.emit('open',"Opening web app...")
+
             # first login try
             add_running_account(email)
             self.driver = create_driver_instance(email)
             self.element_actions = ElementActions(self.driver)
 
             existing_account = check_account_if_exists(email)
-
             if existing_account:
                 self.login_with_cookies(existing_account["cookies"])
             else:  # login the first time
@@ -44,7 +48,7 @@ class SeleniumLogin:
             close_driver(email)
             return server_response(code=401, error=e.reason)
         except AuthCodeRequired as e:
-            return server_response(msg=e.reason)
+            return server_response(msg=e.reason, codeRequired=True)
         except WebAppLoginError as e:
             close_driver(email)
             return server_response(code=e.code, error=e.reason)
@@ -71,6 +75,7 @@ class SeleniumLogin:
             return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
 
     def _launch(self):
+        socketio.emit('correctCredentials',"Login Success. Launching web app... ")
         self.element_actions.check_if_web_app_is_available()
         self._set_sid_from_requests()
         self._set_fut_host()
@@ -101,8 +106,11 @@ class SeleniumLogin:
 
         self.element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK, None, timeout=60)
         # Entering password left, and you are in!
+        socketio.emit('credentialsCheck',"checking account credentials...")
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
+        # check for login credentials captcha
+
         self._raise_if_login_error_label_exists()
         login_attempts[self.email] = self
 
@@ -143,6 +151,10 @@ class SeleniumLogin:
     def _raise_if_login_error_label_exists(self):
         login_error = self.element_actions.get_element(elements.LOGIN_ERROR)
         code_error = self.element_actions.get_element(elements.CODE_ERROR)
+
+        captcha_error = self.element_actions.get_element(elements.LOGIN_CREDENTIALS_CAPTCHA)
+        if captcha_error:
+            raise WebAppLoginError(code=503, reason=server_status_messages.WEB_APP_NOT_AVAILABLE)
         if login_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.LOGIN_FAILED)
         if code_error:

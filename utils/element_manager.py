@@ -142,7 +142,6 @@ class ElementActions:
                 else:
                     raise WebDriverException()
             except WebDriverException:
-                socketio.emit("loadingWebApp", "web app loading...")
                 time.sleep(1)
 
         if not is_page_loaded:
