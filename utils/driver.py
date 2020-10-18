@@ -30,16 +30,17 @@ def close_driver(email):
         driver.quit()
         if login_attempts.get(email):
             del login_attempts[email]
-    running_accounts.remove(email)
+        if email in running_accounts:
+            running_accounts.remove(email)
 
 def add_running_account(email):
     running_accounts.append(email)
 
 def check_if_driver_is_already_opened(func):
     @wraps(func)
-    def determine_if_driver_should_open(*args):
+    def determine_if_driver_should_open(*args, **kwargs):
         if request.get_json().get('email') in running_accounts:
             return server_response(msg=server_status_messages.ACCOUNT_ALREADY_RUNNING, code=503)
-        return func(*args)
+        return func(*args, **kwargs)
 
     return determine_if_driver_should_open

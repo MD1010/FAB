@@ -13,12 +13,12 @@ from utils.tokens import access_tokens, refresh_tokens
 
 def check_if_user_authenticated(func):
     @wraps(func)
-    def determine_if_func_should_run():
+    def determine_if_func_should_run(**kwargs):
         token = request.headers.get('Authorization').split()[1]
         username = get_jwt_identity()['username']
         if access_tokens.get(username) != token and refresh_tokens.get(username) != token:
             return server_response(status=server_status_messages.AUTH_FAILED, code=401)
-        return func(username)
+        return func(username, **kwargs)
 
     return determine_if_func_should_run
 

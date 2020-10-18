@@ -5,13 +5,15 @@ from selenium.webdriver.common.keys import Keys
 from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
-from src.accounts.ea_account_actions import check_account_if_exists, register_new_ea_account
 from src.app import socketio
+from src.accounts.ea_account_actions import check_account_if_exists, update_ea_account_logged_details, update_ea_account_status
 from src.web_app.live_logins import login_attempts, authenticated_accounts
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError, AuthCodeRequired
 from utils.helper_functions import server_response
+
+from models import EaAccountStatus
 
 
 class SeleniumLogin:
@@ -35,26 +37,26 @@ class SeleniumLogin:
             self.element_actions = ElementActions(self.driver)
 
             existing_account = check_account_if_exists(email)
-            if existing_account:
+            if existing_account["cookies"]:
                 self.login_with_cookies(existing_account["cookies"])
-            else:  # login the first time
+            else:
                 self.login_first_time()
             return self._launch()
 
         except TimeoutException as e:
             close_driver(email)
-            return server_response(code=503, error=server_status_messages.COULD_NOT_GET_SID)
+            return server_response(code=503, msg=server_status_messages.COULD_NOT_GET_SID)
         except UserNotFound as e:
             close_driver(email)
-            return server_response(code=401, error=e.reason)
+            return server_response(code=401, msg=e.reason)
         except AuthCodeRequired as e:
             return server_response(msg=e.reason, codeRequired=True)
         except WebAppLoginError as e:
             close_driver(email)
-            return server_response(code=e.code, error=e.reason)
+            return server_response(code=e.code, msg=e.reason)
         except MaxRetryError as e:
             close_driver(email)
-            return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
+            return server_response(code=503, msg=server_status_messages.DRIVER_OPEN_FAIL)
 
     # exported to api
     def login_with_code(self, email, auth_code):
@@ -83,6 +85,7 @@ class SeleniumLogin:
         close_driver(self.email)
         print("sid = " + self.sid) if self.sid else print("NO SID found")
         if self.sid:
+            update_ea_account_status(self.email, EaAccountStatus.CONNECTED)
             return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200)
         raise WebAppLoginError(reason=server_status_messages.WEB_APP_NOT_AVAILABLE, code=503)
 
@@ -97,7 +100,7 @@ class SeleniumLogin:
         self.is_status_code_set = True
 
     def login_with_cookies(self, cookies):
-        # self.driver.delete_all_cookies()
+        #self.driver.delete_all_cookies()
         for cookie in cookies:
             if 'expiry' in cookie:
                 del cookie['expiry']
@@ -140,7 +143,7 @@ class SeleniumLogin:
                 ea_cookies.append(cookie)
 
         # update the db
-        register_new_ea_account(self.owner, self.email, self.password, ea_cookies)
+        update_ea_account_logged_details(self.email, self.password, ea_cookies)
         # enter the web app
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
         self.element_actions.execute_element_action(elements.LOGIN_BTN, ElementCallback.CLICK)
@@ -154,6 +157,9 @@ class SeleniumLogin:
 
         captcha_error = self.element_actions.get_element(elements.LOGIN_CREDENTIALS_CAPTCHA)
         if captcha_error:
+            # todo delete cookies from db
+            update_ea_account_logged_details(self.email, self.password, [])
+            update_ea_account_status(EaAccountStatus.DISCONNECTED)
             raise WebAppLoginError(code=503, reason=server_status_messages.WEB_APP_NOT_AVAILABLE)
         if login_error:
             raise WebAppLoginError(code=401, reason=server_status_messages.LOGIN_FAILED)
@@ -163,15 +169,22 @@ class SeleniumLogin:
 
     def _set_sid_from_requests(self):
         for request in self.driver.requests:
-            if str(request.path).endswith('fut.ea.com/ut/auth'):
+            if str(request.path).endswith('/ut/auth'):
                 self.sid = request.response.headers.get('X-UT-SID')
                 break
 
     def _add_authenticated_ea_account(self):
-        authenticated_accounts[self.email] = self.email
+        authenticated_accounts[self.email] = self
 
     def _set_fut_host(self):
         self.element_actions.execute_element_action(elements.SETTINGS_ICON_OPEN_WEB_APP, ElementCallback.CLICK)
         platform_element = self.element_actions.get_element(elements.PLATFORM_ICON)
         platform = platform_element.get_attribute("class").split()[1]
         self.fut_host = FUT_HOST[platform]
+
+    def disconnect(self):
+        close_driver(self.email)
+        if authenticated_accounts.get(self.email):
+            del authenticated_accounts[self.email]
+        update_ea_account_status(self.email, EaAccountStatus.DISCONNECTED)
+        return server_response(msg=server_status_messages.EA_ACCOUNT_DISCONNECT_SUCCESS, code=200)
