@@ -2,7 +2,6 @@ from functools import wraps
 
 from flask import request
 from flask_jwt_extended import get_jwt_identity
-
 from consts import server_status_messages
 from utils import db
 from utils.helper_functions import server_response, decrypt_password
@@ -39,7 +38,7 @@ def check_if_user_first_login(func):
         if not user_account["password"]:
             return server_response(msg="should login first", code=200)
 
-        password = decrypt_password(user_account["password"], user_account["passKey"])
+        password = decrypt_password(user_account["password"])
         return func(user_account.get('owner'), email, password)
 
     return determine_if_func_should_run

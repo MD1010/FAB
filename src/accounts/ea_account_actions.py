@@ -41,8 +41,8 @@ def delete_ea_account_from_user(owner, email):
     return server_response(msg=server_status_messages.EA_ACCOUNT_DELETE_SUCCESS, code=200)
 
 def update_ea_account_logged_details(email, password, cookies):
-    encrypted_password, key = encrypt_password(password)
-    db.ea_accounts_collection.update_one({"email": email}, { "$set": { "password": encrypted_password, "cookies": cookies, "passKey": key }}, upsert=True)
+    encrypted_password = encrypt_password(password)
+    db.ea_accounts_collection.update_one({"email": email}, { "$set": { "password": encrypted_password, "cookies": cookies}}, upsert=True)
 
 def update_ea_account_status(email, status):
     res = db.ea_accounts_collection.update_one({"email": email}, { "$set": { "status": status.value}}, upsert=True)

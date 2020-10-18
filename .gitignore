@@ -8,4 +8,6 @@ __pycache__/
 /debug.log
 /consts/db_connection.py
 /consts/server.py
+/.vscode
+.env
 

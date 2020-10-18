@@ -169,7 +169,6 @@ class SeleniumLogin:
 
     def _set_sid_from_requests(self):
         for request in self.driver.requests:
-            print(str(request.path))
             if str(request.path).endswith('/ut/auth'):
                 self.sid = request.response.headers.get('X-UT-SID')
                 break
