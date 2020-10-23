@@ -16,7 +16,7 @@ filters = NestedBlueprint(ea_accounts, 'search-filters')
 def get_all_user_accounts(owner):
     return get_owner_accounts(owner)
 
-@ea_accounts.route('/add', methods=['POST'])
+@ea_accounts.route('/add-account', methods=['POST'])
 @jwt_required
 @check_if_user_authenticated
 def add_user_ea_account(owner):
@@ -24,10 +24,12 @@ def add_user_ea_account(owner):
     email = json_data.get('ea_account')
     return add_new_ea_account(owner, email)
 
-@ea_accounts.route('/delete/<email>', methods=['DELETE'])
+@ea_accounts.route('/delete-account', methods=['DELETE'])
 @jwt_required
 @check_if_user_authenticated
-#@check_if_user_owns_ea_account
-def delete_user_ea_account(owner, **kwargs):
-    return delete_ea_account_from_user(owner, kwargs['email'])
+@check_if_user_owns_ea_account
+def delete_user_ea_account(owner):
+    json_data = request.get_json()
+    email = json_data.get('email')
+    return delete_ea_account_from_user(owner, email)
 

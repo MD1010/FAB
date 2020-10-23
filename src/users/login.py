@@ -17,7 +17,7 @@ def check_if_user_authenticated(func):
         token = request.headers.get('Authorization').split()[1]
         username = get_jwt_identity()['username']
         if access_tokens.get(username) != token and refresh_tokens.get(username) != token:
-            return server_response(status=server_status_messages.AUTH_FAILED, code=401)
+            return server_response(msg=server_status_messages.AUTH_FAILED, code=401)
         return func(username, **kwargs)
 
     return determine_if_func_should_run
@@ -33,7 +33,11 @@ def log_in_user(username, password):
         refresh_token = create_refresh_token({'username': username}, expires_delta=datetime.timedelta(hours=token_expires_in_hours * 8))
         access_tokens[username] = access_token
         refresh_tokens[username] = refresh_token
-        return server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200, access_token=access_token, refresh_token=refresh_token,
-                               expires_in=token_expires_in_hours * 3600)
+        res = server_response(msg=server_status_messages.LOGIN_SUCCESS, code=200, access_token=access_token,
+                              expires_in=token_expires_in_hours * 3600)
+        now = datetime.datetime.now()
+        expiration_date = now + datetime.timedelta(days=7)
+        res.set_cookie('refresh_token', refresh_token, httponly=True, path="/api/auth/refresh", expires=expiration_date)
+        return res
     else:
         return server_response(msg=server_status_messages.LOGIN_FAILED, code=401)

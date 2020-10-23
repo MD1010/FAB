@@ -1,19 +1,16 @@
-import time
-
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from urllib3.exceptions import MaxRetryError
 
 from consts import server_status_messages, app, elements, FUT_HOST
-from src.app import socketio
+from models import EaAccountStatus
 from src.accounts.ea_account_actions import check_account_if_exists, update_ea_account_logged_details, update_ea_account_status
+from src.app import socketio
 from src.web_app.live_logins import login_attempts, authenticated_accounts
 from utils.driver import create_driver_instance, close_driver, add_running_account
 from utils.element_manager import ElementActions, ElementCallback
 from utils.exceptions import UserNotFound, WebAppLoginError, AuthCodeRequired
 from utils.helper_functions import server_response
-
-from models import EaAccountStatus
 
 
 class SeleniumLogin:
@@ -26,10 +23,11 @@ class SeleniumLogin:
         self.driver = None
         self.sid = None
         self.fut_host = None
+
     # exported to api
     def web_app_login(self, email):
         try:
-            socketio.emit('open',"Opening web app...")
+            socketio.emit('open', "Opening web app...")
 
             # first login try
             add_running_account(email)
@@ -66,18 +64,18 @@ class SeleniumLogin:
             return self._launch()
         except TimeoutException as e:
             close_driver(self.email)
-            return server_response(code=503, error=server_status_messages.COULD_NOT_GET_SID)
+            return server_response(code=503, msg=server_status_messages.COULD_NOT_GET_SID)
         except WebAppLoginError as e:
             # dont close the driver if code is incorrect
             if e.reason != server_status_messages.WRONG_STATUS_CODE:
                 close_driver(email)
-            return server_response(code=e.code, error=e.reason)
+            return server_response(msg=e.reason)
         except MaxRetryError as e:
             close_driver(email)
-            return server_response(code=503, error=server_status_messages.DRIVER_OPEN_FAIL)
+            return server_response(code=503, msg=server_status_messages.DRIVER_OPEN_FAIL)
 
     def _launch(self):
-        socketio.emit('correctCredentials',"Login Success. Launching web app... ")
+        socketio.emit('correctCredentials', "Login Success. Launching web app... ")
         self.element_actions.check_if_web_app_is_available()
         self._set_sid_from_requests()
         self._set_fut_host()
@@ -100,7 +98,7 @@ class SeleniumLogin:
         self.is_status_code_set = True
 
     def login_with_cookies(self, cookies):
-        #self.driver.delete_all_cookies()
+        # self.driver.delete_all_cookies()
         for cookie in cookies:
             if 'expiry' in cookie:
                 del cookie['expiry']
@@ -109,7 +107,7 @@ class SeleniumLogin:
 
         self.element_actions.execute_element_action(elements.FIRST_LOGIN, ElementCallback.CLICK, None, timeout=60)
         # Entering password left, and you are in!
-        socketio.emit('credentialsCheck',"checking account credentials...")
+        socketio.emit('credentialsCheck', "checking account credentials...")
         self.element_actions.execute_element_action(elements.PASSWORD_FIELD, ElementCallback.SEND_KEYS, self.password)
         self.element_actions.execute_element_action(elements.BTN_NEXT, ElementCallback.CLICK)
         # check for login credentials captcha
