@@ -40,7 +40,7 @@ def refresh_token():
     json_data = request.get_json()
     username = json_data.get('username')
     if not token:
-        return server_response(msg=server_status_messages.REFRESH_TOKEN_REQUIRED)
+        return server_response(msg=server_status_messages.REFRESH_TOKEN_REQUIRED,code=400)
     if token != refresh_tokens.get(username):
-        return server_response(msg=server_status_messages.INVALID_REFRESH_TOKEN)
+        return server_response(msg=server_status_messages.INVALID_REFRESH_TOKEN, code=400)
     return refresh_access_token(username)

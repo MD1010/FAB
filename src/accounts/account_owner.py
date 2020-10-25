@@ -10,7 +10,7 @@ from utils.helper_functions import server_response, decrypt_password
 def check_if_user_owns_ea_account(func):
     @wraps(func)
     def determine_if_func_should_run(*args):
-        owner = get_jwt_identity()['username']
+        owner = get_jwt_identity()
         json_data = request.get_json()
         email = json_data.get('email')
         # check if owner or username fields exist
