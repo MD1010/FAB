@@ -16,7 +16,7 @@ def check_if_user_authenticated(func):
     def determine_if_func_should_run(**kwargs):
         token = request.headers.get('Authorization').split()[1]
         username = get_jwt_identity()
-        if access_tokens.get(username) != token and refresh_tokens.get(username) != token:
+        if token not in access_tokens.get(username) and token not in refresh_tokens.get(username):
             return server_response(msg=server_status_messages.AUTH_FAILED, code=401)
         return func(username, **kwargs)
 
@@ -31,8 +31,8 @@ def log_in_user(username, password):
         token_expires_in_hours = 3
         access_token = create_access_token(username, expires_delta=datetime.timedelta(seconds=5))
         refresh_token = create_refresh_token(username, expires_delta=datetime.timedelta(hours=token_expires_in_hours * 8))
-        access_tokens[username] = access_token
-        refresh_tokens[username] = refresh_token
+        access_tokens[username] = access_tokens.get(username) or [] + [access_token]
+        refresh_tokens[username] = refresh_tokens.get(username) or [] + [refresh_token]
         res = server_response(msg=server_status_messages.LOGIN_SUCCESS, access_token=access_token)
         now = datetime.datetime.now()
         expiration_date = now + datetime.timedelta(days=7)
