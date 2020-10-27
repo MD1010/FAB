@@ -1,8 +1,8 @@
 import datetime
-from typing import Dict,List
+from typing import Dict, List
 
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity, create_access_token
+from flask_jwt_extended import create_access_token
 
 # username: last_token
 access_tokens: Dict[str, List[str]] = {}
