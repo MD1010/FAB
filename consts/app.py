@@ -1,6 +1,6 @@
 import os
 
-APP_SECRET_KEY = 'EA708E8DE7AACDFCAB0A7351714682CCCD906591C27E0DF23E1D77880995566A'
+APP_SECRET_KEY = os.getenv('APP_SECRET_KEY')
 ROOT_URL = 'https://www.easports.com'
 BASE_URL = 'fifa/ultimate-team/web-application/content'
 WEB_APP_URL = "https://www.ea.com/fifa/ultimate-team/web-app/"

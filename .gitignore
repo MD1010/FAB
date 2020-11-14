@@ -6,8 +6,6 @@ __pycache__/
 /cookies.txt
 /screenshots/
 /debug.log
-/consts/db_connection.py
-/consts/server.py
 /.vscode
 .env
 
