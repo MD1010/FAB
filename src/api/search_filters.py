@@ -4,12 +4,12 @@ from flask_jwt_extended import jwt_required
 from src.accounts.account_owner import check_if_user_owns_ea_account
 from src.accounts.ea_account_actions import add_search_filter_to_account, remove_search_filter_to_account, set_selected_filter
 from src.api.ea_accounts import filters
-from src.users.login import check_if_user_authenticated
+from src.users.login import check_if_user_was_authenticated
 
 
 @filters.route('/add-filter', methods=['POST'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 @check_if_user_owns_ea_account
 def add_search_filter(owner):
     json_data = request.get_json()
@@ -20,7 +20,7 @@ def add_search_filter(owner):
 
 @filters.route('/remove-filter', methods=['POST'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 @check_if_user_owns_ea_account
 def remove_search_filter(owner):
     json_data = request.get_json()
@@ -31,7 +31,7 @@ def remove_search_filter(owner):
 
 @filters.route('/set-selected-filter', methods=['POST'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 @check_if_user_owns_ea_account
 def set_selected_search_filter(owner):
     json_data = request.get_json()

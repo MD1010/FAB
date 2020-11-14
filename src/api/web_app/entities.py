@@ -3,7 +3,7 @@ from flask import request
 from flask_jwt_extended import jwt_required
 
 from src.accounts.ea_account_actions import get_owner_accounts
-from src.users.login import check_if_user_authenticated
+from src.users.login import check_if_user_was_authenticated
 from src.web_app.player_cards import get_all_player_cards
 from utils import db
 from utils.db import get_collection_documents
@@ -32,6 +32,6 @@ def get_all_teams():
 
 @entities.route('/accounts', methods=['GET'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 def get_all_user_accounts(owner):
     return jsonify(get_owner_accounts(owner))

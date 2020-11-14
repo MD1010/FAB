@@ -10,6 +10,6 @@ refresh_tokens: Dict[str, List[str]] = {}
 
 
 def refresh_access_token(username):
-    new_access_token = create_access_token(identity=username,expires_delta=datetime.timedelta(seconds=5))
+    new_access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(seconds=5))
     access_tokens[username].append(new_access_token)
     return jsonify(access_token=new_access_token)

@@ -3,7 +3,7 @@ from flask import request
 from flask_jwt_extended import jwt_required
 
 from consts import server_status_messages
-from src.users.login import check_if_user_authenticated
+from src.users.login import check_if_user_was_authenticated
 from src.users.user_details import update_user_username, update_user_password
 from utils.helper_functions import server_response
 
@@ -12,7 +12,7 @@ users = Blueprint("users", __name__)
 
 @users.route("/update-username", methods=['PUT'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 def edit_username(username):
     json_data = request.get_json()
     # make sure to log again to fetch an updated useraname
@@ -24,7 +24,7 @@ def edit_username(username):
 
 @users.route('/update-password', methods=['PUT'])
 @jwt_required
-@check_if_user_authenticated
+@check_if_user_was_authenticated
 def edit_password(username):
     json_data = request.get_json()
     if json_data.get('username') != username:

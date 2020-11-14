@@ -11,7 +11,7 @@ from utils.helper_functions import server_response
 from utils.tokens import access_tokens, refresh_tokens
 
 
-def check_if_user_authenticated(func):
+def check_if_user_was_authenticated(func):
     @wraps(func)
     def determine_if_func_should_run(**kwargs):
         token = request.headers.get('Authorization').split()[1]
@@ -28,15 +28,10 @@ def log_in_user(username, password):
     if not user:
         return server_response(msg=server_status_messages.LOGIN_FAILED, code=401)
     if bcrypt.hashpw(password.encode('utf-8'), user["password"]) == user["password"]:
-        token_expires_in_hours = 3
         access_token = create_access_token(username, expires_delta=datetime.timedelta(seconds=5))
-        refresh_token = create_refresh_token(username, expires_delta=datetime.timedelta(hours=token_expires_in_hours * 8))
+        refresh_token = create_refresh_token(username, expires_delta=datetime.timedelta(days=1))
         access_tokens[username] = (access_tokens.get(username) or []) + [access_token]
         refresh_tokens[username] = (refresh_tokens.get(username) or []) + [refresh_token]
-        res = server_response(msg=server_status_messages.LOGIN_SUCCESS, access_token=access_token)
-        now = datetime.datetime.now()
-        expiration_date = now + datetime.timedelta(days=7)
-        res.set_cookie('refresh_token', refresh_token, httponly=True, expires=expiration_date, samesite="None", path="/api/auth/refresh")
-        return res
+        return server_response(msg=server_status_messages.LOGIN_SUCCESS, access_token=access_token, refresh_token=refresh_token)
     else:
         return server_response(msg=server_status_messages.LOGIN_FAILED, code=401)
